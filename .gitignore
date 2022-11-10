@@ -1,4 +1,4 @@
 .vs
 .git
-/Gamemode/bin
-/GameMode/obj
+/Gamemode/bin/
+/GameMode/obj/
