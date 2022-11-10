@@ -24,7 +24,7 @@ namespace FPSMO.Entities
     /// <summary>
     /// Round-specific data i.e., data that changes regularly throughout the round
     /// </summary>
-    public class PlayerData
+    internal class PlayerData
     {
         public ushort hits;
         public ushort kills;
@@ -37,12 +37,17 @@ namespace FPSMO.Entities
 
         public bool bVoted;
         public ushort vote; // Can be 1 2 or 3
+
+        // The below fields help us prevent sending the same message twice. This keeps ping low/prevents the packet queue from clogging up
+        public string lastCPEStatus1, lastCPEStatus2, lastCPEStatus3,
+            lastCPEBottomRight1, lastCPEBottomRight2, lastCPEBottomRight3,
+            lastCPEAnnouncement, lastCPESmallAnnouncement, lastCPEBigAnnouncement;
     }
 
     /// <summary>
     /// Handles all player data across the game
     /// </summary>
-    public class PlayerDataHandler
+    internal class PlayerDataHandler
     {
         /*************************
         * SINGLETON BOILERPLATE *

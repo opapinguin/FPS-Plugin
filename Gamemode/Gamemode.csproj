@@ -1,12 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net4.0</TargetFramework>
-    <AssemblyName>FPSMO</AssemblyName>
+    <TargetFramework>net40</TargetFramework>
+    <AssemblyName>Gamemode</AssemblyName>
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
     <RootNamespace>FPSMO</RootNamespace>
+    <Company>WOCC Team</Company>
+    <Product>FPSMO</Product>
   </PropertyGroup>
 
   <ItemGroup>

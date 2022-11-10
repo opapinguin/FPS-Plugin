@@ -60,6 +60,11 @@ namespace FPSMO
             if (stage == Stage.Round && subStage == SubStage.Middle)
             {
                 ShowToAll(ShowRoundTime);
+                ShowToAll(ShowStamina);
+                ShowToAll(ShowHealth);
+                ShowToAll(ShowMoney);
+                ShowToAll(ShowTeamStatistics);
+                ShowToAll(ShowLevel);
             }
             if (stage == Stage.Voting && subStage == SubStage.Middle)
             {

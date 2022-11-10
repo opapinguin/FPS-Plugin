@@ -7,7 +7,7 @@ C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\MCGalaxy_.dll
 C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\MySql.Data.dll
 C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\MCGalaxy_.pdb
 C:\Users\laure\source\repos\Gamemode\Gamemode\obj\Debug\net4.0\Gamemode.csproj.CopyComplete
-C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\FPSMO.dll
-C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\FPSMO.pdb
-C:\Users\laure\source\repos\Gamemode\Gamemode\obj\Debug\net4.0\FPSMO.dll
-C:\Users\laure\source\repos\Gamemode\Gamemode\obj\Debug\net4.0\FPSMO.pdb
+C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\GameMode.dll
+C:\Users\laure\source\repos\Gamemode\Gamemode\bin\Debug\net4.0\GameMode.pdb
+C:\Users\laure\source\repos\Gamemode\Gamemode\obj\Debug\net4.0\GameMode.dll
+C:\Users\laure\source\repos\Gamemode\Gamemode\obj\Debug\net4.0\GameMode.pdb

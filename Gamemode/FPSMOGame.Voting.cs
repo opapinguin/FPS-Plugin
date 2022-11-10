@@ -73,7 +73,7 @@ namespace FPSMO
         #region end
         private void EndVoting()
         {
-            MessageMap(CpeMessageType.Normal, String.Format("Votes are in! {0}, {1}, {2}", votes1, votes2, votes3));
+            MessageMap(CpeMessageType.Normal, String.Format("Votes are in! map 1: {0} map 2: {1} map 3: {2}", votes1, votes2, votes3));
             ShowToAll(ClearBottomRight);
 
             OnPlayerChatEvent.Unregister(HandleVoting); // TODO: Probably just want all this in the plugins sections for elegance
@@ -81,7 +81,6 @@ namespace FPSMO
             string nextMap;
 
             nextMap = GetNextMap();
-            Logger.Log(LogType.ConsoleMessage, "nextmap " + nextMap);
 
             // TODO: Save Stats
 

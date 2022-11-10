@@ -14,7 +14,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Users\\laure\\source\\repos\\Gamemode\\Gamemode\\Gamemode.csproj",
-      "projectName": "FPSMO",
+      "projectName": "Gamemode",
       "projectPath": "C:\\Users\\laure\\source\\repos\\Gamemode\\Gamemode\\Gamemode.csproj",
       "packagesPath": "C:\\Users\\laure\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\laure\\source\\repos\\Gamemode\\Gamemode\\obj\\",
@@ -32,7 +32,7 @@
       },
       "frameworks": {
         "net40": {
-          "targetAlias": "net4.0",
+          "targetAlias": "net40",
           "projectReferences": {}
         }
       },
@@ -44,7 +44,7 @@
     },
     "frameworks": {
       "net40": {
-        "targetAlias": "net4.0",
+        "targetAlias": "net40",
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.411\\RuntimeIdentifierGraph.json"
       }
     }

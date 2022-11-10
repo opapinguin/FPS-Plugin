@@ -73,6 +73,7 @@ namespace FPSMO
                 }
                 Thread.Sleep(1000);                         // Sleep one second (not generally preferred but in this case nothing else needs happening)
             }
+
             if (players.Count < 1)     // TODO: Changethis back to 2
             {
                 MessageMap(CpeMessageType.Normal, "&WNeed 2 or more non-ref players to start a round."); return;
