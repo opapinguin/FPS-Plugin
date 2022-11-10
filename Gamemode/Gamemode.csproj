@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.0</TargetFramework>
+    <AssemblyName>FPSMO</AssemblyName>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <RootNamespace>FPSMO</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="MCGalaxy_">
+      <HintPath>..\..\..\..\Desktop\MCGalaxy-master\bin\Debug\MCGalaxy_.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Database\" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,106 @@
+﻿/*
+Copyright 2022 WOCC Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+using MCGalaxy.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace FPSMO.Entities
+{
+    /// <summary>
+    /// Round-specific data i.e., data that changes regularly throughout the round
+    /// </summary>
+    public class PlayerData
+    {
+        public ushort hits;
+        public ushort kills;
+        public ushort deaths;
+        public int money;
+
+        public ushort stamina;
+        public ushort health;
+        public string team;
+
+        public bool bVoted;
+        public ushort vote; // Can be 1 2 or 3
+    }
+
+    /// <summary>
+    /// Handles all player data across the game
+    /// </summary>
+    public class PlayerDataHandler
+    {
+        /*************************
+        * SINGLETON BOILERPLATE *
+        *************************/
+        #region Singleton Boilerplate
+        private static PlayerDataHandler instance = new PlayerDataHandler();
+        private static readonly object padlock = new object();
+
+        public static PlayerDataHandler Instance
+        {
+            get
+            {
+                lock (padlock)
+                {
+                    if (instance == null)
+                    {
+                        instance = new PlayerDataHandler();
+                    }
+                    return instance;
+                }
+            }
+        }
+
+        #endregion
+        
+        /**********
+         * FIELDS *
+         **********/
+        public Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
+        public int numPlayers = 0;
+        
+        /******************
+         * HELPER METHODS *
+         ******************/
+        public PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
+        {
+            get { return dictPlayerData[name]; }
+            set {
+                dictPlayerData[name] = value;
+                numPlayers = dictPlayerData.Values.Count();
+            }
+        }
+
+        public bool PlayerExists(string name)
+        {
+            return dictPlayerData.ContainsKey(name);
+        }
+
+        public void ResetPlayerData()
+        {
+            Dictionary<string, PlayerData> newDictionary = new Dictionary<string, PlayerData>();
+            
+            foreach (string key in dictPlayerData.Keys)
+            {
+                newDictionary[key] = new PlayerData();
+            }
+
+            dictPlayerData = newDictionary;
+        }
+    }
+}
