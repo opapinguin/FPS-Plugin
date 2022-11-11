@@ -54,6 +54,7 @@ namespace MCGalaxy
             {
                 Database.CreateTable("Results", new ColumnDesc[] {
                     new ColumnDesc("ID", ColumnType.UInt32),
+                    new ColumnDesc("RoundID", ColumnType.UInt32),
                     new ColumnDesc("Team", ColumnType.VarChar),
                     new ColumnDesc("Player", ColumnType.VarChar),
                     new ColumnDesc("Kills", ColumnType.UInt8),
@@ -69,7 +70,42 @@ namespace MCGalaxy
             /******************
              * DATABASE VIEWS *
              ******************/
-            // TODO: Implement
+            Database.Execute(
+@"CREATE VIEW IF NOT EXISTS PlayerStats AS
+SELECT Player, SUM(Kills) as TotalKills, SUM(Deaths) as TotalDeaths
+FROM Results
+GROUP BY Player;"
+            );
+
+            Database.Execute(
+@"CREATE VIEW IF NOT EXISTS TeamResults AS
+SELECT RoundID, Team, SUM(Kills) AS TotalKills
+FROM Results
+GROUP BY RoundID, Team;"
+            );
+
+            Database.Execute(
+@"CREATE VIEW IF NOT EXISTS WinningTeam AS
+	SELECT RoundID,
+	CASE
+		WHEN WinnersCount > 1 THEN 'TIE'
+		ELSE Team
+	END AS Team
+	FROM
+	(
+		SELECT _TeamResults.RoundID, COUNT(*) AS WinnersCount, _TeamResults.team AS team
+		FROM
+		(
+			SELECT RoundID, MAX(TotalKills) as BestTeamKillsCount
+			FROM TeamResults
+			GROUP BY RoundID
+		) _RoundInfo
+		JOIN TeamResults _TeamResults ON _TeamResults.RoundID = _RoundInfo.RoundID
+		WHERE _RoundInfo.BestTeamKillsCount = _TeamResults.TotalKills
+		GROUP BY _RoundInfo.RoundID
+	)
+;"
+            );
 
             #endregion
             /***********
