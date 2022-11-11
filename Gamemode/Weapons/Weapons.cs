@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FPSMO.Configuration;
 using MCGalaxy;
 using MCGalaxy.Maths;
 using MCGalaxy.Network;
@@ -30,65 +31,69 @@ namespace FPSMO.Weapons
      *********************/
     public abstract class Weapon
     {
-        public abstract void Use(Vec3F32 dir, Vec3F32 loc, ushort strength);
-        public abstract void OnHit(Player attacker, Player receiver);
-        public abstract void CanHit(Vec3F32 locAttacker, Vec3F32 locReceiver);
+        public abstract void Use(Orientation rot, Vec3F32 loc, ushort strength);
+        public virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
+        {
+            ushort status = (ushort)((float)(tick - lastFireTick) / (float)reloadTimeTicks * 10);
+            return (ushort)(status > 10 ? 10 : status);
+        }
+        public virtual void Reset() { lastFireTick = 0; }
 
-        protected int damage, moneyCost;
-        protected DateTime fireTime;
-        protected TimeSpan reloadTime;
+        protected uint damage;
+        protected uint lastFireTick;    // Much more efficient than using timespans
+        protected uint reloadTimeTicks; // Ditto
         protected Player player;
     }
 
-    public abstract class Projectile : Weapon
+    public abstract class ProjectileWeapon : Weapon
     {
-        public abstract Vec3F32 LocAt(DateTime t);
+        public abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick);
 
-        protected float speed;
-        protected Position origin;
-        protected Orientation originOrientation;
+        protected float velocity;
         protected BlockID block;
     }
 
-    public class GunWeapon : Projectile
+    public class GunWeapon : ProjectileWeapon
     {
         public GunWeapon(Player pl)
         {
-            damage = 1;
-            moneyCost = 1;
-            reloadTime = TimeSpan.FromMilliseconds(200);
+            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
+
+            damage = config.GUN_DAMAGE;     // TODO: Might be nicer to put this in the game configuration
+            reloadTimeTicks = config.MS_GUN_RELOAD_MS;
             player = pl;
-            origin = pl.Pos;
-            originOrientation = pl.Rot;
-            block = Block.Gold;
+            block = config.GUN_BLOCK;
+            lastFireTick = WeaponAnimsHandler.Tick;
+            velocity = config.MS_GUN_VELOCITY;
         }
 
-        public override void CanHit(Vec3F32 locAttacker, Vec3F32 locReceiver)
+        /// <summary>
+        /// Location at a given time relative
+        /// </summary>
+        public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime)
         {
-            throw new NotImplementedException();
+            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
+
+            float timeSpanTicks = tick - fireTime;
+            float distance = velocity * timeSpanTicks / config.MS_UPDATE_WEAPON_ANIMATIONS * 1000;
+
+            Vec3F32 dir = DirUtils.GetDirVector(rot.RotY, rot.HeadX);
+
+            // Note these are precise coordinates, and so are actually large by a factor of 32
+            return new Vec3F32(dir.X * distance + orig.X,
+                dir.Y * distance + orig.Y,
+                dir.Z * distance + orig.Z);
         }
 
-        public override Vec3F32 LocAt(DateTime t)
+        public override void Use(Orientation rot, Vec3F32 loc, ushort strength) // TODO: Implement strength
         {
-            int timeSpanMS = (t - fireTime).Milliseconds;
-            Vec3F32 loc = new Vec3F32(player.Rot.RotX * timeSpanMS + origin.X, player.Rot.RotY * timeSpanMS + origin.Y, player.Rot.RotZ * timeSpanMS + origin.Z);
-            return loc;
-        }
-
-        public override void OnHit(Player attacker, Player receiver)
-        {
-            throw new NotImplementedException();
-        }
-
-        public override void Use(Vec3F32 dir, Vec3F32 loc, ushort strength)
-        {
-            fireTime = DateTime.Now;
+            lastFireTick = WeaponAnimsHandler.Tick;
             // Instantiate the weapon animation
-            Animation fireAnimation = new ProjectileAnimation(player, DateTime.Now, block, LocAt);
+            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, LocAt);
+        }
 
-            WeaponAnimsHandler.AddAnimation(fireAnimation);
-
-            // TODO: Other logic for hit detection (keep this decoupled from the animationHandler)
+        ~GunWeapon() {
+            Logger.Log(LogType.ConsoleMessage, "Deleted");
         }
     }
 }

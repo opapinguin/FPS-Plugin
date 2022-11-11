@@ -17,7 +17,7 @@ namespace FPSMO.Configuration
 {
     public struct FPSMOMapConfig
     {
-        public FPSMOMapConfig(int RoundTime)
+        public FPSMOMapConfig(uint RoundTime)
         {
             this.RoundTime_S = RoundTime;
             this.rating = 0;
@@ -27,6 +27,6 @@ namespace FPSMO.Configuration
         public float rating;
         public float totalRatings;
         public float sumRatings;
-        public int RoundTime_S;
+        public uint RoundTime_S;
     }
 }

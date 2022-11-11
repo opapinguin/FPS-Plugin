@@ -115,13 +115,16 @@ namespace FPSMO
         private void PlayerJoinedGame(Player p)
         {
             players.Add(p);
-            PlayerDataHandler.Instance[p.name] = new PlayerData();
+            PlayerDataHandler.Instance[p.name] = new PlayerData(p);
+            SendBindings(p);
         }
 
         private void PlayerLeftGame(Player p)
         {
             players.Remove(p);
+            // TODO: Remove bindings here
             PlayerDataHandler.Instance.dictPlayerData.Remove(p.name);
+            RemoveBindings(p);
         }
 
         #endregion

@@ -29,18 +29,28 @@ namespace FPSMO.Weapons
      * Animation Data Structures *
      *****************************/
     #region Data Structures
-    public struct AnimBlock {
-        public AnimBlock(Vec3U16 loc, BlockID type)
+    public struct AnimBlock : IEqualityComparer<AnimBlock> {
+        public AnimBlock(Vec3U16 loc, BlockID block)
         {
             x = loc.X;
             y = loc.Y;
             z = loc.Z;
-            block = type;
+            this.block = block;
         }
-        public ushort x;
-        public ushort y;
-        public ushort z;
+        public System.UInt16 x;
+        public System.UInt16 y;
+        public System.UInt16 z;
         public BlockID block;
+
+        public bool Equals(AnimBlock a, AnimBlock b)
+        {
+            return (a.x == b.x && a.y == b.y && a.z == b.z && a.block == b.block);
+        }
+
+        public int GetHashCode(AnimBlock obj)
+        {
+            return obj.GetHashCode();
+        }
     }
 
     /// <summary>
@@ -48,29 +58,58 @@ namespace FPSMO.Weapons
     /// </summary>
     public abstract class Animation
     {
+        protected Player shooter;
         protected DateTime start;
-        public abstract List<AnimBlock> GetCurrentBlocks(Player p, DateTime t);
+        /// <summary>
+        /// Gets the current blocks at a specific animation tick
+        /// </summary>
+        public abstract List<AnimBlock> GetCurrentBlocks(float tick);
+
+        /// <summary>
+        /// Gets the current blocks in a range of ticks. Interpolates your blocks
+        /// </summary>
+        public virtual List<AnimBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, bool interpolate=true, uint maxDepth=0)
+        {
+            List<AnimBlock> result = new List<AnimBlock>();
+            if (Enumerable.SequenceEqual(GetCurrentBlocks(tickStart), GetCurrentBlocks(tickEnd)) || maxDepth >= 5)  // maxDepth just in case
+            {
+                return GetCurrentBlocks(tickStart);
+            }
+
+            // TODO: If interpolate consider also the length of the gun itself. Or maybe remove the bool and just consider it
+
+            // Since we do not have easy access to the inverse of our locat functions, we employ a sort of binary search
+            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, interpolate, maxDepth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, interpolate, maxDepth + 1));
+            return result;
+        }
     }
 
     public class ProjectileAnimation : Animation
     {
-        public delegate Vec3F32 LocAt(DateTime t);  // Location at delegates the parametric function of our choice. Assumes a 1D path
-        LocAt locationCallback;
-        BlockID block;
-        DateTime startTime;
-        Player shooter;
-        public ProjectileAnimation(Player p, DateTime start, BlockID b, LocAt ft)
+        public delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime);  // Location at delegates the parametric function of our choice. Assumes a 1D path
+
+        private LocAt locAt;
+        private BlockID block;
+        private uint fireTimeTick;
+        private Position origin;
+        private Orientation rotation;
+        public ProjectileAnimation(Player p, uint start, BlockID b, Position orig, Orientation rot, LocAt ft)
         {
             shooter = p;
-            startTime = start;
+            fireTimeTick = start;
             block = b;
-            locationCallback = ft;
+            locAt = ft;
+            origin = orig;
+            rotation = rot;
+
+            WeaponAnimsHandler.AddAnimation(this);
         }
 
-        public override List<AnimBlock> GetCurrentBlocks(Player p, DateTime t)  // TODO: Probably want to return a few blocks
+        public override List<AnimBlock> GetCurrentBlocks(float tick)  // TODO: Probably want to return a list of blocks, like a short line
         {
-            Vec3F32 loc = locationCallback(DateTime.Now);
-            Vec3U16 locU16 = new Vec3U16((ushort)loc.X, (ushort)loc.Y, (ushort)loc.Z);
+            Vec3F32 loc = locAt(tick, origin, rotation, fireTimeTick);     // To add a short line get the location at a number of different times
+            Vec3U16 locU16 = new Vec3U16((ushort)(loc.X / 32), (ushort)(loc.Y / 32), (ushort)(loc.Z / 32));
 
             AnimBlock ab = new AnimBlock(locU16, block);
 
@@ -99,29 +138,31 @@ namespace FPSMO.Weapons
     /// </summary>
     public static class WeaponAnimsHandler
     {
-        static int DEFAULT_TICK_SPEED = 50;  // 50 milliseconds
         static SchedulerTask task;
         static Scheduler instance;
         static readonly object activateLock = new object();
         static readonly object deactivateLock = new object();
-        static BufferedBlockSender buffer;
-
-        static List<BlockID> prevBlocks = new List<BlockID>();
-        static List<BlockID> currentBlocks = new List<BlockID>();
-
-        static bool writeLock = false;
+        static BufferedBlockSender sender;
         static List<Animation> weaponAnimations = new List<Animation>();
+        static bool activated;
+        static uint currentTick;       // Why not 0? Fixes issue with all weapon startTicks being 0, given a long reloadTime
+        static uint MSRoundTick;
 
         internal static void Activate()
         {
+            MSRoundTick = FPSMOGame.Instance.gameConfig.MS_ROUND_TICK;
             lock (activateLock)                 // Thread safety
             {
                 if (instance != null) return;   // Singleton boilerplate
                 instance = new Scheduler("WeaponAnimationsScheduler");
-                task = instance.QueueRepeat(Update, FPSMOGame.Instance, TimeSpan.FromMilliseconds(DEFAULT_TICK_SPEED));
+                task = instance.QueueRepeat(Update, FPSMOGame.Instance, TimeSpan.FromMilliseconds(MSRoundTick));
+                activated = true;
             }
-            buffer = new BufferedBlockSender(FPSMOGame.Instance.map);
+            currentTick = 10;
+            sender = new BufferedBlockSender(FPSMOGame.Instance.map);
         }
+
+        internal static uint Tick { get { return currentTick; } }
 
         internal static void Deactivate()
         {
@@ -130,37 +171,59 @@ namespace FPSMO.Weapons
                 if (instance != null)
                 {
                     instance.Cancel(task);
+                    instance = null;
                 }
-                buffer = null;
+                sender = null;
+                activated = false;
+                weaponAnimations = new List<Animation>();
             }
+            currentTick = 10;
         }
 
         internal static void AddAnimation(Animation anim)
         {
-            writeLock = true;
-            weaponAnimations.Add(anim);
-            writeLock = false;
+            if (activated) { weaponAnimations.Add(anim); }
+        }
+
+        internal static void RemoveAnimation(Animation anim)
+        {
+            weaponAnimations.Remove(anim);
         }
 
         private static void Update(SchedulerTask task)
         {
-            prevBlocks = currentBlocks;
-
-            DateTime now = DateTime.Now;
-            foreach (Animation anim in weaponAnimations)
+            foreach (Player p in FPSMOGame.Instance.players)
             {
-                //currentBlocks.AddRange(anim.GetCurrentBlocks(now));
+                SendCurrentFrame(p);
             }
-
-
+            currentTick++;
         }
 
-        internal static void SendCurrentFrame()
+        internal static void SendCurrentFrame(Player p)
         {
-            BufferedBlockSender sender = new BufferedBlockSender(FPSMOGame.Instance.map);
+            if (!activated) return;
+            sender = new BufferedBlockSender(p);
             
+            for (int i = 0; i < weaponAnimations.Count; i++)    // Foreach wouldn't be thread-safe with the constant deletions
+            {
+                Animation anim = weaponAnimations[i];
 
+                foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + 1))
+                {
+                    sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+                }
+            }
 
+            if (sender.count < 16)  // TODO: Benchmark this
+            {
+                // TODO: Send current blocks the simple way
+                //return;
+            }
+
+            if (sender.count > 0)
+            {
+                sender.Flush();
+            }
         }
 
     }

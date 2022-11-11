@@ -1,4 +1,5 @@
 ﻿using FPSMO.Entities;
+using FPSMO.Weapons;
 using MCGalaxy;
 using System;
 using System.Collections.Generic;
@@ -112,7 +113,7 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight1, String.Format("%4{0}%2{1}", blocks.Substring(10 - health), blocks.Substring(health)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight1, String.Format("%4{0}%2{1}", blocks.Substring(health), blocks.Substring(10 - health)));
         }
 
         public void ShowStamina(Player p)
@@ -124,13 +125,21 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("%4{0}%2{1}", blocks.Substring(10 - stamina), blocks.Substring(stamina)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("%4{0}%2{1}", blocks.Substring(stamina), blocks.Substring(10 - stamina)));
         }
 
-        public void ShowMoney(Player p)
+
+
+        public void ShowWeaponStatus(Player p)
         {
-            int money = PlayerDataHandler.Instance[p.name].money;
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("Money: {0}", money));
+            ushort gunStatus = PlayerDataHandler.Instance[p.name].currentWeapon.GetStatus(WeaponAnimsHandler.Tick);
+
+            // Cap the stamina at 10
+            gunStatus = gunStatus > 10 ? (ushort)10 : gunStatus;
+
+            string blocks = "▌▌▌▌▌▌▌▌▌▌";
+
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("%4{0}%2{1}", blocks.Substring(gunStatus), blocks.Substring(10 - gunStatus)));
         }
 
         public void ShowWinningTeam(Player p)

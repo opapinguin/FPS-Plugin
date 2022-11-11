@@ -55,7 +55,7 @@ namespace FPSMO
         private void MiddleVoting()
         {
             ShowToAll(ShowVote);
-            for (int i = gameConfig.S_VOTETIME; i >= 0; i--)
+            for (uint i = gameConfig.S_VOTETIME; i > 0; i--)
             {
                 if (!bRunning) return;
                 ShowToAll(ShowVoteTime);

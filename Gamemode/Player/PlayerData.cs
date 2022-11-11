@@ -13,6 +13,8 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using FPSMO.Weapons;
+using MCGalaxy;
 using MCGalaxy.Tasks;
 using System;
 using System.Collections.Generic;
@@ -26,6 +28,17 @@ namespace FPSMO.Entities
     /// </summary>
     internal class PlayerData
     {
+        public PlayerData(Player p)
+        {
+            health = 10;
+            stamina = 10;
+
+            // Initialize weapons
+            gun = new GunWeapon(p);
+            // Arbitrarily pick gun as starting weapon
+            currentWeapon = gun;
+        }
+
         public ushort hits;
         public ushort kills;
         public ushort deaths;
@@ -37,11 +50,24 @@ namespace FPSMO.Entities
 
         public bool bVoted;
         public ushort vote; // Can be 1 2 or 3
+        public Weapon currentWeapon;
+
+        // Weapons
+        public GunWeapon gun;
 
         // The below fields help us prevent sending the same message twice. This keeps ping low/prevents the packet queue from clogging up
         public string lastCPEStatus1, lastCPEStatus2, lastCPEStatus3,
             lastCPEBottomRight1, lastCPEBottomRight2, lastCPEBottomRight3,
             lastCPEAnnouncement, lastCPESmallAnnouncement, lastCPEBigAnnouncement;
+
+        public void ResetData()
+        {
+            hits = kills = deaths = 0;
+            stamina = health = 10;
+            bVoted = false;
+            gun.Reset();
+            currentWeapon = gun;
+        }
     }
 
     /// <summary>
@@ -97,15 +123,11 @@ namespace FPSMO.Entities
         }
 
         public void ResetPlayerData()
-        {
-            Dictionary<string, PlayerData> newDictionary = new Dictionary<string, PlayerData>();
-            
+        {            
             foreach (string key in dictPlayerData.Keys)
             {
-                newDictionary[key] = new PlayerData();
+                dictPlayerData[key].ResetData();
             }
-
-            dictPlayerData = newDictionary;
         }
     }
 }

@@ -13,19 +13,31 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using FPSMO.Entities;
 using MCGalaxy;
+using System;
 
 namespace FPSMO.Weapons
 {
     class CmdShootGun : Command2
     {
-        public override string name { get { return "shootGun"; } }
+        public override string name { get { return "FPSMOShootGun"; } }
 
         public override string type { get { return CommandTypes.Games; } }
 
         public override void Use(Player p, string message, CommandData data)
         {
-            new GunWeapon(p);   // TODO: Does the destructor get called on these things or do they get left hanging?
+            if (!(FPSMOGame.Instance.stage == FPSMOGame.Stage.Round && FPSMOGame.Instance.subStage == FPSMOGame.SubStage.Middle))
+            {
+                return;
+            }
+
+            Weapon currentWeapon = PlayerDataHandler.Instance[p.name].gun;
+            if (currentWeapon.GetStatus(WeaponAnimsHandler.Tick) < 10)
+            {
+                return;
+            }
+            PlayerDataHandler.Instance[p.name].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
         }
 
         public override void Help(Player p)

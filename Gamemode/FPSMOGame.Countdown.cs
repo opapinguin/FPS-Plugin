@@ -31,7 +31,7 @@ namespace FPSMO
          * BEGINNING *
          *************/
         #region begin
-        private void BeginCountdown(int delay)
+        private void BeginCountdown(uint delay)
         {
             SetMainLevel();
             ShowToAll(ShowMapInfo);
@@ -56,10 +56,10 @@ namespace FPSMO
          **********/
         #region middle
 
-        private void MiddleCountdown(string format, int delay, int minThreshold)
+        private void MiddleCountdown(string format, uint delay, int minThreshold)
         {
             const CpeMessageType type = CpeMessageType.Announcement;
-            for (int i = delay; i > 0; i--)
+            for (uint i = delay; i > 0; i--)
             {
                 if (!bRunning) return;
                 if (i == 1)

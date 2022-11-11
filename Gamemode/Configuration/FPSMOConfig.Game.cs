@@ -13,30 +13,56 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using MCGalaxy;
 using System.Collections.Generic;
+using BlockID = System.UInt16;
 
 namespace FPSMO.Configuration
 {
     public struct FPSMOGameConfig {
         public FPSMOGameConfig(bool bAutoStart)
         {
-            this.maps = new List<string>();
             // DEFAULT VALUES
+            maps = new List<string>
+            {
+                Server.Config.MainLevel
+            };
+
             this.bAutoStart = bAutoStart;
-            this.MS_ROUND_TICK = 100;
-            this.S_COUNTDOWNTIME = 10;
-            this.S_VOTETIME = 10;
-            this.MAX_MOVE_DISTANCE = 1.5625f;
-            this.bSetMainLevel = true;
-            this.DEFAULT_ROUNDTIME_S = 60;
+
+            MS_ROUND_TICK = 100;
+            S_COUNTDOWNTIME = 10;
+            S_VOTETIME = 10;
+            MAX_MOVE_DISTANCE = 1.5625f;
+            bSetMainLevel = true;
+            DEFAULT_ROUNDTIME_S = 60;
+            
+            MS_UPDATE_ROUND_STATUS = 50;
+            MS_UPDATE_WEAPON_ANIMATIONS = 50;
+
+            // Guns
+            GUN_BLOCK = 41;
+            MS_GUN_VELOCITY = 1;
+            MS_GUN_RELOAD_MS = 10;
+            GUN_DAMAGE = 1;
         }
+
         public bool bAutoStart;
         public bool bSetMainLevel;
         public List<string> maps;
-        public int MS_ROUND_TICK;
-        public int S_COUNTDOWNTIME;
-        public int S_VOTETIME;
+        public uint MS_ROUND_TICK;
+        public uint S_COUNTDOWNTIME;
+        public uint S_VOTETIME;
         public float MAX_MOVE_DISTANCE;
-        public int DEFAULT_ROUNDTIME_S;
+        public uint DEFAULT_ROUNDTIME_S;
+
+        public uint MS_UPDATE_WEAPON_ANIMATIONS;
+        public uint MS_UPDATE_ROUND_STATUS;
+
+        // Guns
+        public BlockID GUN_BLOCK;
+        public float MS_GUN_VELOCITY;   // in meters per second
+        public uint MS_GUN_RELOAD_MS;
+        public uint GUN_DAMAGE;
     }
 }

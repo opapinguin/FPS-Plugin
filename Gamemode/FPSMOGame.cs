@@ -37,14 +37,18 @@ namespace FPSMO
          * SINGLETON BOILERPLATE *
          *************************/
         #region Singleton Boilerplate
-        private static FPSMOGame instance = new FPSMOGame();
+        private static FPSMOGame instance = null;
         private static readonly object padlock = new object();
+
+        FPSMOGame()
+        {
+        }
 
         public static FPSMOGame Instance
         {
             get
             {
-                lock(padlock)
+                lock (padlock)
                 {
                     if (instance == null)
                     {
@@ -63,24 +67,24 @@ namespace FPSMO
         private const int MS_ROUND_TICK = 200;  // Quite large but really nothing special needs handling during the round in the main loop
         public bool bRunning;   // Default = false
         
-        enum Stage
+        internal enum Stage
         {
             Countdown,
             Round,
             Voting
         }
-        enum SubStage
+        internal enum SubStage
         {
             Begin,
             Middle,
             End
         }
 
-        Stage stage;
-        SubStage subStage;
+        internal Stage stage;
+        internal SubStage subStage;
 
-        FPSMOMapConfig mapConfig;
-        FPSMOGameConfig gameConfig;
+        internal FPSMOMapConfig mapConfig;
+        internal FPSMOGameConfig gameConfig;
 
         public List<Player> players = new List<Player>();
         public Level map;
@@ -164,7 +168,7 @@ namespace FPSMO
          *******************/
         #region Countdown
 
-        private void UpdateCountdown(int delay, SubStage subStage)
+        private void UpdateCountdown(uint delay, SubStage subStage)
         {
             switch (subStage)
             {

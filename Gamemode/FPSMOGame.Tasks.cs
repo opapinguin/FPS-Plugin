@@ -43,7 +43,7 @@ namespace FPSMO
                 if (RoundStatusInstance != null) { return; }
                 
                 RoundStatusInstance = new Scheduler("Round Update");
-                RoundStatusTask = RoundStatusInstance.QueueRepeat(RoundStatusUpdate, null, TimeSpan.FromMilliseconds(1000));
+                RoundStatusTask = RoundStatusInstance.QueueRepeat(RoundStatusUpdate, null, TimeSpan.FromMilliseconds(50));
             }
         }
 
@@ -62,7 +62,7 @@ namespace FPSMO
                 ShowToAll(ShowRoundTime);
                 ShowToAll(ShowStamina);
                 ShowToAll(ShowHealth);
-                ShowToAll(ShowMoney);
+                ShowToAll(ShowWeaponStatus);
                 ShowToAll(ShowTeamStatistics);
                 ShowToAll(ShowLevel);
             }

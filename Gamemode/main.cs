@@ -27,7 +27,7 @@ namespace MCGalaxy
 {
     public class FPSMO : Plugin
     {
-        readonly FPSMOGame game = new FPSMOGame();
+        FPSMOGame game = FPSMOGame.Instance;
 
         public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
 
@@ -87,7 +87,7 @@ namespace MCGalaxy
         public override void Unload(bool shutdown)
         {
             Command.Unregister(Command.Find("Queue"));
-            Command.Unregister(Command.Find("ShootGun"));
+            Command.Unregister(Command.Find("FPSMOShootGun"));
 
             game.Stop();
         }
