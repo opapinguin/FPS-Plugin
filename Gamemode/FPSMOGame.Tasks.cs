@@ -53,6 +53,7 @@ namespace FPSMO
             {
                 RoundStatusInstance.Cancel(RoundStatusTask);
             }
+            RoundStatusInstance = null;
         }
 
         private void RoundStatusUpdate(SchedulerTask task)

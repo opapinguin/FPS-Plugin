@@ -32,6 +32,7 @@ namespace FPSMO
             OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.High);
             OnPlayerChatEvent.Register(HandePlayerChat, Priority.High);
             OnPlayerDisconnectEvent.Register(HandlePlayerDisconnect, Priority.High);
+            OnPlayerChatEvent.Register(HandleVoting, Priority.High);
         }
 
         private void UnHookEventHandlers()
@@ -41,6 +42,7 @@ namespace FPSMO
             OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
             OnPlayerChatEvent.Unregister(HandePlayerChat);
             OnPlayerDisconnectEvent.Unregister(HandlePlayerDisconnect);
+            OnPlayerChatEvent.Unregister(HandleVoting);
         }
 
         private void HandlePlayerDisconnect(Player p, string reason)
@@ -68,13 +70,13 @@ namespace FPSMO
 
         private void HandleJoinedLevel(Player p, Level prevLevel, Level level, ref bool announce)
         {
-            if (prevLevel == map && level != map)
+            if (prevLevel != null && prevLevel.name == map.name && level.name != map.name)   // Maps are not interfaced as comparable
             {
                 PlayerLeftGame(p);
                 return;
             }
 
-            if (level == map)
+            if (level.name == map.name)
             {
                 PlayerJoinedGame(p);
                 switch (stage)
@@ -107,6 +109,15 @@ namespace FPSMO
             // TODO: Add round recorder here
         }
 
+        private void HandleVoting(Player p, string msg)
+        {
+            if (FPSMOGame.Instance.stage != Stage.Voting || FPSMOGame.Instance.subStage != SubStage.Middle) { return; }
+            msg = msg.ToLower().TrimEnd();
+            UpdateVote(msg, p, "1", "one", ref votes1);
+            UpdateVote(msg, p, "2", "two", ref votes2);
+            UpdateVote(msg, p, "3", "three", ref votes3);
+        }
+
         /******************
          * HELPER METHODS *
          ******************/
@@ -114,16 +125,15 @@ namespace FPSMO
 
         private void PlayerJoinedGame(Player p)
         {
-            players.Add(p);
-            PlayerDataHandler.Instance[p.name] = new PlayerData(p);
+            players[p.truename] = p;
+            PlayerDataHandler.Instance[p.truename] = new PlayerData(p);
             SendBindings(p);
         }
 
         private void PlayerLeftGame(Player p)
         {
-            players.Remove(p);
-            // TODO: Remove bindings here
-            PlayerDataHandler.Instance.dictPlayerData.Remove(p.name);
+            players.Remove(p.truename);
+            PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
             RemoveBindings(p);
         }
 

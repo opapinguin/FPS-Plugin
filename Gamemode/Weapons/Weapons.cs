@@ -93,7 +93,7 @@ namespace FPSMO.Weapons
         }
 
         ~GunWeapon() {
-            Logger.Log(LogType.ConsoleMessage, "Deleted");
+            Logger.Log(LogType.ConsoleMessage, "Deleted");  // TODO: Need to implement garbage collection for these guns. Or rather the animations
         }
     }
 }

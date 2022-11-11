@@ -20,9 +20,8 @@ namespace FPSMO.Commands
 {
     class CmdQueue : Command2
     {
-        public override string name { get { return "queue"; } }
+        public override string name { get { return "FPSMOQueue"; } }
         public override string shortcut { get { return "q"; } }
-
         public override string type { get { return CommandTypes.Games; } }
 
         public override void Use(Player p, string message, CommandData data)
@@ -33,7 +32,7 @@ namespace FPSMO.Commands
 
         public override void Help(Player p)
         {
-            p.Message("Shows the level queue");
+            p.Message("&HShows the level queue");
         }
     }
 }

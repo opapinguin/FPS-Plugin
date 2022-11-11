@@ -114,6 +114,8 @@ GROUP BY RoundID, Team;"
             #region Commands
             Command.Register(new CmdQueue());
             Command.Register(new CmdShootGun());
+            Command.Register(new CmdRate());
+            Command.Register(new CmdFPSMO());
 
             #endregion Commands
 
@@ -122,7 +124,9 @@ GROUP BY RoundID, Team;"
 
         public override void Unload(bool shutdown)
         {
-            Command.Unregister(Command.Find("Queue"));
+            Command.Unregister(Command.Find("FPSMOQueue"));
+            Command.Unregister(Command.Find("FPSMORate"));
+            Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("FPSMOShootGun"));
 
             game.Stop();

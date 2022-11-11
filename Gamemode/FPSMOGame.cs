@@ -21,6 +21,8 @@ using System.Collections.Generic;
 using System.Threading;
 using MCGalaxy;
 using FPSMO.Configuration;
+using FPSMO.Weapons;
+using FPSMO.Entities;
 
 namespace FPSMO
 {
@@ -86,7 +88,7 @@ namespace FPSMO
         internal FPSMOMapConfig mapConfig;
         internal FPSMOGameConfig gameConfig;
 
-        public List<Player> players = new List<Player>();
+        public Dictionary<string, Player> players = new Dictionary<string, Player>();
         public Level map;
         DateTime roundStart;
         TimeSpan roundTime;
@@ -97,7 +99,7 @@ namespace FPSMO
          ******************/
         #region Game Loop
 
-        public void Start()
+        public void Start(string mapName = "")
         {
             // Hook eventhandlers
             HookEventHandlers();
@@ -114,14 +116,30 @@ namespace FPSMO
 
             // Pick a level
             LevelPicker.Activate();
-            map = Level.Load(LevelPicker.PopAndPush());
+            if (mapName == "")
+            {
+                map = Level.Load(LevelPicker.PopAndPush());
+            } else
+            {
+                map = Level.Load(mapName);
+            }
 
             // Create a map configuration if it doesn't already exist. Defaults to main level if no levels have been added
             FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig(gameConfig.DEFAULT_ROUNDTIME_S));
             mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
 
             roundTime = TimeSpan.FromSeconds(mapConfig.RoundTime_S);
-            
+
+            // Add the players to the game
+            players = new Dictionary<string, Player>();
+            foreach (Player p in PlayerInfo.Online.Items)
+            {
+                if (p.level.name == map.name)
+                {
+                    PlayerJoinedGame(p);
+                }
+            }
+
             // Start the game
             stage = Stage.Countdown;
             subStage = SubStage.Begin;
@@ -137,10 +155,26 @@ namespace FPSMO
         
         public void Stop()
         {
-            // Get rid of hanging scheduler tasks and event handlers
-            OnPlayerChatEvent.Unregister(HandleVoting);     // TODO: What happens if there isn't any registered to begin with?
+            Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
+
+            ShowToAll(ClearBottomRight);
+            ShowToAll(ClearTopRight);
+
+            foreach (Player p in playersCopy.Values)
+            {
+                PlayerLeftGame(p);
+            }
+
+            UnHookEventHandlers();
             DeactivateTasks();
             bRunning = false;
+
+            // TODO: Remove animations
+
+            Chat.MessageAll("Parkour Game Stopped");
+
+            WeaponAnimsHandler.Deactivate();
+            PlayerDataHandler.Instance.Deactivate();
         }
 
         public void Run()

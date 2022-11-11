@@ -20,13 +20,17 @@ namespace FPSMO.Configuration
         public FPSMOMapConfig(uint RoundTime)
         {
             this.RoundTime_S = RoundTime;
-            this.rating = 0;
             this.totalRatings = 0;
             this.sumRatings = 0;
         }
-        public float rating;
         public float totalRatings;
         public float sumRatings;
         public uint RoundTime_S;
+
+        public float rating {
+            get {
+                return (sumRatings / totalRatings) == float.NaN ? 0 : (sumRatings / totalRatings);
+            }
+        }
     }
 }

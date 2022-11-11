@@ -30,13 +30,9 @@ namespace FPSMO.Entities
     {
         public PlayerData(Player p)
         {
-            health = 10;
-            stamina = 10;
-
             // Initialize weapons
             gun = new GunWeapon(p);
-            // Arbitrarily pick gun as starting weapon
-            currentWeapon = gun;
+            ResetData();
         }
 
         public ushort hits;
@@ -128,6 +124,12 @@ namespace FPSMO.Entities
             {
                 dictPlayerData[key].ResetData();
             }
+        }
+
+        public void Deactivate()
+        {
+            dictPlayerData = new Dictionary<string, PlayerData>();
+            numPlayers = 0;
         }
     }
 }

@@ -21,6 +21,7 @@ using System.Linq;
 using System.Text;
 using FPSMO.Entities;
 using System.Threading;
+using FPSMO.Configuration;
 
 namespace FPSMO
 {
@@ -40,8 +41,6 @@ namespace FPSMO
             map1 = LevelPicker.PopAndPush();
             map2 = LevelPicker.PopAndPush();
             map3 = LevelPicker.PopAndPush();
-
-            OnPlayerChatEvent.Register(HandleVoting, Priority.High);
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
@@ -76,13 +75,14 @@ namespace FPSMO
             MessageMap(CpeMessageType.Normal, String.Format("Votes are in! map 1: {0} map 2: {1} map 3: {2}", votes1, votes2, votes3));
             ShowToAll(ClearBottomRight);
 
-            OnPlayerChatEvent.Unregister(HandleVoting); // TODO: Probably just want all this in the plugins sections for elegance
-
             string nextMap;
 
             nextMap = GetNextMap();
 
-            // TODO: Save Stats
+            // TODO: Save Stats for player configuration
+            FPSMOConfig<FPSMOGameConfig>.Update("Config", gameConfig);
+            FPSMOConfig<FPSMOMapConfig>.Update(FPSMOGame.Instance.map.name, mapConfig);
+
 
             PlayerDataHandler.Instance.ResetPlayerData();
             ResetVotes();
@@ -101,14 +101,6 @@ namespace FPSMO
          ******************/
         #region Helper Methods
 
-        private void HandleVoting(Player p, string msg)
-        {
-            msg = msg.ToLower().TrimEnd();
-            UpdateVote(msg, p, "1", "one", ref votes1);
-            UpdateVote(msg, p, "2", "two", ref votes2);
-            UpdateVote(msg, p, "3", "three", ref votes3);
-        }
-
         /// <summary>
         /// Handles a message like "1" or "2" in one function. Updates the vote based on the message
         /// </summary>
@@ -116,10 +108,10 @@ namespace FPSMO
         {
             if (msg == numInt || msg == numStr)
             {
-                if (PlayerDataHandler.Instance[p.name].bVoted)
+                if (PlayerDataHandler.Instance[p.truename].bVoted)
                 {
                     votes++;
-                    ushort prevVote = PlayerDataHandler.Instance[p.name].vote;
+                    ushort prevVote = PlayerDataHandler.Instance[p.truename].vote;
                     switch (prevVote)
                     {
                         case 1:
@@ -133,12 +125,12 @@ namespace FPSMO
                             break;
                     }
 
-                    PlayerDataHandler.Instance[p.name].vote = ushort.Parse(numInt);
+                    PlayerDataHandler.Instance[p.truename].vote = ushort.Parse(numInt);
                 } else
                 {
                     votes += 1;
-                    PlayerDataHandler.Instance[p.name].bVoted = true;
-                    PlayerDataHandler.Instance[p.name].vote = ushort.Parse(numInt);
+                    PlayerDataHandler.Instance[p.truename].bVoted = true;
+                    PlayerDataHandler.Instance[p.truename].vote = ushort.Parse(numInt);
                 }
                 p.Message("Thank you for voting");
                 p.cancelchat = true;
@@ -176,7 +168,7 @@ namespace FPSMO
 
         private void MoveToNextMap(string map)
         {
-            foreach (Player p in players)
+            foreach (Player p in players.Values)
             {
                 PlayerActions.ChangeMap(p, map);
             }

@@ -20,8 +20,9 @@ namespace FPSMO.Configuration
 {
     /// <summary>
     /// A simple CRUD API for configuration data
+    /// Basically datalists but allowing complex objects to be stored
     /// </summary>
-    public static class FPSMOConfig<T> where T : struct
+    internal static class FPSMOConfig<T> where T : struct
     {
         public static string dir;
 

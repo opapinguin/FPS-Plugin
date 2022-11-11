@@ -1,10 +1,23 @@
-﻿using FPSMO.Entities;
+﻿/*
+Copyright 2022 WOCC Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+using FPSMO.Entities;
 using FPSMO.Weapons;
 using MCGalaxy;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace FPSMO
 {
@@ -24,7 +37,7 @@ namespace FPSMO
         /// </summary>
         public void ShowToAll(Message fm)
         {
-            foreach (Player p in players)
+            foreach (Player p in players.Values)
             {
                 fm(p);
             }
@@ -38,23 +51,23 @@ namespace FPSMO
             switch (type)
             {
                 case CpeMessageType.Announcement:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEAnnouncement = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEAnnouncement = message; } break;
                 case CpeMessageType.SmallAnnouncement:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPESmallAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPESmallAnnouncement = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPESmallAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPESmallAnnouncement = message; } break;
                 case CpeMessageType.BigAnnouncement:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEBigAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEBigAnnouncement = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEBigAnnouncement == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEBigAnnouncement = message; } break;
                 case CpeMessageType.BottomRight1:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEBottomRight1 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEBottomRight1 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEBottomRight1 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEBottomRight1 = message; } break;
                 case CpeMessageType.BottomRight2:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEBottomRight2 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEBottomRight2 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEBottomRight2 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEBottomRight2 = message; } break;
                 case CpeMessageType.BottomRight3:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEBottomRight3 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEBottomRight3 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEBottomRight3 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEBottomRight3 = message; } break;
                 case CpeMessageType.Status1:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEStatus1 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEStatus1 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEStatus1 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEStatus1 = message; } break;
                 case CpeMessageType.Status2:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEStatus2 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEStatus2 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEStatus2 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEStatus2 = message; } break;
                 case CpeMessageType.Status3:
-                    if (!(PlayerDataHandler.Instance[p.name].lastCPEStatus3 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.name].lastCPEStatus3 = message; } break;
+                    if (!(PlayerDataHandler.Instance[p.truename].lastCPEStatus3 == message)) { p.SendCpeMessage(type, message); PlayerDataHandler.Instance[p.truename].lastCPEStatus3 = message; } break;
                 default:
                     p.SendCpeMessage(type, message); break;
             };
@@ -62,7 +75,7 @@ namespace FPSMO
 
         public void MessageMap(CpeMessageType type, string message)
         {
-            foreach (Player p in players)
+            foreach (Player p in players.Values)
             {
                 SendCpeMessageNoRepeat(p, type, message);
             }
@@ -76,9 +89,12 @@ namespace FPSMO
 
         private void ShowMapInfo(Player p)
         {
+            string authors = string.Join(", ", map.Config.Authors.Split(',').Select(
+                x => PlayerInfo.FindExact(x) == null ? x : PlayerInfo.FindExact(x).ColoredName + "%e"));
+
             p.Message(String.Format("Starting new round"));
-            p.Message(string.Format("This map was made by {0}", map.Config.Authors));
-            p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString()));
+            p.Message(string.Format("This map was made by {0}", authors));
+            p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString("0.00")));
         }
 
         #endregion
@@ -106,7 +122,7 @@ namespace FPSMO
 
         public void ShowHealth(Player p)
         {
-            ushort health = PlayerDataHandler.Instance[p.name].health;
+            ushort health = PlayerDataHandler.Instance[p.truename].health;
 
             // Cap the health at 10
             health = health > 10 ? (ushort)10 : health;
@@ -118,7 +134,7 @@ namespace FPSMO
 
         public void ShowStamina(Player p)
         {
-            ushort stamina = PlayerDataHandler.Instance[p.name].stamina;
+            ushort stamina = PlayerDataHandler.Instance[p.truename].stamina;
 
             // Cap the stamina at 10
             stamina = stamina > 10 ? (ushort)10 : stamina;
@@ -132,7 +148,7 @@ namespace FPSMO
 
         public void ShowWeaponStatus(Player p)
         {
-            ushort gunStatus = PlayerDataHandler.Instance[p.name].currentWeapon.GetStatus(WeaponAnimsHandler.Tick);
+            ushort gunStatus = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponAnimsHandler.Tick);
 
             // Cap the stamina at 10
             gunStatus = gunStatus > 10 ? (ushort)10 : gunStatus;

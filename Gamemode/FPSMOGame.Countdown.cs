@@ -13,6 +13,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using FPSMO.Configuration;
 using MCGalaxy;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,12 @@ namespace FPSMO
         #region begin
         private void BeginCountdown(uint delay)
         {
+            // Get the configuration
+            mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
+            gameConfig = FPSMOConfig<FPSMOGameConfig>.Read("Config");
+
+            // TODO: Get player configuration as well here
+
             SetMainLevel();
             ShowToAll(ShowMapInfo);
 

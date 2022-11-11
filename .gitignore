@@ -2,4 +2,4 @@
 .git
 /Gamemode/bin/
 /GameMode/obj/
-/GameMode/csproj
+/GameMode/Gamemode.csproj

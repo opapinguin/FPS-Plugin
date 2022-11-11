@@ -192,7 +192,7 @@ namespace FPSMO.Weapons
 
         private static void Update(SchedulerTask task)
         {
-            foreach (Player p in FPSMOGame.Instance.players)
+            foreach (Player p in FPSMOGame.Instance.players.Values)
             {
                 SendCurrentFrame(p);
             }

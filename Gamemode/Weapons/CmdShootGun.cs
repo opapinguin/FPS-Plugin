@@ -22,7 +22,7 @@ namespace FPSMO.Weapons
     class CmdShootGun : Command2
     {
         public override string name { get { return "FPSMOShootGun"; } }
-
+        public override bool LogUsage { get { return false; } }
         public override string type { get { return CommandTypes.Games; } }
 
         public override void Use(Player p, string message, CommandData data)
@@ -32,12 +32,12 @@ namespace FPSMO.Weapons
                 return;
             }
 
-            Weapon currentWeapon = PlayerDataHandler.Instance[p.name].gun;
+            Weapon currentWeapon = PlayerDataHandler.Instance[p.truename].gun;
             if (currentWeapon.GetStatus(WeaponAnimsHandler.Tick) < 10)
             {
                 return;
             }
-            PlayerDataHandler.Instance[p.name].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
+            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
         }
 
         public override void Help(Player p)
