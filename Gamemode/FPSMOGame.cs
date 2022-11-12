@@ -89,6 +89,7 @@ namespace FPSMO
         internal FPSMOGameConfig gameConfig;
 
         public Dictionary<string, Player> players = new Dictionary<string, Player>();
+        internal List<Team> teams = new List<Team>();
         public Level map;
         DateTime roundStart;
         TimeSpan roundTime;

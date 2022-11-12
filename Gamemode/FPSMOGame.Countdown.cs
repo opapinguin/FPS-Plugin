@@ -15,6 +15,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 using FPSMO.Configuration;
 using MCGalaxy;
+using MCGalaxy.Games;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,6 +43,10 @@ namespace FPSMO
 
             SetMainLevel();
             ShowToAll(ShowMapInfo);
+
+            teams.Clear();
+            teams.Add(new Team("Red"));
+            teams.Add(new Team("Blue"));
 
             roundStart = DateTime.UtcNow.AddSeconds(delay);
 
