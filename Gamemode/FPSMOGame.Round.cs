@@ -72,8 +72,6 @@ namespace FPSMO
             ShowToAll(ClearTopRight);
             ShowToAll(ClearBottomRight);
 
-
-
             // Move on to the next sub-stage and stage
             stage = Stage.Voting;
             subStage = SubStage.Begin;
