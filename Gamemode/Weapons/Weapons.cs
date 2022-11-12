@@ -29,7 +29,7 @@ namespace FPSMO.Weapons
     /*********************
      * WEAPON INTERFACES *
      *********************/
-    public abstract class Weapon
+    internal abstract class Weapon
     {
         public abstract void Use(Orientation rot, Vec3F32 loc, ushort strength);
         public virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
@@ -43,45 +43,50 @@ namespace FPSMO.Weapons
         protected uint lastFireTick;    // Much more efficient than using timespans
         protected uint reloadTimeTicks; // Ditto
         protected Player player;
+        public ushort WeaponSpeed { get; set; }
     }
 
-    public abstract class ProjectileWeapon : Weapon
+    internal abstract class ProjectileWeapon : Weapon
     {
-        public abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick);
+        public abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick, uint weaponSpeed);
 
-        protected float velocity;
         protected BlockID block;
+        protected float frameLength;
     }
 
-    public class GunWeapon : ProjectileWeapon
+    internal class GunWeapon : ProjectileWeapon
     {
         public GunWeapon(Player pl)
         {
             FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
 
-            damage = config.GUN_DAMAGE;     // TODO: Might be nicer to put this in the game configuration
-            reloadTimeTicks = config.MS_GUN_RELOAD_MS;
+            damage = config.GUN_DAMAGE;
+            reloadTimeTicks = config.MS_GUN_RELOAD;
             player = pl;
             block = config.GUN_BLOCK;
             lastFireTick = WeaponAnimsHandler.Tick;
-            velocity = config.MS_GUN_VELOCITY;
+            frameLength = config.GUN_FRAME_LENGTH;
         }
 
         /// <summary>
         /// Location at a given time relative
         /// </summary>
-        public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime)
+        public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
         {
             FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
 
             float timeSpanTicks = tick - fireTime;
-            float distance = velocity * timeSpanTicks / config.MS_UPDATE_WEAPON_ANIMATIONS * 1000;
+
+            float time = timeSpanTicks / config.MS_UPDATE_WEAPON_ANIMATIONS * 1000;
+            float velocity = (float)speed / 10 * (config.MAX_GUN_VELOCITY - config.MIN_GUN_VELOCITY) + config.MIN_GUN_VELOCITY;
+
+            float distance = velocity * time;
 
             Vec3F32 dir = DirUtils.GetDirVector(rot.RotY, rot.HeadX);
 
             // Note these are precise coordinates, and so are actually large by a factor of 32
             return new Vec3F32(dir.X * distance + orig.X,
-                dir.Y * distance + orig.Y,
+                dir.Y * distance - 0.5f * config.GRAVITY * time * time / 1000 + orig.Y,
                 dir.Z * distance + orig.Z);
         }
 
@@ -89,11 +94,10 @@ namespace FPSMO.Weapons
         {
             lastFireTick = WeaponAnimsHandler.Tick;
             // Instantiate the weapon animation
-            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, LocAt);
+            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
         }
 
         ~GunWeapon() {
-            Logger.Log(LogType.ConsoleMessage, "Deleted");  // TODO: Need to implement garbage collection for these guns. Or rather the animations
         }
     }
 }

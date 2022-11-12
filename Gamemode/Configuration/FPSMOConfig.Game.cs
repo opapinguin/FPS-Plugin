@@ -36,15 +36,18 @@ namespace FPSMO.Configuration
             MAX_MOVE_DISTANCE = 1.5625f;
             bSetMainLevel = true;
             DEFAULT_ROUNDTIME_S = 60;
+            GRAVITY = 9.81f;
             
             MS_UPDATE_ROUND_STATUS = 50;
             MS_UPDATE_WEAPON_ANIMATIONS = 50;
 
             // Guns
             GUN_BLOCK = 41;
-            MS_GUN_VELOCITY = 1;
-            MS_GUN_RELOAD_MS = 10;
+            MIN_GUN_VELOCITY = 5;
+            MAX_GUN_VELOCITY = 20;
+            MS_GUN_RELOAD = 10;
             GUN_DAMAGE = 1;
+            GUN_FRAME_LENGTH = 1;
         }
 
         public bool bAutoStart;
@@ -56,13 +59,17 @@ namespace FPSMO.Configuration
         public float MAX_MOVE_DISTANCE;
         public uint DEFAULT_ROUNDTIME_S;
 
+        public float GRAVITY;
+
         public uint MS_UPDATE_WEAPON_ANIMATIONS;
         public uint MS_UPDATE_ROUND_STATUS;
 
         // Guns
         public BlockID GUN_BLOCK;
-        public float MS_GUN_VELOCITY;   // in meters per second
-        public uint MS_GUN_RELOAD_MS;
+        public float MIN_GUN_VELOCITY;   // in meters per second
+        public float MAX_GUN_VELOCITY;   // in meters per second
+        public uint MS_GUN_RELOAD;
         public uint GUN_DAMAGE;
+        public float GUN_FRAME_LENGTH;  // Number of frames "long" a single shot is
     }
 }

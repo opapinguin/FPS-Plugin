@@ -141,7 +141,7 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("%4{0}%2{1}", blocks.Substring(stamina), blocks.Substring(10 - stamina)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("%2{1}%4{0}", blocks.Substring(stamina), blocks.Substring(10 - stamina)));
         }
 
 
@@ -155,7 +155,7 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("%4{0}%2{1}", blocks.Substring(gunStatus), blocks.Substring(10 - gunStatus)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("%2{1}%4{0}", blocks.Substring(gunStatus), blocks.Substring(10 - gunStatus)));
         }
 
         public void ShowWinningTeam(Player p)
@@ -186,6 +186,24 @@ namespace FPSMO
 
         #endregion
 
+        #region Miscelleaneous
+        public void ShowWeaponSpeed(Player p)
+        {
+            ushort weaponSpeed = PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed;
+
+            // Cap the stamina at 10
+            weaponSpeed = weaponSpeed > 10 ? (ushort)10 : weaponSpeed;
+
+            string blocks = "▌▌▌▌▌▌▌▌▌▌";
+
+            SendCpeMessageNoRepeat(p, CpeMessageType.SmallAnnouncement, String.Format("%2{1}%4{0}", blocks.Substring(weaponSpeed), blocks.Substring(10 - weaponSpeed)));
+        }
+
+        public void ClearWeaponSpeed(Player p)
+        {
+            SendCpeMessageNoRepeat(p, CpeMessageType.SmallAnnouncement, "");
+        }
+        
         public void ClearTopRight(Player p)
         {
             SendCpeMessageNoRepeat(p, CpeMessageType.Status1, "");
@@ -208,5 +226,6 @@ namespace FPSMO
             .TrimStart(':')
             .Replace('.', ':');
         }
+        #endregion
     }
 }

@@ -19,35 +19,38 @@ using System;
 
 namespace FPSMO.Weapons
 {
-    class CmdShootGun : Command2
+    class CmdWeaponSpeed : Command2
     {
-        public override string name { get { return "FPSMOShootGun"; } }
+        public override string name { get { return "FPSMOWeaponSpeed"; } }
         public override bool LogUsage { get { return false; } }
         public override string type { get { return CommandTypes.Games; } }
 
         public override void Use(Player p, string message, CommandData data)
         {
-            if (!(FPSMOGame.Instance.stage == FPSMOGame.Stage.Round && FPSMOGame.Instance.subStage == FPSMOGame.SubStage.Middle))
+            if (!(FPSMOGame.Instance.bRunning)) return;
+
+            if (PlayerDataHandler.Instance[p.truename] == null) return;
+
+            if (!(PlayerDataHandler.Instance[p.truename].currentWeapon is ProjectileWeapon)) return;
+
+            if (message == "plus" && PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed < 10)
             {
-                return;
+                PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed += 1;
+                PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange = DateTime.Now;
+            }
+            else if (message == "minus" && PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed > 0)
+            {
+                PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed -= 1;
+                PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange = DateTime.Now;
             }
 
-            if (PlayerDataHandler.Instance[p.truename] == null)
-            {
-                return;
-            }
-
-            Weapon currentWeapon = PlayerDataHandler.Instance[p.truename].gun;
-            if (currentWeapon.GetStatus(WeaponAnimsHandler.Tick) < 10)
-            {
-                return;
-            }
-            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
+            FPSMOGame.Instance.ShowWeaponSpeed(p);
         }
 
         public override void Help(Player p)
         {
-            p.Message("&HShoots a gun");
+            p.Message("&T/FPSMOWeaponSpeed [plus/minus]");
+            p.Message("&HChanges your weapon speed");
         }
     }
 }

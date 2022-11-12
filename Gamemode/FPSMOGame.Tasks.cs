@@ -13,6 +13,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+using FPSMO.Entities;
 using MCGalaxy;
 using MCGalaxy.Tasks;
 using System;
@@ -70,6 +71,18 @@ namespace FPSMO
             if (stage == Stage.Voting && subStage == SubStage.Middle)
             {
                 ShowToAll(ShowVoteTime);
+            }
+        }
+
+        private void ClearWeaponSpeeds()
+        {
+            Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
+            foreach (Player p in playersCopy.Values)    // TODO: Is this thread safe?
+            {
+                if (DateTime.Now - PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange > TimeSpan.FromMilliseconds(500))
+                {
+                    ClearWeaponSpeed(p);
+                }
             }
         }
     }

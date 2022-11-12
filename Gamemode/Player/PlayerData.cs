@@ -46,15 +46,18 @@ namespace FPSMO.Entities
 
         public bool bVoted;
         public ushort vote; // Can be 1 2 or 3
-        public Weapon currentWeapon;
 
         // Weapons
+        public Weapon currentWeapon;
+
         public GunWeapon gun;
 
         // The below fields help us prevent sending the same message twice. This keeps ping low/prevents the packet queue from clogging up
         public string lastCPEStatus1, lastCPEStatus2, lastCPEStatus3,
             lastCPEBottomRight1, lastCPEBottomRight2, lastCPEBottomRight3,
             lastCPEAnnouncement, lastCPESmallAnnouncement, lastCPEBigAnnouncement;
+
+        internal DateTime lastWeaponSpeedChange;
 
         public void ResetData()
         {

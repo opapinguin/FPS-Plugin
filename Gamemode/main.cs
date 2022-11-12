@@ -116,6 +116,7 @@ GROUP BY RoundID, Team;"
             Command.Register(new CmdShootGun());
             Command.Register(new CmdRate());
             Command.Register(new CmdFPSMO());
+            Command.Register(new CmdWeaponSpeed());
 
             #endregion Commands
 
@@ -128,6 +129,7 @@ GROUP BY RoundID, Team;"
             Command.Unregister(Command.Find("FPSMORate"));
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("FPSMOShootGun"));
+            Command.Unregister(Command.Find("FPSMOWeaponSpeed"));
 
             game.Stop();
         }

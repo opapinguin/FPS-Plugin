@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using MCGalaxy;
+using MCGalaxy.Blocks;
 using MCGalaxy.Maths;
 using MCGalaxy.Network;
 using MCGalaxy.Tasks;
@@ -29,7 +30,7 @@ namespace FPSMO.Weapons
      * Animation Data Structures *
      *****************************/
     #region Data Structures
-    public struct AnimBlock : IEqualityComparer<AnimBlock> {
+    internal struct AnimBlock : IEqualityComparer<AnimBlock> {
         public AnimBlock(Vec3U16 loc, BlockID block)
         {
             x = loc.X;
@@ -56,10 +57,12 @@ namespace FPSMO.Weapons
     /// <summary>
     /// An interface for different types of weapon animations
     /// </summary>
-    public abstract class Animation
+    internal abstract class Animation
     {
-        protected Player shooter;
-        protected DateTime start;
+        public Player shooter;
+        protected uint fireTimeTick;
+        public float frameLength;   // Number of frames shown at once
+
         /// <summary>
         /// Gets the current blocks at a specific animation tick
         /// </summary>
@@ -68,33 +71,32 @@ namespace FPSMO.Weapons
         /// <summary>
         /// Gets the current blocks in a range of ticks. Interpolates your blocks
         /// </summary>
-        public virtual List<AnimBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, bool interpolate=true, uint maxDepth=0)
+        public virtual List<AnimBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, bool interpolate=true, uint depth=0)
         {
             List<AnimBlock> result = new List<AnimBlock>();
-            if (Enumerable.SequenceEqual(GetCurrentBlocks(tickStart), GetCurrentBlocks(tickEnd)) || maxDepth >= 5)  // maxDepth just in case
+            if (Enumerable.SequenceEqual(GetCurrentBlocks(tickStart), GetCurrentBlocks(tickEnd)) || depth >= 5)  // maxDepth just in case
             {
                 return GetCurrentBlocks(tickStart);
             }
 
-            // TODO: If interpolate consider also the length of the gun itself. Or maybe remove the bool and just consider it
-
             // Since we do not have easy access to the inverse of our locat functions, we employ a sort of binary search
-            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, interpolate, maxDepth + 1));
-            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, interpolate, maxDepth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, interpolate, depth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, interpolate, depth + 1));
             return result;
         }
     }
 
-    public class ProjectileAnimation : Animation
+    internal class ProjectileAnimation : Animation
     {
-        public delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime);  // Location at delegates the parametric function of our choice. Assumes a 1D path
+        public delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed);  // Location at delegates the parametric function of our choice. Assumes a 1D path
 
         private LocAt locAt;
         private BlockID block;
-        private uint fireTimeTick;
         private Position origin;
         private Orientation rotation;
-        public ProjectileAnimation(Player p, uint start, BlockID b, Position orig, Orientation rot, LocAt ft)
+        private uint weaponSpeed;
+
+        public ProjectileAnimation(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, LocAt ft)
         {
             shooter = p;
             fireTimeTick = start;
@@ -102,13 +104,15 @@ namespace FPSMO.Weapons
             locAt = ft;
             origin = orig;
             rotation = rot;
+            frameLength = fl;
+            weaponSpeed = ws;
 
             WeaponAnimsHandler.AddAnimation(this);
         }
 
         public override List<AnimBlock> GetCurrentBlocks(float tick)  // TODO: Probably want to return a list of blocks, like a short line
         {
-            Vec3F32 loc = locAt(tick, origin, rotation, fireTimeTick);     // To add a short line get the location at a number of different times
+            Vec3F32 loc = locAt(tick, origin, rotation, fireTimeTick, weaponSpeed);
             Vec3U16 locU16 = new Vec3U16((ushort)(loc.X / 32), (ushort)(loc.Y / 32), (ushort)(loc.Z / 32));
 
             AnimBlock ab = new AnimBlock(locU16, block);
@@ -136,7 +140,7 @@ namespace FPSMO.Weapons
     /// 
     /// TODO: Make it work with ping compensation
     /// </summary>
-    public static class WeaponAnimsHandler
+    internal static class WeaponAnimsHandler
     {
         static SchedulerTask task;
         static Scheduler instance;
@@ -195,6 +199,7 @@ namespace FPSMO.Weapons
             foreach (Player p in FPSMOGame.Instance.players.Values)
             {
                 SendCurrentFrame(p);
+                HandleWalkthrough(p);
             }
             currentTick++;
         }
@@ -208,10 +213,23 @@ namespace FPSMO.Weapons
             {
                 Animation anim = weaponAnimations[i];
 
-                foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + 1))
+                // Revert all the blocks for the previous frame
+                if (anim is ProjectileAnimation)
                 {
-                    sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+                    foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick - anim.frameLength, currentTick))
+                    {
+                        sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), p.level.GetBlock(ab.x, ab.y, ab.z));
+                    }
+
+                    // Add all the new blocks for this frame
+                    foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + anim.frameLength))
+                    {
+                        sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+                    }
                 }
+
+                // TODO: Down here work with static animations
+
             }
 
             if (sender.count < 16)  // TODO: Benchmark this
@@ -226,6 +244,78 @@ namespace FPSMO.Weapons
             }
         }
 
+        internal static void HandleWalkthrough(Player p)
+        {
+            if (!activated) return;
+
+            Walkthrough(p, p.ModelBB.OffsetPosition(p.Pos));
+        }
+
+        /// <summary>
+        /// Handles walkthrough for an individual player against all animated blocks
+        /// </summary>
+        internal static void Walkthrough(Player p, AABB bb)
+        {
+            Vec3S32 min = bb.BlockMin, max = bb.BlockMax;
+            bool hitWalkthrough = false;
+
+            // Copied from MCGalaxy source... I think there's a better way to do this?
+            //
+            // Looks like a huge loop but the number of animations isn't that large. Not sure why Unk handled it like this though,
+            // Seems like you really only need to check against 8 points max
+
+            // TODO: Make this OBB and optimize the inner 3 loops
+            for (int i = 0; i < weaponAnimations.Count; i++)  // Small                
+            {
+                for (int y = min.Y; y <= max.Y; y++)
+                        for (int z = min.Z; z <= max.Z; z++)
+                            for (int x = min.X; x <= max.X; x++)
+                            {
+                                ushort xP = (ushort)x, yP = (ushort)y, zP = (ushort)z;
+                                BlockID block = GetCurrentBlock(xP, yP, zP, p);
+                                if (block == System.UInt16.MaxValue) continue;
+
+                                AABB blockBB = Block.BlockAABB(block, p.level).Offset(x * 32, y * 32, z * 32);
+                                if (!AABB.Intersects(ref bb, ref blockBB)) continue;
+
+                                // We can activate only one walkthrough block per movement
+                                if (!hitWalkthrough)
+                                {
+                                    HandleWalkthrough handler = p.level.WalkthroughHandlers[block];
+                                    if (handler != null && handler(p, block, xP, yP, zP))
+                                    {
+                                        hitWalkthrough = true;
+                                    }
+                                }
+
+                                // Some blocks will cause death of players
+                                if (!p.level.Props[block].KillerBlock) continue;
+                                if (block == Block.Train && p.trainInvincible) continue;
+                                if (p.level.Config.KillerBlocks) p.HandleDeath(block);  // TODO: Replace this with a handleDeath for the game
+                            }
+                }
+        }
+
+        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p)
+        {
+            for (int i = 0; i < weaponAnimations.Count; i++)
+            {
+                Animation anim = weaponAnimations[i];
+                if (anim.shooter == p)
+                {
+                    continue;
+                }
+
+                foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + anim.frameLength))
+                {
+                    if (ab.x == xP && ab.y == yP && ab.z == zP)
+                    {
+                        return ab.block;
+                    }
+                }
+            }
+            return System.UInt16.MaxValue;
+        }
     }
     #endregion
 }
