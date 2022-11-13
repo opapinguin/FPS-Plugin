@@ -63,6 +63,15 @@ namespace FPSMO.Weapons
         protected uint fireTimeTick;
         public float frameLength;   // Number of frames shown at once
 
+        // TODO: Add a doAnimationTick
+
+        // Be clever and store the current and last blocks inside the animation
+
+        // That way owner information cna be contained in there too
+
+
+
+
         /// <summary>
         /// Gets the current blocks at a specific animation tick
         /// </summary>
@@ -90,11 +99,11 @@ namespace FPSMO.Weapons
     {
         public delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed);  // Location at delegates the parametric function of our choice. Assumes a 1D path
 
-        private LocAt locAt;
-        private BlockID block;
+        private readonly LocAt locAt;
+        private readonly BlockID block;
         private Position origin;
         private Orientation rotation;
-        private uint weaponSpeed;
+        private readonly uint weaponSpeed;
 
         public ProjectileAnimation(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, LocAt ft)
         {
@@ -152,23 +161,27 @@ namespace FPSMO.Weapons
         static uint currentTick;       // Why not 0? Fixes issue with all weapon startTicks being 0, given a long reloadTime
         static uint MSRoundTick;
 
-        internal static void Activate()
+        static List<AnimBlock> currentFrame = new List<AnimBlock>();
+        static List<AnimBlock> nextFrame = new List<AnimBlock>();
+        static List<AnimBlock> collidingBlocks = new List<AnimBlock>();
+
+        public static void Activate()
         {
             MSRoundTick = FPSMOGame.Instance.gameConfig.MS_ROUND_TICK;
             lock (activateLock)                 // Thread safety
             {
                 if (instance != null) return;   // Singleton boilerplate
                 instance = new Scheduler("WeaponAnimationsScheduler");
-                task = instance.QueueRepeat(Update, FPSMOGame.Instance, TimeSpan.FromMilliseconds(MSRoundTick));
+                task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSRoundTick));
                 activated = true;
             }
             currentTick = 10;
             sender = new BufferedBlockSender(FPSMOGame.Instance.map);
         }
 
-        internal static uint Tick { get { return currentTick; } }
+        public static uint Tick { get { return currentTick; } }
 
-        internal static void Deactivate()
+        public static void Deactivate()
         {
             lock (deactivateLock)
             {
@@ -184,59 +197,91 @@ namespace FPSMO.Weapons
             currentTick = 10;
         }
 
-        internal static void AddAnimation(Animation anim)
+        public static void AddAnimation(Animation anim)
         {
             if (activated) { weaponAnimations.Add(anim); }
         }
 
-        internal static void RemoveAnimation(Animation anim)
-        {
-            weaponAnimations.Remove(anim);
-        }
-
         private static void Update(SchedulerTask task)
         {
+            currentFrame = nextFrame;
+            nextFrame = GetNextFrame();
+            collidingBlocks = new List<AnimBlock>();
+            List<Animation> collidingAnims = GetCollidingAnims(ref collidingBlocks);
+
             foreach (Player p in FPSMOGame.Instance.players.Values)
             {
+                sender = new BufferedBlockSender(p);
                 SendCurrentFrame(p);
                 HandleWalkthrough(p);
+                RemoveCollidingBlocks(p);
             }
+            RemoveCollidingAnims(collidingAnims);
+
             currentTick++;
         }
 
-        internal static void SendCurrentFrame(Player p)
+        private static List<Animation> GetCollidingAnims(ref List<AnimBlock> collidingBlocks)
         {
-            if (!activated) return;
-            sender = new BufferedBlockSender(p);
-            
-            for (int i = 0; i < weaponAnimations.Count; i++)    // Foreach wouldn't be thread-safe with the constant deletions
+            collidingBlocks = new List<AnimBlock>();
+            List<Animation> result = new List<Animation>();
+
+            bool collideFlag;
+            for (int i = 0; i < weaponAnimations.Count; i++)
             {
+                collideFlag = false;
                 Animation anim = weaponAnimations[i];
 
-                // Revert all the blocks for the previous frame
-                if (anim is ProjectileAnimation)
+                // Check if any block in the animation collides
+                List<AnimBlock> blocks = anim.GetCurrentBlocksInterpolate(currentTick - anim.frameLength, currentTick);
+                foreach (AnimBlock ab in blocks)
                 {
-                    foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick - anim.frameLength, currentTick))
+                    if (Block.Air != anim.shooter.level.GetBlock(ab.x, ab.y, ab.z))
                     {
-                        sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), p.level.GetBlock(ab.x, ab.y, ab.z));
-                    }
-
-                    // Add all the new blocks for this frame
-                    foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + anim.frameLength))
-                    {
-                        sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+                        result.Add(anim);
+                        collideFlag = true;
+                        break;
                     }
                 }
 
+               if (collideFlag) collidingBlocks.AddRange(blocks);
+            }
+
+            return result;
+        }
+
+        private static List<AnimBlock> GetNextFrame()   // TODO: could cache this for next tick
+        {
+            List<AnimBlock> result = new List<AnimBlock>();
+            for (int i = 0; i < weaponAnimations.Count; i++)
+            {
+                Animation anim = weaponAnimations[i];
+                result.AddRange(anim.GetCurrentBlocksInterpolate(currentTick, currentTick + anim.frameLength));
+            }
+            return result;
+        }
+
+        private static void SendCurrentFrame(Player p)
+        {
+            if (!activated) return;
+            foreach (AnimBlock ab in currentFrame)
+            {
+                sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), p.level.GetBlock(ab.x, ab.y, ab.z));
+            }
+
+            // Add all the new blocks for this frame
+            foreach (AnimBlock ab in nextFrame)
+            {
+                sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+            }
+
                 // TODO: Down here work with static animations
 
-            }
-
-            if (sender.count < 16)  // TODO: Benchmark this
-            {
-                // TODO: Send current blocks the simple way
-                //return;
-            }
+            //if (sender.count < 16)  // TODO: Benchmark this
+            //{
+            //    // TODO: Send current blocks the simple way
+            //    //return;
+            //}
 
             if (sender.count > 0)
             {
@@ -244,7 +289,23 @@ namespace FPSMO.Weapons
             }
         }
 
-        internal static void HandleWalkthrough(Player p)
+        private static void RemoveCollidingAnims(List<Animation> collidingAnims)
+        {
+            foreach (Animation anim in collidingAnims)
+            {
+                weaponAnimations.Remove(anim);
+            }
+        }
+
+        private static void RemoveCollidingBlocks(Player p)
+        {
+            foreach (AnimBlock ab in collidingBlocks)
+            {
+                sender.Add(p.level.PosToInt(ab.x, ab.y, ab.z), ab.block); // TODO: could have overlapping block changes, but I think that's fine
+            }
+        }
+
+        private static void HandleWalkthrough(Player p)
         {
             if (!activated) return;
 
@@ -272,7 +333,7 @@ namespace FPSMO.Weapons
                             for (int x = min.X; x <= max.X; x++)
                             {
                                 ushort xP = (ushort)x, yP = (ushort)y, zP = (ushort)z;
-                                BlockID block = GetCurrentBlock(xP, yP, zP, p);
+                                BlockID block = GetCurrentBlock(xP, yP, zP, p, currentFrame);
                                 if (block == System.UInt16.MaxValue) continue;
 
                                 AABB blockBB = Block.BlockAABB(block, p.level).Offset(x * 32, y * 32, z * 32);
@@ -290,28 +351,18 @@ namespace FPSMO.Weapons
 
                                 // Some blocks will cause death of players
                                 if (!p.level.Props[block].KillerBlock) continue;
-                                if (block == Block.Train && p.trainInvincible) continue;
                                 if (p.level.Config.KillerBlocks) p.HandleDeath(block);  // TODO: Replace this with a handleDeath for the game
                             }
                 }
         }
 
-        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p)
+        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p, List<AnimBlock> currentFrame)
         {
-            for (int i = 0; i < weaponAnimations.Count; i++)
+            foreach (AnimBlock ab in currentFrame)
             {
-                Animation anim = weaponAnimations[i];
-                if (anim.shooter == p)
+                if (ab.x == xP && ab.y == yP && ab.z == zP)
                 {
-                    continue;
-                }
-
-                foreach (AnimBlock ab in anim.GetCurrentBlocksInterpolate(currentTick, currentTick + anim.frameLength))
-                {
-                    if (ab.x == xP && ab.y == yP && ab.z == zP)
-                    {
-                        return ab.block;
-                    }
+                    return ab.block;
                 }
             }
             return System.UInt16.MaxValue;

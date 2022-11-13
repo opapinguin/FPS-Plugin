@@ -94,7 +94,14 @@ namespace FPSMO
 
             p.Message(String.Format("Starting new round"));
             p.Message(string.Format("This map was made by {0}", authors));
-            p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString("0.00")));
+
+            if (mapConfig.totalRatings == 0)
+            {
+                p.Message(String.Format("This map has not yet been rated"));
+            } else
+            {
+                p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString("0.00")));
+            }
         }
 
         #endregion
