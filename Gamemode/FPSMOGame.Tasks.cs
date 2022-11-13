@@ -72,14 +72,17 @@ namespace FPSMO
             {
                 ShowToAll(ShowVoteTime);
             }
+            ClearWeaponSpeeds();
         }
 
         private void ClearWeaponSpeeds()
         {
             Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
-            foreach (Player p in playersCopy.Values)    // TODO: Is this thread safe?
+            foreach (Player p in playersCopy.Values)
             {
-                if (DateTime.Now - PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange > TimeSpan.FromMilliseconds(500))
+                PlayerData pd = PlayerDataHandler.Instance[p.truename];
+                if (pd == null) continue;
+                if (DateTime.Now - pd.lastWeaponSpeedChange > TimeSpan.FromMilliseconds(200))
                 {
                     ClearWeaponSpeed(p);
                 }

@@ -22,6 +22,7 @@ namespace FPSMO.Commands
     public class CmdRate : Command2
     {
         public override string name { get { return "FPSMORate"; } }
+        public override string shortcut { get { return "Rate"; } }
         public override string type { get { return CommandTypes.Games; } }
         public override bool SuperUseable { get { return false; } }
 

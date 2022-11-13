@@ -162,7 +162,10 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("%2{1}%4{0}", blocks.Substring(gunStatus), blocks.Substring(10 - gunStatus)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, String.Format("Weapon: {2} %2{1}%4{0}",
+                blocks.Substring(gunStatus),
+                blocks.Substring(10 - gunStatus),
+                PlayerDataHandler.Instance[p.truename].currentWeapon.name));
         }
 
         public void ShowWinningTeam(Player p)
@@ -209,6 +212,7 @@ namespace FPSMO
         public void ClearWeaponSpeed(Player p)
         {
             SendCpeMessageNoRepeat(p, CpeMessageType.SmallAnnouncement, "");
+            PlayerDataHandler.Instance[p.truename].lastCPESmallAnnouncement = "";
         }
         
         public void ClearTopRight(Player p)
@@ -216,6 +220,9 @@ namespace FPSMO
             SendCpeMessageNoRepeat(p, CpeMessageType.Status1, "");
             SendCpeMessageNoRepeat(p, CpeMessageType.Status2, "");
             SendCpeMessageNoRepeat(p, CpeMessageType.Status3, "");
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus1 = "";
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus2 = "";
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus3 = "";
         }
 
         public void ClearBottomRight(Player p)
@@ -223,6 +230,9 @@ namespace FPSMO
             SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight1, "");
             SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, "");
             SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight3, "");
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus1 = "";
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus2 = "";
+            PlayerDataHandler.Instance[p.truename].lastCPEStatus3 = "";
         }
 
         public string FormatTimeSpan(TimeSpan span)

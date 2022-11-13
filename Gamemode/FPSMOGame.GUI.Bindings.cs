@@ -29,16 +29,20 @@ namespace FPSMO
             // TODO: At some point you want to add a method to retrieve pre-defined bindings
             // that the player can choose via some command. Use a configuration object to store it
 
+            p.Send(Packet.TextHotKey("shootRocket", "/FPSMOShootRocket\n", 35, 0, p.hasCP437)); // Keycode "h"
             p.Send(Packet.TextHotKey("shootGun", "/FPSMOShootGun\n", 36, 0, p.hasCP437)); // Keycode "j"
-            p.Send(Packet.TextHotKey("weaponSpeedPlus", "/FPSMOWeaponSpeed plus\n", 37, 0, p.hasCP437)); // Keycode "k"
-            p.Send(Packet.TextHotKey("weaponSpeedMinus", "/FPSMOWeaponSpeed minus\n", 38, 0, p.hasCP437)); // Keycode "l"
+
+            p.Send(Packet.TextHotKey("weaponSpeedMinus", "/FPSMOWeaponSpeed minus\n", 37, 0, p.hasCP437)); // Keycode "k"
+            p.Send(Packet.TextHotKey("weaponSpeedPlus", "/FPSMOWeaponSpeed plus\n", 38, 0, p.hasCP437)); // Keycode "l"
         }
 
         public void RemoveBindings(Player p)
         {
+            p.Send(Packet.TextHotKey("shootRocket", "", 35, 0, p.hasCP437)); // Keycode "h"
             p.Send(Packet.TextHotKey("shootGun", "", 36, 0, p.hasCP437)); // Keycode "j"
-            p.Send(Packet.TextHotKey("weaponSpeedPlus", "/FPSMOWeaponSpeed plus\n", 37, 0, p.hasCP437)); // Keycode "k"
-            p.Send(Packet.TextHotKey("weaponSpeedMinus", "/FPSMOWeaponSpeed minus\n", 38, 0, p.hasCP437)); // Keycode "l"
+
+            p.Send(Packet.TextHotKey("weaponSpeedMinus", "/FPSMOWeaponSpeed minus\n", 37, 0, p.hasCP437)); // Keycode "k"
+            p.Send(Packet.TextHotKey("weaponSpeedPlus", "/FPSMOWeaponSpeed plus\n", 38, 0, p.hasCP437)); // Keycode "l"
         }
     }
 }

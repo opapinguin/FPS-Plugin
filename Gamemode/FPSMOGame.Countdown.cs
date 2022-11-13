@@ -56,7 +56,7 @@ namespace FPSMO
 
         private void SetMainLevel()
         {
-            if (gameConfig.bSetMainLevel)
+            if (gameConfig.B_SET_MAIN_LEVEL)
             {
                 Server.Config.MainLevel = map.name;
             }

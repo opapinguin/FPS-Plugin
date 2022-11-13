@@ -159,7 +159,7 @@ namespace FPSMO.Weapons
         static List<Animation> weaponAnimations = new List<Animation>();
         static bool activated;
         static uint currentTick;       // Why not 0? Fixes issue with all weapon startTicks being 0, given a long reloadTime
-        static uint MSRoundTick;
+        static uint MSTick;
 
         static List<AnimBlock> currentFrame = new List<AnimBlock>();
         static List<AnimBlock> nextFrame = new List<AnimBlock>();
@@ -167,12 +167,12 @@ namespace FPSMO.Weapons
 
         public static void Activate()
         {
-            MSRoundTick = FPSMOGame.Instance.gameConfig.MS_ROUND_TICK;
+            MSTick = FPSMOGame.Instance.gameConfig.MS_UPDATE_WEAPON_ANIMATIONS;
             lock (activateLock)                 // Thread safety
             {
                 if (instance != null) return;   // Singleton boilerplate
                 instance = new Scheduler("WeaponAnimationsScheduler");
-                task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSRoundTick));
+                task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSTick));
                 activated = true;
             }
             currentTick = 10;
