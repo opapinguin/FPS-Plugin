@@ -95,12 +95,12 @@ namespace FPSMO
             p.Message(String.Format("Starting new round"));
             p.Message(string.Format("This map was made by {0}", authors));
 
-            if (mapConfig.totalRatings == 0)
+            if (mapConfig.TOTAL_RATINGS == 0)
             {
                 p.Message(String.Format("This map has not yet been rated"));
             } else
             {
-                p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString("0.00")));
+                p.Message(String.Format("This map has a rating of {0}", mapConfig.Rating.ToString("0.00")));
             }
         }
 
@@ -155,7 +155,7 @@ namespace FPSMO
 
         public void ShowWeaponStatus(Player p)
         {
-            ushort gunStatus = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponAnimsHandler.Tick);
+            ushort gunStatus = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponHandler.Tick);
 
             // Cap the stamina at 10
             gunStatus = gunStatus > 10 ? (ushort)10 : gunStatus;

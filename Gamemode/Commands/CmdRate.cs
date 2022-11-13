@@ -72,16 +72,16 @@ namespace FPSMO.Commands
 
             if (oldRating == int.MaxValue)
             {
-                config.sumRatings += rating;
-                config.totalRatings += 1;
+                config.SUM_RATINGS += rating;
+                config.TOTAL_RATINGS += 1;
 
                 p.SetMoney(p.money + 5);
                 p.Message("Thank you for voting! You received 5 " + Server.Config.Currency);
             }
             else
             {
-                config.sumRatings -= oldRating;
-                config.sumRatings += rating;
+                config.SUM_RATINGS -= oldRating;
+                config.SUM_RATINGS += rating;
 
                 p.Message("Thank you for rating this map!");
             }

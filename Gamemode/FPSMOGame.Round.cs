@@ -34,7 +34,7 @@ namespace FPSMO
         #region begin
         private void BeginRound()
         {
-            WeaponAnimsHandler.Activate();
+            WeaponHandler.Activate();
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
@@ -66,7 +66,7 @@ namespace FPSMO
         #region end
         private void EndRound()
         {
-            WeaponAnimsHandler.Deactivate();
+            WeaponHandler.Deactivate();
 
             ShowToAll(ShowWinningTeam);
             ShowToAll(ClearTopRight);

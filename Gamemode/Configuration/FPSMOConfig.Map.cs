@@ -13,23 +13,40 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
+using System.Collections.Generic;
+using MCGalaxy.Maths;
+
 namespace FPSMO.Configuration
 {
+    public struct SpawnPoint
+    {
+        public string team;
+        public Vec3U16 loc;
+    }
+
     public struct FPSMOMapConfig
     {
         public FPSMOMapConfig(uint RoundTime)
         {
-            this.RoundTime_S = RoundTime;
-            this.totalRatings = 0;
-            this.sumRatings = 0;
+            // DEFAULT VALUES
+            this.ROUND_TIME_S = RoundTime;
+            this.TOTAL_RATINGS = 0;
+            this.SUM_RATINGS = 0;
+            this.SPAWNPOINTS = new List<SpawnPoint>();
+            this.COUNTDOWN_TIME = TimeSpan.FromSeconds(10);
+            this.TEAM_VS_TEAM = true;
         }
-        public float totalRatings;
-        public float sumRatings;
-        public uint RoundTime_S;
+        public float TOTAL_RATINGS;
+        public float SUM_RATINGS;
+        public uint ROUND_TIME_S;
+        public List<SpawnPoint> SPAWNPOINTS;
+        public TimeSpan COUNTDOWN_TIME;
+        public bool TEAM_VS_TEAM;
 
-        public float rating {
+        public float Rating {
             get {
-                return (sumRatings / totalRatings) == float.NaN ? 0 : (sumRatings / totalRatings);
+                return (SUM_RATINGS / TOTAL_RATINGS) == float.NaN ? 0 : (SUM_RATINGS / TOTAL_RATINGS);
             }
         }
     }

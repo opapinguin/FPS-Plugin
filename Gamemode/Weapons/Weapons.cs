@@ -73,7 +73,7 @@ namespace FPSMO.Weapons
             reloadTimeTicks = config.MS_GUN_RELOAD / config.MS_UPDATE_WEAPON_ANIMATIONS;
             player = pl;
             block = config.GUN_BLOCK;
-            lastFireTick = WeaponAnimsHandler.Tick;
+            lastFireTick = WeaponHandler.Tick;
             frameLength = config.GUN_FRAME_LENGTH;
         }
 
@@ -101,9 +101,9 @@ namespace FPSMO.Weapons
 
         public override void Use(Orientation rot, Vec3F32 loc, ushort strength) // TODO: Implement strength
         {
-            lastFireTick = WeaponAnimsHandler.Tick;
+            lastFireTick = WeaponHandler.Tick;
             // Instantiate the weapon animation
-            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
+            WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
         }
     }
 
@@ -118,12 +118,12 @@ namespace FPSMO.Weapons
             reloadTimeTicks = config.MS_ROCKET_RELOAD / config.MS_UPDATE_WEAPON_ANIMATIONS;
             player = pl;
             block = config.ROCKET_BLOCK;
-            lastFireTick = WeaponAnimsHandler.Tick;
+            lastFireTick = WeaponHandler.Tick;
             frameLength = config.ROCKET_FRAME_LENGTH;
         }
 
         /// <summary>
-        /// Location at a given time relative
+        /// Location at a given tick
         /// </summary>
         public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
         {
@@ -168,9 +168,9 @@ namespace FPSMO.Weapons
 
         public override void Use(Orientation rot, Vec3F32 loc, ushort strength) // TODO: Implement strength
         {
-            lastFireTick = WeaponAnimsHandler.Tick;
+            lastFireTick = WeaponHandler.Tick;
             // Instantiate the weapon animation
-            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
+            WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
         }
     }
 

@@ -39,7 +39,6 @@ namespace FPSMO.Entities
         public ushort hits;
         public ushort kills;
         public ushort deaths;
-        public int money;
 
         public ushort stamina;
         public ushort health;

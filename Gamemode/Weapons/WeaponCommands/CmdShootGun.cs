@@ -19,9 +19,9 @@ using System;
 
 namespace FPSMO.Weapons
 {
-    class CmdShootRocket : Command2
+    class CmdShootGun : Command2
     {
-        public override string name { get { return "FPSMOShootRocket"; } }
+        public override string name { get { return "FPSMOShootGun"; } }
         public override bool LogUsage { get { return false; } }
         public override string type { get { return CommandTypes.Games; } }
 
@@ -37,18 +37,18 @@ namespace FPSMO.Weapons
                 return;
             }
 
-            Weapon rocket = PlayerDataHandler.Instance[p.truename].rocket;
-            if (rocket.GetStatus(WeaponAnimsHandler.Tick) < 10)
+            Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
+            if (gun.GetStatus(WeaponHandler.Tick) < 10)
             {
                 return;
             }
-            PlayerDataHandler.Instance[p.truename].rocket.Use(p.Rot, p.Pos.ToVec3F32(), 10);
-            PlayerDataHandler.Instance[p.truename].currentWeapon = rocket;
+            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
+            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
         }
 
         public override void Help(Player p)
         {
-            p.Message("&HShoots a rocket");
+            p.Message("&HShoots a gun");
         }
     }
 }
