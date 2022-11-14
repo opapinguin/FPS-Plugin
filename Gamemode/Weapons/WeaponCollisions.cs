@@ -26,6 +26,13 @@ namespace FPSMO.Weapons
 {
     internal static class WeaponCollisionsHandler
     {
+        static Level level;
+
+        public static void Activate()
+        {
+            level = FPSMOGame.Instance.map;
+        }
+
         public static void Update(List<WeaponEntity> weaponEntities)
         {
             foreach (Player p in FPSMOGame.Instance.players.Values)
@@ -34,11 +41,11 @@ namespace FPSMO.Weapons
             }
         }
 
-        public static bool CheckCollision(List<WeaponBlock> blocks, Level lvl)
+        public static bool CheckCollision(List<WeaponBlock> blocks)
         {
             foreach (WeaponBlock wb in blocks)
             {
-                if (Block.Air != lvl.GetBlock(wb.x, wb.y, wb.z)) {
+                if (Block.Air != level.GetBlock(wb.x, wb.y, wb.z)) {
                     return true;
                 }
             }
@@ -84,13 +91,13 @@ namespace FPSMO.Weapons
                             BlockID block = GetCurrentBlock(xP, yP, zP, p, weaponEntities, ref owner);
                             if (block == System.UInt16.MaxValue) continue;
 
-                            AABB blockBB = Block.BlockAABB(block, p.level).Offset(x * 32, y * 32, z * 32);
+                            AABB blockBB = Block.BlockAABB(block, level).Offset(x * 32, y * 32, z * 32);
                             if (!AABB.Intersects(ref bb, ref blockBB)) continue;
 
                             // We can activate only one walkthrough block per movement
                             if (!hitWalkthrough)
                             {
-                                HandleWalkthrough handler = p.level.WalkthroughHandlers[block];
+                                HandleWalkthrough handler = level.WalkthroughHandlers[block];
                                 if (handler != null && handler(p, block, xP, yP, zP))
                                 {
                                     hitWalkthrough = true;
@@ -103,8 +110,8 @@ namespace FPSMO.Weapons
                             }
 
                             // Some blocks will cause death of players
-                            if (!p.level.Props[block].KillerBlock) continue;
-                            if (p.level.Config.KillerBlocks) p.HandleDeath(block);  // TODO: Replace this with a handleDeath for the game
+                            if (!level.Props[block].KillerBlock) continue;
+                            if (level.Config.KillerBlocks) p.HandleDeath(block);  // TODO: Replace this with a handleDeath for the game
                         }
             }
         }

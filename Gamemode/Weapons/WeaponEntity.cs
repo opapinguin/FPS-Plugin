@@ -80,7 +80,8 @@ namespace FPSMO.Weapons
             List<WeaponBlock> result = new List<WeaponBlock>();
             List<WeaponBlock> currentBlocks = GetCurrentBlocks(tickStart);
 
-            if (WeaponCollisionsHandler.CheckCollision(currentBlocks, shooter.level))   // If a collision is found return (and don't bother with what's comes after this tick)
+            // TODO: could be more efficient if not constantly jumping to find the map
+            if (WeaponCollisionsHandler.CheckCollision(currentBlocks))   // If a collision is found return (and don't bother with what's comes after this tick)
             {
                 collided = true;
                 return new List<WeaponBlock>();
@@ -92,8 +93,8 @@ namespace FPSMO.Weapons
             }
 
             // Since we do not have easy access to the inverse of our LocAt functions, we employ an in-order depth-first traversal
-            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, depth + 1));
-            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, depth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2 - 1f / (float)Math.Pow(2, depth + 1), depth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2 - 1f / (float)Math.Pow(2, depth), tickEnd, depth + 1));
 
             return result;
         }

@@ -36,27 +36,25 @@ namespace FPSMO.Weapons
     internal static class WeaponAnimsHandler
     {
         static BufferedBlockSender sender;
+        static Level level;
+
+        static Dictionary<int, BlockID> blockSenderCache;   // Using a dictionary cache has a few benefits, including preventing duplicate writes
 
         public static void Activate()
         {
             sender = new BufferedBlockSender(FPSMOGame.Instance.map);
+            level = FPSMOGame.Instance.map;
+            blockSenderCache = new Dictionary<int, BlockID>();
         }
 
         public static void Deactivate()
         {
             sender = null;
+            level = null;
+            blockSenderCache = null;
         }
 
         public static void Draw(List<WeaponEntity> entities, bool currentTick)
-        {
-            foreach (Player p in FPSMOGame.Instance.players.Values)
-            {
-                sender = new BufferedBlockSender(p);    // TODO: Could this be per level instead of per player?
-                Draw(p, entities, currentTick);
-            }
-        }
-
-        public static void Draw(Player p, List<WeaponEntity> entities, bool currentTick)
         {
             foreach (WeaponEntity we in entities)
             {
@@ -64,41 +62,19 @@ namespace FPSMO.Weapons
                 {
                     foreach (WeaponBlock wb in we.currentBlocks)
                     {
-                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
                     }
                 } else
                 {
                     foreach (WeaponBlock wb in we.lastBlocks)
                     {
-                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
                     }
                 }
             }
-
-            // TODO: Down here work with static animations later
-
-            //if (sender.count < 16)  // TODO: Benchmark this
-            //{
-            //    // TODO: Send current blocks the simple way
-            //    //return;
-            //}
-
-            if (sender.count > 0)
-            {
-                sender.Flush();
-            }
         }
 
-        public static void Undraw(List<WeaponEntity> entities, bool currentTick)
-        {
-            foreach (Player p in FPSMOGame.Instance.players.Values)
-            {
-                sender = new BufferedBlockSender(p);
-                Undraw(p, entities, currentTick);
-            }
-        }
-
-        public static void Undraw(Player p, List<WeaponEntity> weList,bool currentTick)
+        public static void Undraw(List<WeaponEntity> weList,bool currentTick)
         {
             foreach (WeaponEntity we in weList)
             {
@@ -106,21 +82,30 @@ namespace FPSMO.Weapons
                 {
                     foreach (WeaponBlock wb in we.currentBlocks)
                     {
-                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), p.level.GetBlock(wb.x, wb.y, wb.z));
+                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
                     }
                 } else
                 {
                     foreach (WeaponBlock wb in we.lastBlocks)
                     {
-                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), p.level.GetBlock(wb.x, wb.y, wb.z));
+                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
                     }
                 }
             }
+        }
 
-            if (sender.count > 0)
+        public static void Flush()
+        {
+            foreach (Player p in FPSMOGame.Instance.players.Values)
             {
-                sender.Flush();
+                sender = new BufferedBlockSender(p);
+                foreach (var kvp in blockSenderCache)
+                {
+                    sender.Add(kvp.Key, kvp.Value);
+                }
+                if (sender.count > 0) sender.Flush();
             }
+            blockSenderCache = new Dictionary<int, BlockID>();
         }
     }
 }

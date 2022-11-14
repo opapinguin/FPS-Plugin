@@ -38,12 +38,14 @@ namespace FPSMO.Weapons
             }
 
             Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
+            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
+
             if (gun.GetStatus(WeaponHandler.Tick) < 10)
             {
                 return;
             }
+
             PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
-            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
         }
 
         public override void Help(Player p)

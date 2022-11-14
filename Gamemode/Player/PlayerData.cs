@@ -66,6 +66,7 @@ namespace FPSMO.Entities
             stamina = health = 10;
             bVoted = false;
             gun.Reset();
+            rocket.Reset();
             currentWeapon = gun;
         }
     }
