@@ -22,7 +22,7 @@ namespace FPSMO.PingCompensation
     /// Template for lists with timestamps e.g., location, rotation etc
     /// Can linearly interpolate to get the value at a specific time
     /// </summary>
-    public class PingList<T>
+    internal class PingList<T>
     {
         struct TimeStamp
         {

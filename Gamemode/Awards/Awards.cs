@@ -54,7 +54,7 @@ namespace FPSMO
         private int _numAchievements = 0;
     }
 
-    public class Achievements : IObserver
+    internal class Achievements : IObserver
     {
         public void OnNotify(ref Player player, AwardEvent award)
         {

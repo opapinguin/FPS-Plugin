@@ -19,7 +19,7 @@ using System.IO;
 
 namespace FPSMO.Commands
 {
-    public class CmdRate : Command2
+    internal class CmdRate : Command2
     {
         public override string name { get { return "FPSMORate"; } }
         public override string shortcut { get { return "Rate"; } }

@@ -34,7 +34,10 @@ namespace FPSMO.Entities
             gun = new GunWeapon(p);
             rocket = new RocketWeapon(p);
             ResetData();
+            name = p.truename;
         }
+
+        public string name;
 
         public ushort hits;
         public ushort kills;
