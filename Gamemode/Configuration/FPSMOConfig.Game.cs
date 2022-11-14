@@ -23,12 +23,12 @@ namespace FPSMO.Configuration
         public FPSMOGameConfig(bool bAutoStart)
         {
             // DEFAULT VALUES
-            maps = new List<string>
+            MAPS = new List<string>
             {
                 Server.Config.MainLevel
             };
 
-            this.bAutoStart = bAutoStart;
+            this.B_AUTO_START = bAutoStart;
 
             MS_ROUND_TICK = 100;
             S_COUNTDOWNTIME = 10;
@@ -51,16 +51,16 @@ namespace FPSMO.Configuration
 
             // Rockets
             ROCKET_BLOCK = 42;
-            MIN_ROCKET_VELOCITY = 20;
+            MIN_ROCKET_VELOCITY = 10;
             MAX_ROCKET_VELOCITY = 60;
             MS_ROCKET_RELOAD = 2000;
             ROCKET_DAMAGE = 1;
-            ROCKET_FRAME_LENGTH = 1.5f;
+            ROCKET_FRAME_LENGTH = 4f;
         }
 
-        public bool bAutoStart;
+        public bool B_AUTO_START;
         public bool B_SET_MAIN_LEVEL;
-        public List<string> maps;
+        public List<string> MAPS;
         public uint MS_ROUND_TICK;
         public uint S_COUNTDOWNTIME;
         public uint S_VOTETIME;

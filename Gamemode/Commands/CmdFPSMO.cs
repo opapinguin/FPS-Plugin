@@ -15,7 +15,9 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 using FPSMO.Configuration;
 using MCGalaxy;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace FPSMO.Commands
 {
@@ -44,7 +46,7 @@ namespace FPSMO.Commands
 
                         // Read and write the game config
                         FPSMOGameConfig config = FPSMOConfig<FPSMOGameConfig>.Read("Config");
-                        config.maps.Add(p.level.name);
+                        config.MAPS.Add(p.level.name);
                         FPSMOConfig<FPSMOGameConfig>.Update("Config", config);
 
                         // Note: changes won't occur in-game till next round
@@ -62,9 +64,44 @@ namespace FPSMO.Commands
                     }
                     break;
                 case 3:
+                    if (args[0] == "game")
+                    {
+                        FPSMOGameConfig config = FPSMOConfig<FPSMOGameConfig>.Read("Config");
+                        p.Message(config.MS_UPDATE_ROUND_STATUS.ToString());
+
+                        Type type = typeof(FPSMOGameConfig);
+                        PropertyInfo prop = type.GetProperty(args[1].ToUpper());
+                        if (prop == null) { p.Message("Not a valid property"); return; }
+
+                        var propVal = prop.GetValue(config, null);
+                        object newVal = TryConvert(args[2], propVal);
+
+                        if (newVal == null) { p.Message("Input could not be cast to the property"); return; }
+
+                        prop.SetValue(config, newVal, null);
+
+                        FPSMOConfig<FPSMOGameConfig>.Update("Config", config);
+                    } else if (args[0] == "set" && args[1] == "map")
+                    {
+
+                    }
                     break;
             }
             // TODO: Implement this command
+
+
+        }
+
+        /// <summary>
+        /// Tries to convert a string into the type of object val. Returns null if not possible.
+        /// </summary>
+        private static object TryConvert(string str, object val) {
+            try
+            {
+                return Convert.ChangeType(str, val.GetType());
+            } catch {
+                return null;
+            }
         }
 
         public override void Help(Player p, string message)
@@ -72,9 +109,12 @@ namespace FPSMO.Commands
             string[] args = message.ToLower().SplitSpaces();
             if (args[0] == "set")
             {
-                p.Message("&T/FPSMO set roundtime [time] - Sets the roundtime for this map");
-                p.Message("&T/FPSMO set buildable [modify/nomodify] - Sets the build permissions for this map");
-            } else
+                p.Message("&T/FPSMO map [property] [value] - Sets a property for a map");
+                p.Message("&T/FPSMO game [property] [value] - Sets a property for the game as a whole");
+                p.Message("&HSee '/help FPSMO map properties' and '/help FPSMO game properties' for a list of properties");
+                p.Message("&HUse '/FPSMO get map' and '/help get game' for a list of current properties");
+            }
+            else
             {
                 Help(p);
             }
@@ -82,8 +122,8 @@ namespace FPSMO.Commands
 
         public override void Help(Player p)
         {
-            p.Message("&");
-            p.Message("&HManages or starts the FPSMO gamemode");
+            p.Message("&HManages the FPSMO gamemode");
+            p.Message("&HSee /help FPSMO set for more information");
         }
     }
 }

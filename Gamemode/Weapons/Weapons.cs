@@ -150,14 +150,14 @@ namespace FPSMO.Weapons
 
             // Cross product with that to get the perpendicular vector that we want
             Vec3F32 helixBar = Vec3F32.Cross(backwardVectorBar, Vec3F32.Normalise(velBar));
-            Vec3F32 helixDisplacement = (float)Math.Sin(time * 7f) * helixBar + (float)Math.Cos(time * 7f) * velBar;
+            Vec3F32 helixDisplacement = (float)Math.Sin(time * 10f) * helixBar + (float)Math.Cos(time * 10f) * velBar;
 
-            float helixR = (float)(10f / (1 + Math.Exp(-time * 3f)) - 5);   // Radius kind of peters out as time passes. Sigmoid
+            // Helix radius (over time). A hat function
+            float helixR = time <= 1.5f ? 3 * time : (time >= 3 ? 0 : 9 - 3 * time);
 
-            // MOVING UP AND DOWN CALCULATION
             // This part is handled by a simple cubic
             float cY = 50;  // Add an extra 50 meters
-            float cX = 2;  // For about 2 seconds
+            float cX = 4;  // For about 4 seconds
             float cubicDisplacementY = -27f * cY / (4f * cX * cX * cX) * time * time * time + 27f * cY / (4f * cX * cX) * time * time;
 
             // Note these are precise coordinates, and so are actually large by a factor of 32

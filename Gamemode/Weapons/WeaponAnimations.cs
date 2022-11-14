@@ -47,30 +47,31 @@ namespace FPSMO.Weapons
             sender = null;
         }
 
-        public static void Update(List<WeaponEntity> entities, List<WeaponEntity> collidingEntities)
+        public static void Draw(List<WeaponEntity> entities, bool currentTick)
         {
             foreach (Player p in FPSMOGame.Instance.players.Values)
             {
                 sender = new BufferedBlockSender(p);    // TODO: Could this be per level instead of per player?
-                SendCurrentFrame(p, entities);
-                RemoveCollidingBlocks(p, collidingEntities);
+                Draw(p, entities, currentTick);
             }
         }
 
-        private static void SendCurrentFrame(Player p, List<WeaponEntity> entities)
+        public static void Draw(Player p, List<WeaponEntity> entities, bool currentTick)
         {
             foreach (WeaponEntity we in entities)
             {
-                // Out with the old frame
-                foreach (WeaponBlock wb in we.lastBlocks)
+                if (currentTick)
                 {
-                    sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), p.level.GetBlock(wb.x, wb.y, wb.z));
-                }
-
-                // In with the new frame
-                foreach (WeaponBlock wb in we.currentBlocks)
+                    foreach (WeaponBlock wb in we.currentBlocks)
+                    {
+                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                    }
+                } else
                 {
-                    sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                    foreach (WeaponBlock wb in we.lastBlocks)
+                    {
+                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                    }
                 }
             }
 
@@ -88,14 +89,37 @@ namespace FPSMO.Weapons
             }
         }
 
-        private static void RemoveCollidingBlocks(Player p, List<WeaponEntity> collidingEntities)
+        public static void Undraw(List<WeaponEntity> entities, bool currentTick)
         {
-            foreach (WeaponEntity we in collidingEntities)
+            foreach (Player p in FPSMOGame.Instance.players.Values)
             {
-                foreach (WeaponBlock wb in we.currentBlocks)
+                sender = new BufferedBlockSender(p);
+                Undraw(p, entities, currentTick);
+            }
+        }
+
+        public static void Undraw(Player p, List<WeaponEntity> weList,bool currentTick)
+        {
+            foreach (WeaponEntity we in weList)
+            {
+                if (currentTick)
                 {
-                    sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), wb.block);
+                    foreach (WeaponBlock wb in we.currentBlocks)
+                    {
+                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), p.level.GetBlock(wb.x, wb.y, wb.z));
+                    }
+                } else
+                {
+                    foreach (WeaponBlock wb in we.lastBlocks)
+                    {
+                        sender.Add(p.level.PosToInt(wb.x, wb.y, wb.z), p.level.GetBlock(wb.x, wb.y, wb.z));
+                    }
                 }
+            }
+
+            if (sender.count > 0)
+            {
+                sender.Flush();
             }
         }
     }

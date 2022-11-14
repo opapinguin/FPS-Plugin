@@ -27,7 +27,7 @@ namespace FPSMO
         {
             this.totalKills = 0;
             this.totalDeaths = 0;
-            this.name = name.ToUpper(); ;
+            this.name = name.ToUpper();
         }
     }
 }

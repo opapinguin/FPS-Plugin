@@ -61,6 +61,7 @@ namespace FPSMO.Weapons
         public Player shooter;
         protected uint fireTimeTick;
         public float frameLength;   // Number of frames shown at once
+        public bool collided;
 
         public List<WeaponBlock> currentBlocks = new List<WeaponBlock>(); // current tick blocks
         public List<WeaponBlock> lastBlocks = new List<WeaponBlock>();    // last tick blocks
@@ -72,18 +73,28 @@ namespace FPSMO.Weapons
 
         /// <summary>
         /// Gets the current blocks in a range of ticks. Interpolates your blocks
+        /// Depth first in-order
         /// </summary>
-        public virtual List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, bool interpolate=true, uint depth=0)
+        public virtual List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, uint depth=0)
         {
             List<WeaponBlock> result = new List<WeaponBlock>();
-            if (Enumerable.SequenceEqual(GetCurrentBlocks(tickStart), GetCurrentBlocks(tickEnd)) || depth >= 5)  // maxDepth just in case
+            List<WeaponBlock> currentBlocks = GetCurrentBlocks(tickStart);
+
+            if (WeaponCollisionsHandler.CheckCollision(currentBlocks, shooter.level))   // If a collision is found return (and don't bother with what's comes after this tick)
             {
-                return GetCurrentBlocks(tickStart);
+                collided = true;
+                return new List<WeaponBlock>();
             }
 
-            // Since we do not have easy access to the inverse of our locat functions, we employ a sort of binary search
-            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, interpolate, depth + 1));
-            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, interpolate, depth + 1));
+            if (Enumerable.SequenceEqual(currentBlocks, GetCurrentBlocks(tickEnd)) || depth >= 5)
+            {
+                return currentBlocks;
+            }
+
+            // Since we do not have easy access to the inverse of our LocAt functions, we employ an in-order depth-first traversal
+            result.AddRange(GetCurrentBlocksInterpolate(tickStart, (tickStart + tickEnd) / 2, depth + 1));
+            result.AddRange(GetCurrentBlocksInterpolate((tickStart + tickEnd) / 2, tickEnd, depth + 1));
+
             return result;
         }
     }

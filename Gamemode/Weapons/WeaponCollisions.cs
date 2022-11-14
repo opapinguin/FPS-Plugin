@@ -34,23 +34,24 @@ namespace FPSMO.Weapons
             }
         }
 
+        public static bool CheckCollision(List<WeaponBlock> blocks, Level lvl)
+        {
+            foreach (WeaponBlock wb in blocks)
+            {
+                if (Block.Air != lvl.GetBlock(wb.x, wb.y, wb.z)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public static List<WeaponEntity> GetCollisions(List<WeaponEntity> weaponEntities)
         {
             List<WeaponEntity> result = new List<WeaponEntity>();
 
             for (int i = 0; i < weaponEntities.Count; i++)
             {
-                WeaponEntity anim = weaponEntities[i];
-
-                // Check if any block in the animation collides
-                foreach (WeaponBlock ab in anim.currentBlocks)
-                {
-                    if (Block.Air != anim.shooter.level.GetBlock(ab.x, ab.y, ab.z))
-                    {
-                        result.Add(anim);
-                        break;
-                    }
-                }
+                if (weaponEntities[i].collided) { result.Add(weaponEntities[i]); }
             }
 
             return result;

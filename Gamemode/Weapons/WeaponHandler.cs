@@ -39,6 +39,7 @@ namespace FPSMO.Weapons
         static uint currentTick;
 
         static List<WeaponEntity> weaponEntities = new List<WeaponEntity>();
+        static List<WeaponEntity> collidingEntities = new List<WeaponEntity>();
 
         public static uint Tick { get { return currentTick; } }
 
@@ -68,6 +69,7 @@ namespace FPSMO.Weapons
                 }
             }
 
+            WeaponAnimsHandler.Undraw(weaponEntities, currentTick : true);
             WeaponAnimsHandler.Deactivate();
             currentTick = 10;
 
@@ -86,11 +88,22 @@ namespace FPSMO.Weapons
 
         public static void Update(SchedulerTask task)
         {
-            UpdateEntityBlocks();       // Update all the current blocks inside the weapon entities
-            List<WeaponEntity> collidingEntities = WeaponCollisionsHandler.GetCollisions(weaponEntities);
-            WeaponAnimsHandler.Update(weaponEntities, collidingEntities); // Shows the current entities on screen
-            WeaponCollisionsHandler.Update(weaponEntities);       // Handles collision and death
-            RemoveCollidingEntities(collidingEntities);  // Removes the colliding entities from the view
+            // 1. Find blocks for tick T
+            // 2. Undraw everything from tick T-1
+            // 3. Remove animations that were found to collide at T-1
+            // 4. Set collidingEntities to tick T's colliding entities
+            // 5. For entities that did collide, add to the collided entities list
+            // 6. Check collisions against players and handle hits
+            // 7. Draw all animations for tick T
+            // 8. Increase tick to T+1
+            // Rinse and repeat
+
+            UpdateEntityBlocks();
+            WeaponAnimsHandler.Undraw(weaponEntities, currentTick : false);
+            RemoveEntities(collidingEntities);
+            collidingEntities = WeaponCollisionsHandler.GetCollisions(weaponEntities);
+            WeaponAnimsHandler.Draw(weaponEntities, currentTick : true);
+            WeaponCollisionsHandler.Update(weaponEntities);
             currentTick++;
         }
 
@@ -103,9 +116,9 @@ namespace FPSMO.Weapons
             }
         }
 
-        private static void RemoveCollidingEntities(List<WeaponEntity> collidingEntities)
+        private static void RemoveEntities(List<WeaponEntity> weList)
         {
-            foreach (WeaponEntity entity in collidingEntities)
+            foreach (WeaponEntity entity in weList)
             {
                 WeaponHandler.RemoveEntity(entity);
             }
