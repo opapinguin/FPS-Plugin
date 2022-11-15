@@ -24,6 +24,8 @@ namespace FPSMO
             game.PlayerJoined += HandlePlayerJoined;
             game.GameStopped += HandleGameStopped;
             game.WeaponSpeedChanged += HandleWeaponSpeedChanged;
+            game.PlayerJoinedTeam += HandlePlayerJoinedTeam;
+            game.PlayerKilled += HandlePlayerKilled;
         }
 
         internal static void HandleCountdownStarted(Object sender, EventArgs args)
@@ -163,10 +165,31 @@ namespace FPSMO
             Player player = args.Player;
             int amount = args.Amount;
 
-            // Cap the stamina at 10
             amount = Utils.Clamp(amount, 0, 10);
 
             player.SendCpeMessage(CpeMessageType.SmallAnnouncement, ColoredBlocks(amount));
+        }
+
+        internal static void HandlePlayerJoinedTeam(Object sender, PlayerJoinedTeamEventArgs args)
+        {
+            FPSMOGame game = (FPSMOGame)sender;
+
+            foreach (Player player in game.players.Values)
+            {
+                player.SendCpeMessage(CpeMessageType.Normal,
+                    $"{args.Player.ColoredName} joined team {args.TeamName.ToUpper()}");
+            }
+        }
+
+        internal static void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
+        {
+            FPSMOGame game = (FPSMOGame)sender;
+
+            foreach (Player player in game.players.Values)
+            {
+                player.SendCpeMessage(CpeMessageType.Normal,
+                    $"{args.Killer.ColoredName} killed {args.Victim.ColoredName}");
+            }
         }
 
         private static void ShowMapInfo(Player p, Level level, FPSMOMapConfig mapConfig)

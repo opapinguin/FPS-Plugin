@@ -27,7 +27,7 @@ namespace FPSMO
     /// <summary>
     /// Countdown-specific functions. The countdown is the first stage of the game, before the round
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************
          * BEGINNING *
@@ -42,10 +42,6 @@ namespace FPSMO
             // TODO: Get player configuration as well here
 
             SetMainLevel();
-
-            teams.Clear();
-            teams.Add(new Team("Red"));
-            teams.Add(new Team("Blue"));
 
             roundStart = DateTime.UtcNow.AddSeconds(delay);
 
@@ -74,7 +70,7 @@ namespace FPSMO
             // TODO: change this back to 2
             int minimumPlayersCount = 1;
 
-            for (uint i = delay; i > 0; i--)
+            for (int i = (int)(roundStart - DateTime.UtcNow).TotalSeconds; i > 0; i--)
             {
                 if (!bRunning) return;
                 OnCountdownTicked((int) i, players.Count >= minimumPlayersCount);
@@ -84,6 +80,10 @@ namespace FPSMO
             if (players.Count >= minimumPlayersCount)
             {
                 subStage = SubStage.End;
+            }
+            else
+            {
+                roundStart = DateTime.UtcNow.AddSeconds(delay);
             }
         }
 

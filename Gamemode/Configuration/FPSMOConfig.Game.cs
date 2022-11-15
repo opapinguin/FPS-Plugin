@@ -31,7 +31,6 @@ namespace FPSMO.Configuration
             this.B_AUTO_START = bAutoStart;
 
             MS_ROUND_TICK = 100;
-            S_COUNTDOWNTIME = 10;
             S_VOTETIME = 10;
             MAX_MOVE_DISTANCE = 1.5625f;
             B_SET_MAIN_LEVEL = true;
@@ -62,7 +61,6 @@ namespace FPSMO.Configuration
         public bool B_SET_MAIN_LEVEL;
         public List<string> MAPS;
         public uint MS_ROUND_TICK;
-        public uint S_COUNTDOWNTIME;
         public uint S_VOTETIME;
         public float MAX_MOVE_DISTANCE;
         public uint DEFAULT_ROUNDTIME_S;

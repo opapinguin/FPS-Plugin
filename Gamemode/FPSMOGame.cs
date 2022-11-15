@@ -23,6 +23,7 @@ using MCGalaxy;
 using FPSMO.Configuration;
 using FPSMO.Weapons;
 using FPSMO.Entities;
+using FPSMO.Teams;
 
 namespace FPSMO
 {
@@ -33,7 +34,7 @@ namespace FPSMO
     /// We organize each of these stages into three sub-stages: beginning, middle and end
     /// The logic for each stage can be found in FPSMOGame.Countdown, FPSMOGame.Round and FPSMOGame.Voting
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************************
          * SINGLETON BOILERPLATE *
@@ -68,7 +69,7 @@ namespace FPSMO
         #region Game Fields
         private const int MS_ROUND_TICK = 1000;  // Quite large but really nothing special needs handling during the round in the main loop
         public bool bRunning;   // Default = false
-        
+
         internal enum Stage
         {
             Countdown,
@@ -89,10 +90,11 @@ namespace FPSMO
         internal FPSMOGameConfig gameConfig;
 
         public Dictionary<string, Player> players = new Dictionary<string, Player>();
-        internal List<Team> teams = new List<Team>();
         public Level map;
         DateTime roundStart;
         TimeSpan roundTime;
+        public DateTime RoundEnd { get {return roundStart + roundTime;} }
+        public DateTime RoundStart { get { return roundStart; } }
 
         #endregion
         /******************
@@ -124,6 +126,9 @@ namespace FPSMO
             {
                 map = Level.Load(mapName);
             }
+
+            // Activate teams
+            TeamHandler.Activate();
 
             // Create a map configuration if it doesn't already exist. Defaults to main level if no levels have been added
             FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig(gameConfig.DEFAULT_ROUNDTIME_S));
@@ -182,7 +187,7 @@ namespace FPSMO
                 switch (stage)
                 {
                     case Stage.Countdown:
-                        UpdateCountdown(gameConfig.S_COUNTDOWNTIME, subStage);
+                        UpdateCountdown(mapConfig.COUNTDOWN_TIME_S, subStage);
                         break;
                     case Stage.Round:
                         UpdateRound(subStage);

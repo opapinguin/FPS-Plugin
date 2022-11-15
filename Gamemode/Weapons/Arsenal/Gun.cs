@@ -60,11 +60,11 @@ namespace FPSMO.Weapons
                 dir.Z * distance * 32 + orig.Z);
         }
 
-        public override void Use(Orientation rot, Vec3F32 loc, ushort strength) // TODO: Implement strength
+        public override void Use(Orientation rot, Vec3F32 loc)
         {
             lastFireTick = WeaponHandler.Tick;
             // Instantiate the weapon animation
-            WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
+            WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, weaponSpeed, damage, LocAt);
         }
     }
 }

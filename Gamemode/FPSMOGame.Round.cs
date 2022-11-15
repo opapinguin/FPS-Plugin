@@ -26,7 +26,7 @@ namespace FPSMO
     /// <summary>
     /// Round-specific functions. The round is the second stage of the game, between the countdown and the voting
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************
          * BEGINNING *
@@ -48,9 +48,7 @@ namespace FPSMO
         #region middle
         private void MiddleRound()
         {
-            Console.WriteLine("FPSMOGame.Round: MiddleRound: Foo");
             if (DateTime.UtcNow >= roundStart + roundTime) {
-                Console.WriteLine("FPSMOGame.Round: MiddleRound: Bar");
                 // Move on to the next sub-stage
                 subStage = SubStage.End;
                 return;

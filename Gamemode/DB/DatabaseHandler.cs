@@ -9,7 +9,7 @@ using System.Data;
 
 namespace FPSMO.DB
 {
-    internal static class FPSMODatabase
+    internal static class DatabaseHandler
     {
         /*****************************
          * FIRST TIME INITIALIZATION *
@@ -103,7 +103,7 @@ GROUP BY RoundID, Team;"
         {
             PlayerStats stats = new PlayerStats();
 
-            string[] statsStringified = Database.GetRows("PlayerStats", "TotaKills, TotalDeaths", "WHERE PLAYER=@0", p.FullName)[0];
+            string[] statsStringified = Database.GetRows("PlayerStats", "TotaKills, TotalDeaths", "WHERE PLAYER=@0", p.truename)[0];
 
             int.TryParse(statsStringified[0], out stats.totalDeaths);
             int.TryParse(statsStringified[1], out stats.totalKills);

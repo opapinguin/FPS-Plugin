@@ -22,7 +22,7 @@ using System.Text;
 
 namespace FPSMO
 {
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         public void SendBindings(Player p)
         {

@@ -22,6 +22,8 @@ using MCGalaxy.Network;
 using MCGalaxy.SQL;
 using FPSMO.Commands;
 using FPSMO.Weapons;
+using FPSMO.DB;
+using FPSMO.Teams;
 
 namespace MCGalaxy
 {
@@ -37,14 +39,13 @@ namespace MCGalaxy
 
         public override void Load(bool startup)
         {
-            #region Database
-
-
-            #endregion
+            DatabaseHandler.InitializeDatabase();
             /***********
              * COMMANDS *
              ************/
             #region Commands
+            Command.Register(new CmdSwapTeam());
+
             Command.Register(new CmdFPSMO());
             Command.Register(new CmdQueue());
             Command.Register(new CmdRate());
@@ -62,6 +63,8 @@ namespace MCGalaxy
 
         public override void Unload(bool shutdown)
         {
+            Command.Register(Command.Find("FPSMOSwapTeam"));
+
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("FPSMOQueue"));
             Command.Unregister(Command.Find("FPSMORate"));

@@ -14,6 +14,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPSMO.Entities;
+using FPSMO.Teams;
+using FPSMO.Weapons;
 using MCGalaxy;
 using MCGalaxy.Events.PlayerEvents;
 using System;
@@ -23,10 +25,9 @@ using System.Text;
 
 namespace FPSMO
 {
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         internal event EventHandler CountdownStarted;
-
         private void OnCountdownStarted()
         {
             if (CountdownStarted != null)
@@ -36,7 +37,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<CountdownTickedEventArgs> CountdownTicked;
-
         private void OnCountdownTicked(int timeRemaining, bool hasEnoughPlayers)
         {
             if (CountdownTicked != null)
@@ -50,7 +50,6 @@ namespace FPSMO
         }
 
         internal event EventHandler CountdownEnded;
-
         private void OnCountdownEnded()
         {
             if (CountdownEnded != null)
@@ -60,7 +59,6 @@ namespace FPSMO
         }
 
         internal event EventHandler RoundStarted;
-
         private void OnRoundStarted()
         {
             if (RoundStarted != null)
@@ -81,7 +79,6 @@ namespace FPSMO
         }
 
         internal event EventHandler RoundEnded;
-
         private void OnRoundEnded()
         {
             if (RoundEnded != null)
@@ -91,7 +88,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<VoteStartedEventArgs> VoteStarted;
-
         private void OnVoteStarted(string map1, string map2, string map3)
         {
             if (VoteStarted != null)
@@ -105,7 +101,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<VoteTickedEventArgs> VoteTicked;
-
         private void OnVoteTicked(int timeRemaining)
         {
             if (VoteTicked != null)
@@ -115,7 +110,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<VoteEndedEventArgs> VoteEnded;
-
         private void OnVoteEnded()
         {
             if (VoteEnded != null)
@@ -135,7 +129,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<PlayerJoinedEventArgs> PlayerJoined;
-
         private void OnPlayerJoined(Player player)
         {
             if (PlayerJoined != null)
@@ -150,7 +143,6 @@ namespace FPSMO
         }
 
         internal event EventHandler GameStopped;
-
         private void OnGameStopped()
         {
             if (GameStopped != null)
@@ -160,7 +152,6 @@ namespace FPSMO
         }
 
         internal event EventHandler<WeaponSpeedChangedEventArgs> WeaponSpeedChanged;
-
         internal void OnWeaponSpeedChanged(Player player, int amount)
         {
             if (WeaponSpeedChanged != null)
@@ -173,6 +164,49 @@ namespace FPSMO
 
                 WeaponSpeedChanged(this, args);
             }
+        }
+
+        internal event EventHandler<PlayerJoinedTeamEventArgs> PlayerJoinedTeam;
+        internal void OnPlayerJoinedTeam(Player player, string teamName)
+        {
+            if (PlayerJoinedTeam != null)
+            {
+                var args = new PlayerJoinedTeamEventArgs()
+                {
+                    Player = player,
+                    TeamName = teamName
+                };
+
+                PlayerJoinedTeam(this, args);
+            }
+        }
+
+        internal event EventHandler<PlayerKilledEventArgs> PlayerKilled;
+        private void OnPlayerKilled(Player killer, Player victim)
+        {
+            PlayerData pd_shooter = PlayerDataHandler.Instance[killer.truename];
+            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
+
+            pd_shooter.kills += 1;
+            pd_victim.deaths += 1;
+
+            PlayerDataHandler.Instance[killer.truename] = pd_shooter;
+            PlayerDataHandler.Instance[victim.truename] = pd_victim;
+
+            //FPSMOGame.Instance.MessageMap(CpeMessageType.Normal, String.Format("{0} killed {1}", shooter.ColoredName, victim.ColoredName));
+
+            if (PlayerKilled != null)
+            {
+                var args = new PlayerKilledEventArgs()
+                {
+                    Killer = killer,
+                    Victim = victim
+                };
+
+                PlayerKilled(this, args);
+            }
+
+            PlayerActions.Respawn(victim);
         }
 
         private void HookEventHandlers()
@@ -262,6 +296,7 @@ namespace FPSMO
         {
             players[p.truename] = p;
             PlayerDataHandler.Instance[p.truename] = new PlayerData(p);
+            TeamHandler.AddPlayer(p);
             SendBindings(p);
             OnPlayerJoined(p);
         }
@@ -270,7 +305,33 @@ namespace FPSMO
         {
             players.Remove(p.truename);
             PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
+            TeamHandler.RemovePlayer(p);
             RemoveBindings(p);
+        }
+
+        public void HandleHit(WeaponEntity we, Player shooter, Player victim)
+        {
+            // Find the player data
+            PlayerData pd_shooter = PlayerDataHandler.Instance[shooter.truename];
+            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
+
+            // Just quick check if not null i.e. playerdata actually exists
+            if (pd_shooter == null || pd_victim == null) { return; }
+
+            // Change playerdata
+            pd_shooter.hitsGiven += 1;
+            pd_victim.hitsReceived += 1;
+
+            // Handle death or just plain hit
+            if (we.damage >= pd_victim.health) {
+                OnPlayerKilled(shooter, victim); return;
+            } else
+            {
+                pd_victim.health -= (ushort)we.damage;
+            }
+
+            PlayerDataHandler.Instance[shooter.truename] = pd_shooter;
+            PlayerDataHandler.Instance[victim.truename] = pd_victim;
         }
 
         #endregion

@@ -45,7 +45,7 @@ namespace FPSMO.Weapons
                 return;
             }
 
-            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
+            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());
         }
 
         public override void Help(Player p)

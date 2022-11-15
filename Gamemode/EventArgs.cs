@@ -46,4 +46,16 @@ namespace FPSMO
 		internal Player Player { get; set; }
         internal int Amount { get; set; }
     }
+
+	internal class PlayerJoinedTeamEventArgs : EventArgs
+	{
+		internal Player Player { get; set; }
+		internal string TeamName { get; set; }
+	}
+
+	internal class PlayerKilledEventArgs : EventArgs
+	{
+		internal Player Killer { get; set; }
+		internal Player Victim { get; set; }
+	}
 }

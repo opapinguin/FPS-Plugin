@@ -86,9 +86,8 @@ namespace FPSMO.Weapons
                         for (int x = min.X; x <= max.X; x++)
                         {
                             ushort xP = (ushort)x, yP = (ushort)y, zP = (ushort)z;
-                            owner = false;
 
-                            BlockID block = GetCurrentBlock(xP, yP, zP, p, weaponEntities, ref owner);
+                            BlockID block = GetCurrentBlock(xP, yP, zP, p, weaponEntities[i]);
                             if (block == System.UInt16.MaxValue) continue;
 
                             AABB blockBB = Block.BlockAABB(block, level).Offset(x * 32, y * 32, z * 32);
@@ -104,31 +103,27 @@ namespace FPSMO.Weapons
                                 }
                             }
 
-                            if (owner)
+                            if (weaponEntities[i].shooter == p)
                             {
                                 continue;
                             }
 
                             // Some blocks will cause death of players
                             if (!level.Props[block].KillerBlock) continue;
-                            if (level.Config.KillerBlocks) p.HandleDeath(block);  // TODO: Replace this with a handleDeath for the game
+                            if (level.Config.KillerBlocks) FPSMOGame.Instance.HandleHit(weaponEntities[i], weaponEntities[i].shooter, p);  // TODO: Replace this with a handleDeath for the game
                         }
             }
         }
 
-        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p, List<WeaponEntity> weaponEntities, ref bool owner)
+        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p, WeaponEntity we)
         {
-            foreach (WeaponEntity we in weaponEntities)
-            {
-                foreach (WeaponBlock wb in we.currentBlocks)
+            foreach (WeaponBlock wb in we.currentBlocks)
                 {
                     if (wb.x == xP && wb.y == yP && wb.z == zP)
                     {
-                        if (we.shooter == p) { owner = true; }
                         return wb.block;
                     }
                 }
-            }
             return System.UInt16.MaxValue;
         }
     }

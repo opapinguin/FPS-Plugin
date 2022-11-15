@@ -28,7 +28,7 @@ namespace FPSMO.Weapons
 {
     internal abstract class Weapon
     {
-        public abstract void Use(Orientation rot, Vec3F32 loc, ushort strength);
+        public abstract void Use(Orientation rot, Vec3F32 loc);
         public virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
         {
             ushort status = (ushort)((float)(tick - lastFireTick) / (float)reloadTimeTicks * 10);
@@ -41,7 +41,7 @@ namespace FPSMO.Weapons
         protected uint lastFireTick;    // Much more efficient than using timespans
         protected uint reloadTimeTicks; // Ditto
         protected Player player;
-        public ushort WeaponSpeed { get; set; }
+        public ushort weaponSpeed;
     }
 
     internal abstract class ProjectileWeapon : Weapon
