@@ -34,14 +34,14 @@ namespace FPSMO.Configuration
             this.TOTAL_RATINGS = 0;
             this.SUM_RATINGS = 0;
             this.SPAWNPOINTS = new List<SpawnPoint>();
-            this.COUNTDOWN_TIME = TimeSpan.FromSeconds(10);
+            this.COUNTDOWN_TIME_S = 10;
             this.TEAM_VS_TEAM = true;
         }
         public float TOTAL_RATINGS;
         public float SUM_RATINGS;
         public uint ROUND_TIME_S;
         public List<SpawnPoint> SPAWNPOINTS;
-        public TimeSpan COUNTDOWN_TIME;
+        public uint COUNTDOWN_TIME_S;
         public bool TEAM_VS_TEAM;
 
         public float Rating {

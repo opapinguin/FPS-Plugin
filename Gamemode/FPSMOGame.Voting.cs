@@ -28,7 +28,7 @@ namespace FPSMO
     /// <summary>
     /// Voting-specific functions. The voting is the third stage of the game, after the round
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************
          * BEGINNING * 

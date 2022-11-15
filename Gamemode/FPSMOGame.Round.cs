@@ -26,7 +26,7 @@ namespace FPSMO
     /// <summary>
     /// Round-specific functions. The round is the second stage of the game, between the countdown and the voting
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************
          * BEGINNING *

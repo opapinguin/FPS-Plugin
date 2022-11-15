@@ -29,7 +29,7 @@ namespace FPSMO
     /// TODO: Could squeeze a little extra performance out turning these off when they're not needed, but during
     /// the main round they should all run at the same time without noticeable lag. So might as well always run them
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         private SchedulerTask RoundStatusTask;
         private Scheduler RoundStatusInstance;

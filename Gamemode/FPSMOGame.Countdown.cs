@@ -27,7 +27,7 @@ namespace FPSMO
     /// <summary>
     /// Countdown-specific functions. The countdown is the first stage of the game, before the round
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*************
          * BEGINNING *
@@ -43,10 +43,6 @@ namespace FPSMO
 
             SetMainLevel();
             ShowToAll(ShowMapInfo);
-
-            teams.Clear();
-            teams.Add(new Team("Red"));
-            teams.Add(new Team("Blue"));
 
             roundStart = DateTime.UtcNow.AddSeconds(delay);
 
@@ -68,10 +64,10 @@ namespace FPSMO
          **********/
         #region middle
 
-        private void MiddleCountdown(string format, uint delay, int minThreshold)
+        private void MiddleCountdown(string format, int minThreshold, uint delay)
         {
             const CpeMessageType type = CpeMessageType.Announcement;
-            for (uint i = delay; i > 0; i--)
+            for (int i = (int)(roundStart - DateTime.UtcNow).TotalSeconds; i > 0; i--)
             {
                 if (!bRunning) return;
                 if (i == 1)
@@ -88,6 +84,7 @@ namespace FPSMO
 
             if (players.Count < 1)     // TODO: Changethis back to 2
             {
+                roundStart = DateTime.UtcNow.AddSeconds(delay);
                 MessageMap(CpeMessageType.Normal, "&WNeed 2 or more non-ref players to start a round."); return;
             }
             else

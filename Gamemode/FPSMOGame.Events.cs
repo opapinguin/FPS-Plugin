@@ -14,6 +14,8 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPSMO.Entities;
+using FPSMO.Teams;
+using FPSMO.Weapons;
 using MCGalaxy;
 using MCGalaxy.Events.PlayerEvents;
 using System;
@@ -23,7 +25,7 @@ using System.Text;
 
 namespace FPSMO
 {
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         private void HookEventHandlers()
         {
@@ -127,6 +129,7 @@ namespace FPSMO
         {
             players[p.truename] = p;
             PlayerDataHandler.Instance[p.truename] = new PlayerData(p);
+            TeamHandler.AddPlayer(p);
             SendBindings(p);
         }
 
@@ -134,7 +137,51 @@ namespace FPSMO
         {
             players.Remove(p.truename);
             PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
+            TeamHandler.RemovePlayer(p);
             RemoveBindings(p);
+        }
+
+        public void HandleHit(WeaponEntity we, Player shooter, Player victim)
+        {
+            // Find the player data
+            PlayerData pd_shooter = PlayerDataHandler.Instance[shooter.truename];
+            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
+
+            // Just quick check if not null i.e. playerdata actually exists
+            if (pd_shooter == null || pd_victim == null) { return; }
+
+            // Change playerdata
+            pd_shooter.hitsGiven += 1;
+            pd_victim.hitsReceived += 1;
+
+            // Handle death or just plain hit
+            if (we.damage >= pd_victim.health) {
+                HandleDeath(shooter, victim); return;
+            } else
+            {
+                pd_victim.health -= (ushort)we.damage;
+            }
+            
+
+
+            PlayerDataHandler.Instance[shooter.truename] = pd_shooter;
+            PlayerDataHandler.Instance[victim.truename] = pd_victim;
+        }
+
+        public void HandleDeath(Player shooter, Player victim)
+        {
+            PlayerData pd_shooter = PlayerDataHandler.Instance[shooter.truename];
+            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
+
+            pd_shooter.kills += 1;
+            pd_victim.deaths += 1;
+
+            PlayerDataHandler.Instance[shooter.truename] = pd_shooter;
+            PlayerDataHandler.Instance[victim.truename] = pd_victim;
+
+            FPSMOGame.Instance.MessageMap(CpeMessageType.Normal, String.Format("{0} killed {1}", shooter.ColoredName, victim.ColoredName));
+
+            PlayerActions.Respawn(victim);
         }
 
         #endregion

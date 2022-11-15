@@ -14,6 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPSMO.Entities;
+using FPSMO.Teams;
 using FPSMO.Weapons;
 using MCGalaxy;
 using System;
@@ -24,7 +25,7 @@ namespace FPSMO
     /// <summary>
     /// This file contains helper methods in charge of the GUI, for instance player stamina
     /// </summary>
-    public sealed partial class FPSMOGame
+    internal sealed partial class FPSMOGame
     {
         /*******************
          * GLOBAL MESSAGES * 
@@ -118,7 +119,7 @@ namespace FPSMO
 
         public void ShowTeamStatistics(Player p)
         {
-            SendCpeMessageNoRepeat(p, CpeMessageType.Status2, String.Format("Hits team 1: Hits team 2")); // TODO: Implement
+            SendCpeMessageNoRepeat(p, CpeMessageType.Status2, String.Format("Kills team 1: {0} Kills team 2: {1}", TeamHandler.blue.totalKills, TeamHandler.red.totalKills)); // TODO: Implement
         }
 
         public void ShowRoundTime(Player p)
@@ -136,7 +137,7 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight1, String.Format("%4{0}%2{1}", blocks.Substring(health), blocks.Substring(10 - health)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight1, String.Format("Health: %4{0}%2{1}", blocks.Substring(health), blocks.Substring(10 - health)));
         }
 
         public void ShowStamina(Player p)
@@ -148,7 +149,7 @@ namespace FPSMO
 
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
 
-            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("%2{1}%4{0}", blocks.Substring(stamina), blocks.Substring(10 - stamina)));
+            SendCpeMessageNoRepeat(p, CpeMessageType.BottomRight2, String.Format("Stamina: %2{1}%4{0}", blocks.Substring(stamina), blocks.Substring(10 - stamina)));
         }
 
 
@@ -199,7 +200,7 @@ namespace FPSMO
         #region Miscelleaneous
         public void ShowWeaponSpeed(Player p)
         {
-            ushort weaponSpeed = PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed;
+            ushort weaponSpeed = PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed;
 
             // Cap the stamina at 10
             weaponSpeed = weaponSpeed > 10 ? (ushort)10 : weaponSpeed;

@@ -39,7 +39,8 @@ namespace FPSMO.Entities
 
         public string name;
 
-        public ushort hits;
+        public ushort hitsGiven;
+        public ushort hitsReceived;
         public ushort kills;
         public ushort deaths;
 
@@ -61,11 +62,12 @@ namespace FPSMO.Entities
             lastCPEBottomRight1, lastCPEBottomRight2, lastCPEBottomRight3,
             lastCPEAnnouncement, lastCPESmallAnnouncement, lastCPEBigAnnouncement;
 
-        internal DateTime lastWeaponSpeedChange;
+        public DateTime lastWeaponSpeedChange;
+        public DateTime lastTeamSwap;
 
         public void ResetData()
         {
-            hits = kills = deaths = 0;
+            hitsGiven = kills = deaths = 0;
             stamina = health = 10;
             bVoted = false;
             gun.Reset();

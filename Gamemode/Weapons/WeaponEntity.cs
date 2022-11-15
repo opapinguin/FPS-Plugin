@@ -66,6 +66,8 @@ namespace FPSMO.Weapons
         public List<WeaponBlock> currentBlocks = new List<WeaponBlock>(); // current tick blocks
         public List<WeaponBlock> lastBlocks = new List<WeaponBlock>();    // last tick blocks
 
+        public uint damage;
+
         /// <summary>
         /// Gets the current blocks at a specific animation tick
         /// </summary>
@@ -110,7 +112,7 @@ namespace FPSMO.Weapons
         private Orientation rotation;
         private readonly uint weaponSpeed;
 
-        public Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, LocAt ft)
+        public Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, uint dmg, LocAt ft)
         {
             shooter = p;
             fireTimeTick = start;
@@ -120,6 +122,7 @@ namespace FPSMO.Weapons
             rotation = rot;
             frameLength = fl;
             weaponSpeed = ws;
+            damage = dmg;
 
             WeaponHandler.AddEntity(this);
         }

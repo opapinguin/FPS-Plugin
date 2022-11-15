@@ -33,14 +33,14 @@ namespace FPSMO.Weapons
 
             if (!(PlayerDataHandler.Instance[p.truename].currentWeapon is ProjectileWeapon)) return;
 
-            if (message == "plus" && PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed < 10)
+            if (message == "plus" && PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed < 10)
             {
-                PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed += 1;
+                PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed += 1;
                 PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange = DateTime.Now;
             }
-            else if (message == "minus" && PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed > 0)
+            else if (message == "minus" && PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed > 0)
             {
-                PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed -= 1;
+                PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed -= 1;
                 PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange = DateTime.Now;
             }
 
