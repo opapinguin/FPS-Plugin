@@ -25,6 +25,156 @@ namespace FPSMO
 {
     public sealed partial class FPSMOGame
     {
+        internal event EventHandler CountdownStarted;
+
+        private void OnCountdownStarted()
+        {
+            if (CountdownStarted != null)
+            {
+                CountdownStarted(this, EventArgs.Empty);
+            }
+        }
+
+        internal event EventHandler<CountdownTickedEventArgs> CountdownTicked;
+
+        private void OnCountdownTicked(int timeRemaining, bool hasEnoughPlayers)
+        {
+            if (CountdownTicked != null)
+            {
+                CountdownTickedEventArgs args = new CountdownTickedEventArgs();
+                args.TimeRemaining = timeRemaining;
+                args.HasEnoughPlayers = hasEnoughPlayers;
+
+                CountdownTicked(this, args);
+            }
+        }
+
+        internal event EventHandler CountdownEnded;
+
+        private void OnCountdownEnded()
+        {
+            if (CountdownEnded != null)
+            {
+                CountdownEnded(this, EventArgs.Empty);
+            }
+        }
+
+        internal event EventHandler RoundStarted;
+
+        private void OnRoundStarted()
+        {
+            if (RoundStarted != null)
+            {
+                RoundStarted(this, EventArgs.Empty);
+            }
+        }
+
+        internal event EventHandler<RoundTickedEventArgs> RoundTicked;
+
+        private void OnRoundTicked(int timeRemaining)
+        {
+            if (RoundTicked != null)
+            {
+                var args = new RoundTickedEventArgs() { TimeRemaining = timeRemaining };
+                RoundTicked(this, args);
+            }
+        }
+
+        internal event EventHandler RoundEnded;
+
+        private void OnRoundEnded()
+        {
+            if (RoundEnded != null)
+            {
+                RoundEnded(this, EventArgs.Empty);
+            }
+        }
+
+        internal event EventHandler<VoteStartedEventArgs> VoteStarted;
+
+        private void OnVoteStarted(string map1, string map2, string map3)
+        {
+            if (VoteStarted != null)
+            {
+                VoteStartedEventArgs args = new VoteStartedEventArgs();
+                args.Map1 = map1;
+                args.Map2 = map2;
+                args.Map3 = map3;
+                VoteStarted(this, args);
+            }
+        }
+
+        internal event EventHandler<VoteTickedEventArgs> VoteTicked;
+
+        private void OnVoteTicked(int timeRemaining)
+        {
+            if (VoteTicked != null)
+            {
+                VoteTicked(this, new VoteTickedEventArgs() { TimeRemaining = timeRemaining });
+            }
+        }
+
+        internal event EventHandler<VoteEndedEventArgs> VoteEnded;
+
+        private void OnVoteEnded()
+        {
+            if (VoteEnded != null)
+            {
+                VoteEndedEventArgs args = new VoteEndedEventArgs()
+                {
+                    Map1 = map1,
+                    Map2 = map2,
+                    Map3 = map3,
+                    Votes1 = (int)votes1,
+                    Votes2 = (int)votes2,
+                    Votes3 = (int)votes3
+                };
+
+                VoteEnded(this, args);
+            }
+        }
+
+        internal event EventHandler<PlayerJoinedEventArgs> PlayerJoined;
+
+        private void OnPlayerJoined(Player player)
+        {
+            if (PlayerJoined != null)
+            {
+                PlayerJoinedEventArgs args = new PlayerJoinedEventArgs()
+                {
+                    Player = player
+                };
+
+                PlayerJoined(this, args);
+            }
+        }
+
+        internal event EventHandler GameStopped;
+
+        private void OnGameStopped()
+        {
+            if (GameStopped != null)
+            {
+                GameStopped(this, EventArgs.Empty);
+            }
+        }
+
+        internal event EventHandler<WeaponSpeedChangedEventArgs> WeaponSpeedChanged;
+
+        internal void OnWeaponSpeedChanged(Player player, int amount)
+        {
+            if (WeaponSpeedChanged != null)
+            {
+                var args = new WeaponSpeedChangedEventArgs()
+                {
+                    Player = player,
+                    Amount = amount
+                };
+
+                WeaponSpeedChanged(this, args);
+            }
+        }
+
         private void HookEventHandlers()
         {
             OnPlayerConnectEvent.Register(HandlePlayerConnect, Priority.High);
@@ -71,24 +221,9 @@ namespace FPSMO
         private void HandleJoinedLevel(Player p, Level prevLevel, Level level, ref bool announce)
         {
             if (prevLevel != null && prevLevel.name == map.name && level.name != map.name)   // Maps are not interfaced as comparable
-            {
                 PlayerLeftGame(p);
-                return;
-            }
-
-            if (level.name == map.name)
-            {
+            else if (level.name == map.name)
                 PlayerJoinedGame(p);
-                switch (stage)
-                {
-                    case Stage.Countdown:
-                        ShowMapInfo(p);
-                        break;
-                    case Stage.Voting:
-                        ShowVote(p);
-                        break;
-                }
-            }
         }
 
         private void HandlePlayerMove(Player p, Position next, byte yaw, byte pitch, ref bool cancel)
@@ -128,6 +263,7 @@ namespace FPSMO
             players[p.truename] = p;
             PlayerDataHandler.Instance[p.truename] = new PlayerData(p);
             SendBindings(p);
+            OnPlayerJoined(p);
         }
 
         private void PlayerLeftGame(Player p)

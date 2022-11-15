@@ -42,7 +42,6 @@ namespace FPSMO
             // TODO: Get player configuration as well here
 
             SetMainLevel();
-            ShowToAll(ShowMapInfo);
 
             teams.Clear();
             teams.Add(new Team("Red"));
@@ -52,6 +51,8 @@ namespace FPSMO
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
+
+            OnCountdownStarted();
         }
 
         private void SetMainLevel()
@@ -68,31 +69,20 @@ namespace FPSMO
          **********/
         #region middle
 
-        private void MiddleCountdown(string format, uint delay, int minThreshold)
+        private void MiddleCountdown(uint delay)
         {
-            const CpeMessageType type = CpeMessageType.Announcement;
+            // TODO: change this back to 2
+            int minimumPlayersCount = 1;
+
             for (uint i = delay; i > 0; i--)
             {
                 if (!bRunning) return;
-                if (i == 1)
-                {
-                    MessageMap(type, String.Format(format, i)
-                               .Replace("seconds", "second"));
-                }
-                else if (i < minThreshold || (i % 5) == 0)  // Below minThreshold countdown the seconds
-                {
-                    MessageMap(type, String.Format(format, i));
-                }
-                Thread.Sleep(1000);                         // Sleep one second (not generally preferred but in this case nothing else needs happening)
+                OnCountdownTicked((int) i, players.Count >= minimumPlayersCount);
+                Thread.Sleep(1000);
             }
 
-            if (players.Count < 1)     // TODO: Changethis back to 2
+            if (players.Count >= minimumPlayersCount)
             {
-                MessageMap(CpeMessageType.Normal, "&WNeed 2 or more non-ref players to start a round."); return;
-            }
-            else
-            {
-                // Move on to the next sub-stage
                 subStage = SubStage.End;
             }
         }
@@ -105,12 +95,11 @@ namespace FPSMO
 
         private void EndCountdown()
         {
-            // Clear the main message
-            MessageMap(CpeMessageType.Announcement, "");
-
             // Move on to the next sub-stage and stage
             stage = Stage.Round;
             subStage = SubStage.Begin;
+
+            OnCountdownEnded();
         }
 
         #endregion

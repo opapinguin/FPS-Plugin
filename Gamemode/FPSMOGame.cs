@@ -66,7 +66,7 @@ namespace FPSMO
          * GAME FIELDS *
          ***************/
         #region Game Fields
-        private const int MS_ROUND_TICK = 200;  // Quite large but really nothing special needs handling during the round in the main loop
+        private const int MS_ROUND_TICK = 1000;  // Quite large but really nothing special needs handling during the round in the main loop
         public bool bRunning;   // Default = false
         
         internal enum Stage
@@ -133,6 +133,7 @@ namespace FPSMO
 
             // Add the players to the game
             players = new Dictionary<string, Player>();
+
             foreach (Player p in PlayerInfo.Online.Items)
             {
                 if (p.level.name == map.name)
@@ -158,9 +159,6 @@ namespace FPSMO
         {
             Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
 
-            ShowToAll(ClearBottomRight);
-            ShowToAll(ClearTopRight);
-
             foreach (Player p in playersCopy.Values)
             {
                 PlayerLeftGame(p);
@@ -171,8 +169,6 @@ namespace FPSMO
             bRunning = false;
 
             // TODO: Remove animations
-
-            Chat.MessageAll("Parkour Game Stopped");
 
             WeaponAnimsHandler.Deactivate();
             PlayerDataHandler.Instance.Deactivate();
@@ -211,7 +207,7 @@ namespace FPSMO
                     BeginCountdown(delay);
                     break;
                 case SubStage.Middle:
-                    MiddleCountdown("&4Starting in &f{0} &4seconds", delay, 10);
+                    MiddleCountdown(delay);
                     break;
                 case SubStage.End:
                     EndCountdown();

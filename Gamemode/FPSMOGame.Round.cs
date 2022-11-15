@@ -38,6 +38,7 @@ namespace FPSMO
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
+            OnRoundStarted();
         }
 
         #endregion
@@ -55,8 +56,11 @@ namespace FPSMO
 
             // The below line is generally bad practice, and indeed we therefore require that updateRound() does the minimum work possible
             // The animation loops and other events are handled by scheduler tasks on other threads and don't just sleep like this
-
             Thread.Sleep(MS_ROUND_TICK);
+
+            DateTime roundEnd = roundStart + roundTime;
+            TimeSpan timeLeft = roundEnd - DateTime.UtcNow;
+            OnRoundTicked((int) timeLeft.TotalSeconds);
         }
 
         #endregion
@@ -68,13 +72,11 @@ namespace FPSMO
         {
             WeaponAnimsHandler.Deactivate();
 
-            ShowToAll(ShowWinningTeam);
-            ShowToAll(ClearTopRight);
-            ShowToAll(ClearBottomRight);
-
             // Move on to the next sub-stage and stage
             stage = Stage.Voting;
             subStage = SubStage.Begin;
+
+            OnRoundEnded();
         }
 
         #endregion

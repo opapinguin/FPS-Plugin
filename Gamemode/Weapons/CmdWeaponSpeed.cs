@@ -44,7 +44,8 @@ namespace FPSMO.Weapons
                 PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange = DateTime.Now;
             }
 
-            FPSMOGame.Instance.ShowWeaponSpeed(p);
+            int amount = (int)PlayerDataHandler.Instance[p.truename].currentWeapon.WeaponSpeed;
+            FPSMOGame.Instance.OnWeaponSpeedChanged(p, amount);
         }
 
         public override void Help(Player p)

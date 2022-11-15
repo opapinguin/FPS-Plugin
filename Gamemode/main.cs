@@ -120,6 +120,7 @@ GROUP BY RoundID, Team;"
 
             #endregion Commands
 
+            GUI.SubscribeTo(game);
             game.Start();   // TODO: Make autostart optional?
         }
 

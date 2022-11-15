@@ -34,8 +34,8 @@ namespace FPSMO
          * BEGINNING * 
          *************/
         #region begin
-        string map1, map2, map3;
-        uint votes1, votes2, votes3;
+        internal string map1, map2, map3;
+        internal uint votes1, votes2, votes3;
         private void BeginVoting()
         {
             map1 = LevelPicker.PopAndPush();
@@ -44,6 +44,7 @@ namespace FPSMO
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
+            OnVoteStarted(map1, map2, map3);
         }
 
         #endregion
@@ -53,11 +54,11 @@ namespace FPSMO
         #region middle
         private void MiddleVoting()
         {
-            ShowToAll(ShowVote);
             for (uint i = gameConfig.S_VOTETIME; i > 0; i--)
             {
                 if (!bRunning) return;
-                ShowToAll(ShowVoteTime);
+                OnVoteTicked((int)i);
+
                 Thread.Sleep(1000); // Sleep 1 second
             }
 
@@ -72,9 +73,6 @@ namespace FPSMO
         #region end
         private void EndVoting()
         {
-            MessageMap(CpeMessageType.Normal, String.Format("Votes are in! map 1: {0} map 2: {1} map 3: {2}", votes1, votes2, votes3));
-            ShowToAll(ClearBottomRight);
-
             string nextMap;
 
             nextMap = GetNextMap();
@@ -92,6 +90,8 @@ namespace FPSMO
             // Move on to the next sub-stage and stage
             stage = Stage.Countdown;
             subStage = SubStage.Begin;
+
+            OnVoteEnded();
         }
 
         #endregion

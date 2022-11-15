@@ -59,31 +59,8 @@ namespace FPSMO
 
         private void RoundStatusUpdate(SchedulerTask task)
         {
-            if (stage == Stage.Round && subStage == SubStage.Middle)
-            {
-                ShowToAll(ShowRoundTime);
-                ShowToAll(ShowStamina);
-                ShowToAll(ShowHealth);
-                ShowToAll(ShowWeaponStatus);
-                ShowToAll(ShowTeamStatistics);
-                ShowToAll(ShowLevel);
-            }
-            if (stage == Stage.Voting && subStage == SubStage.Middle)
-            {
-                ShowToAll(ShowVoteTime);
-            }
-        }
-
-        private void ClearWeaponSpeeds()
-        {
-            Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
-            foreach (Player p in playersCopy.Values)    // TODO: Is this thread safe?
-            {
-                if (DateTime.Now - PlayerDataHandler.Instance[p.truename].lastWeaponSpeedChange > TimeSpan.FromMilliseconds(500))
-                {
-                    ClearWeaponSpeed(p);
-                }
-            }
+            // Used to do GUI updates
+            // Should anything still happen here?
         }
     }
 }
