@@ -14,6 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using System;
+using System.Data;
 
 namespace FPSMO
 {
@@ -27,7 +28,7 @@ namespace FPSMO
         {
             this.totalKills = 0;
             this.totalDeaths = 0;
-            this.name = name.ToUpper(); ;
+            this.name = name.ToUpper();
         }
     }
 }

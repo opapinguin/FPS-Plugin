@@ -32,6 +32,8 @@ namespace FPSMO
 
             foreach (Player player in game.players.Values)
             {
+                ShowLevel(player, game.map.name);
+                ShowTeamStatistics(player);
                 ShowMapInfo(player, game.map, game.mapConfig);
             }
         }
@@ -39,17 +41,16 @@ namespace FPSMO
         internal static void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
-            List<Player> players = game.players.Values.ToList();
 
             if (args.TimeRemaining <= 10 || args.TimeRemaining % 5 == 0)
             {
-                foreach (Player player in players)
+                foreach (Player player in game.players.Values)
                     ShowCountdown(player, args.TimeRemaining);
             }
 
             if (!args.HasEnoughPlayers && args.TimeRemaining == 1)
             {
-                foreach (Player player in players)
+                foreach (Player player in game.players.Values)
                     ShowNeedMorePlayers(player);
             }
         }
@@ -84,9 +85,8 @@ namespace FPSMO
         internal static void HandleRoundEnded(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
-            List<Player> players = game.players.Values.ToList();
 
-            foreach (Player player in players)
+            foreach (Player player in game.players.Values)
             {
                 ClearStatus(player);
                 ClearBottomRight(player);
@@ -177,13 +177,13 @@ namespace FPSMO
             p.Message(String.Format("Starting new round"));
             p.Message(String.Format("This map was made by {0}", authors));
 
-            if (mapConfig.totalRatings == 0)
+            if (mapConfig.TOTAL_RATINGS == 0)
             {
                 p.Message(String.Format("This map has not yet been rated"));
             }
             else
             {
-                p.Message(String.Format("This map has a rating of {0}", mapConfig.rating.ToString("0.00")));
+                p.Message(String.Format("This map has a rating of {0}", mapConfig.Rating.ToString("0.00")));
             }
         }
 

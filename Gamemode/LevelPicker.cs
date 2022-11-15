@@ -30,7 +30,7 @@ namespace FPSMO
 
         static public void Activate()
         {
-            maps = FPSMOConfig<FPSMOGameConfig>.Read("Config").maps;    // Is this thread-safe?
+            maps = FPSMOConfig<FPSMOGameConfig>.Read("Config").MAPS;    // Is this thread-safe?
 
             if (maps.Count == 0)
             {
@@ -55,7 +55,7 @@ namespace FPSMO
 
         static public void UpdateMaps()
         {
-            maps = FPSMOConfig<FPSMOGameConfig>.Read("config").maps;
+            maps = FPSMOConfig<FPSMOGameConfig>.Read("config").MAPS;
         }
 
         static public void AddQueueLevel(string map)

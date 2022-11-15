@@ -129,7 +129,7 @@ namespace FPSMO
             FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig(gameConfig.DEFAULT_ROUNDTIME_S));
             mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
 
-            roundTime = TimeSpan.FromSeconds(mapConfig.RoundTime_S);
+            roundTime = TimeSpan.FromSeconds(mapConfig.ROUND_TIME_S);
 
             // Add the players to the game
             players = new Dictionary<string, Player>();
@@ -169,8 +169,9 @@ namespace FPSMO
             bRunning = false;
 
             // TODO: Remove animations
-
             WeaponAnimsHandler.Deactivate();
+            WeaponHandler.Deactivate();
+
             PlayerDataHandler.Instance.Deactivate();
         }
 

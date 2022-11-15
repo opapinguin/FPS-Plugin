@@ -61,6 +61,8 @@ namespace FPSMO
         {
             // Used to do GUI updates
             // Should anything still happen here?
+
+            // TODO: Clear weapon speed 200 milliseconds after it's been shown, somehow...
         }
     }
 }

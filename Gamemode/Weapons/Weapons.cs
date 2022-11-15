@@ -26,9 +26,6 @@ using BlockID = System.UInt16;
 
 namespace FPSMO.Weapons
 {
-    /*********************
-     * WEAPON INTERFACES *
-     *********************/
     internal abstract class Weapon
     {
         public abstract void Use(Orientation rot, Vec3F32 loc, ushort strength);
@@ -39,6 +36,7 @@ namespace FPSMO.Weapons
         }
         public virtual void Reset() { lastFireTick = 0; }
 
+        public string name;
         protected uint damage;
         protected uint lastFireTick;    // Much more efficient than using timespans
         protected uint reloadTimeTicks; // Ditto
@@ -52,52 +50,5 @@ namespace FPSMO.Weapons
 
         protected BlockID block;
         protected float frameLength;
-    }
-
-    internal class GunWeapon : ProjectileWeapon
-    {
-        public GunWeapon(Player pl)
-        {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
-            damage = config.GUN_DAMAGE;
-            reloadTimeTicks = config.MS_GUN_RELOAD;
-            player = pl;
-            block = config.GUN_BLOCK;
-            lastFireTick = WeaponAnimsHandler.Tick;
-            frameLength = config.GUN_FRAME_LENGTH;
-        }
-
-        /// <summary>
-        /// Location at a given time relative
-        /// </summary>
-        public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
-        {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
-            float timeSpanTicks = tick - fireTime;
-
-            float time = timeSpanTicks / config.MS_UPDATE_WEAPON_ANIMATIONS * 1000;
-            float velocity = (float)speed / 10 * (config.MAX_GUN_VELOCITY - config.MIN_GUN_VELOCITY) + config.MIN_GUN_VELOCITY;
-
-            float distance = velocity * time;
-
-            Vec3F32 dir = DirUtils.GetDirVector(rot.RotY, rot.HeadX);
-
-            // Note these are precise coordinates, and so are actually large by a factor of 32
-            return new Vec3F32(dir.X * distance + orig.X,
-                dir.Y * distance - 0.5f * config.GRAVITY * time * time / 1000 + orig.Y,
-                dir.Z * distance + orig.Z);
-        }
-
-        public override void Use(Orientation rot, Vec3F32 loc, ushort strength) // TODO: Implement strength
-        {
-            lastFireTick = WeaponAnimsHandler.Tick;
-            // Instantiate the weapon animation
-            Animation fireAnimation = new ProjectileAnimation(player, lastFireTick, block, player.Pos, player.Rot, frameLength, WeaponSpeed, LocAt);
-        }
-
-        ~GunWeapon() {
-        }
     }
 }

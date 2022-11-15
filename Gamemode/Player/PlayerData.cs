@@ -34,13 +34,16 @@ namespace FPSMO.Entities
         {
             // Initialize weapons
             gun = new GunWeapon(p);
+            rocket = new RocketWeapon(p);
             ResetData();
+            name = p.truename;
         }
+
+        public string name;
 
         public ushort hits;
         public ushort kills;
         public ushort deaths;
-        public int money;
 
         public ushort stamina;
         public ushort health;
@@ -53,6 +56,7 @@ namespace FPSMO.Entities
         public Weapon currentWeapon;
 
         public GunWeapon gun;
+        public RocketWeapon rocket;
 
         internal DateTime lastWeaponSpeedChange;
 
@@ -62,6 +66,7 @@ namespace FPSMO.Entities
             stamina = health = 10;
             bVoted = false;
             gun.Reset();
+            rocket.Reset();
             currentWeapon = gun;
         }
     }
@@ -100,13 +105,13 @@ namespace FPSMO.Entities
          **********/
         public Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
         public int numPlayers = 0;
-        
+
         /******************
          * HELPER METHODS *
          ******************/
         public PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
         {
-            get { return dictPlayerData[name]; }
+            get { PlayerData val; return dictPlayerData.TryGetValue(name, out val) ? val : null; }
             set {
                 dictPlayerData[name] = value;
                 numPlayers = dictPlayerData.Values.Count();

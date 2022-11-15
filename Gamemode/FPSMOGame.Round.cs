@@ -34,7 +34,7 @@ namespace FPSMO
         #region begin
         private void BeginRound()
         {
-            WeaponAnimsHandler.Activate();
+            WeaponHandler.Activate();
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
@@ -48,7 +48,9 @@ namespace FPSMO
         #region middle
         private void MiddleRound()
         {
+            Console.WriteLine("FPSMOGame.Round: MiddleRound: Foo");
             if (DateTime.UtcNow >= roundStart + roundTime) {
+                Console.WriteLine("FPSMOGame.Round: MiddleRound: Bar");
                 // Move on to the next sub-stage
                 subStage = SubStage.End;
                 return;
@@ -70,7 +72,7 @@ namespace FPSMO
         #region end
         private void EndRound()
         {
-            WeaponAnimsHandler.Deactivate();
+            WeaponHandler.Deactivate();
 
             // Move on to the next sub-stage and stage
             stage = Stage.Voting;

@@ -23,18 +23,18 @@ namespace FPSMO.Configuration
         public FPSMOGameConfig(bool bAutoStart)
         {
             // DEFAULT VALUES
-            maps = new List<string>
+            MAPS = new List<string>
             {
                 Server.Config.MainLevel
             };
 
-            this.bAutoStart = bAutoStart;
+            this.B_AUTO_START = bAutoStart;
 
             MS_ROUND_TICK = 100;
             S_COUNTDOWNTIME = 10;
             S_VOTETIME = 10;
             MAX_MOVE_DISTANCE = 1.5625f;
-            bSetMainLevel = true;
+            B_SET_MAIN_LEVEL = true;
             DEFAULT_ROUNDTIME_S = 60;
             GRAVITY = 9.81f;
             
@@ -43,16 +43,24 @@ namespace FPSMO.Configuration
 
             // Guns
             GUN_BLOCK = 41;
-            MIN_GUN_VELOCITY = 5;
-            MAX_GUN_VELOCITY = 20;
-            MS_GUN_RELOAD = 10;
+            MIN_GUN_VELOCITY = 50;
+            MAX_GUN_VELOCITY = 300;
+            MS_GUN_RELOAD = 200;
             GUN_DAMAGE = 1;
             GUN_FRAME_LENGTH = 1;
+
+            // Rockets
+            ROCKET_BLOCK = 42;
+            MIN_ROCKET_VELOCITY = 10;
+            MAX_ROCKET_VELOCITY = 60;
+            MS_ROCKET_RELOAD = 2000;
+            ROCKET_DAMAGE = 1;
+            ROCKET_FRAME_LENGTH = 4f;
         }
 
-        public bool bAutoStart;
-        public bool bSetMainLevel;
-        public List<string> maps;
+        public bool B_AUTO_START;
+        public bool B_SET_MAIN_LEVEL;
+        public List<string> MAPS;
         public uint MS_ROUND_TICK;
         public uint S_COUNTDOWNTIME;
         public uint S_VOTETIME;
@@ -71,5 +79,13 @@ namespace FPSMO.Configuration
         public uint MS_GUN_RELOAD;
         public uint GUN_DAMAGE;
         public float GUN_FRAME_LENGTH;  // Number of frames "long" a single shot is
+
+        // Rockets
+        public BlockID ROCKET_BLOCK;
+        public float MIN_ROCKET_VELOCITY;
+        public float MAX_ROCKET_VELOCITY;
+        public uint MS_ROCKET_RELOAD;
+        public uint ROCKET_DAMAGE;
+        public float ROCKET_FRAME_LENGTH;
     }
 }

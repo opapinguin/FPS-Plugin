@@ -19,9 +19,10 @@ using System.IO;
 
 namespace FPSMO.Commands
 {
-    public class CmdRate : Command2
+    internal class CmdRate : Command2
     {
         public override string name { get { return "FPSMORate"; } }
+        public override string shortcut { get { return "Rate"; } }
         public override string type { get { return CommandTypes.Games; } }
         public override bool SuperUseable { get { return false; } }
 
@@ -71,16 +72,16 @@ namespace FPSMO.Commands
 
             if (oldRating == int.MaxValue)
             {
-                config.sumRatings += rating;
-                config.totalRatings += 1;
+                config.SUM_RATINGS += rating;
+                config.TOTAL_RATINGS += 1;
 
                 p.SetMoney(p.money + 5);
                 p.Message("Thank you for voting! You received 5 " + Server.Config.Currency);
             }
             else
             {
-                config.sumRatings -= oldRating;
-                config.sumRatings += rating;
+                config.SUM_RATINGS -= oldRating;
+                config.SUM_RATINGS += rating;
 
                 p.Message("Thank you for rating this map!");
             }

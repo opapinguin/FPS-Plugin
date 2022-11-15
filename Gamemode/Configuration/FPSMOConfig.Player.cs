@@ -17,8 +17,8 @@ namespace FPSMO.Configuration
 {
     public struct FPSMOPlayerConfig
     {
-        int TotalHits;
-        int TotalDeaths;
-        int TotalXP;
+        int TOTAL_HITS;
+        int TOTAL_DEATHS;
+        int TOTAL_XP;
     }
 }

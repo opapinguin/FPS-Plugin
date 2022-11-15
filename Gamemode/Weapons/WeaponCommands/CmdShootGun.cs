@@ -13,41 +13,44 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using FPSMO.Entities;
+using MCGalaxy;
 using System;
-using System.Collections.Generic;
-using MCGalaxy.Maths;
 
-namespace FPSMO.Configuration
+namespace FPSMO.Weapons
 {
-    public struct SpawnPoint
+    class CmdShootGun : Command2
     {
-        public string team;
-        public Vec3U16 loc;
-    }
+        public override string name { get { return "FPSMOShootGun"; } }
+        public override bool LogUsage { get { return false; } }
+        public override string type { get { return CommandTypes.Games; } }
 
-    public struct FPSMOMapConfig
-    {
-        public FPSMOMapConfig(uint RoundTime)
+        public override void Use(Player p, string message, CommandData data)
         {
-            // DEFAULT VALUES
-            this.ROUND_TIME_S = RoundTime;
-            this.TOTAL_RATINGS = 0;
-            this.SUM_RATINGS = 0;
-            this.SPAWNPOINTS = new List<SpawnPoint>();
-            this.COUNTDOWN_TIME = TimeSpan.FromSeconds(10);
-            this.TEAM_VS_TEAM = true;
-        }
-        public float TOTAL_RATINGS;
-        public float SUM_RATINGS;
-        public uint ROUND_TIME_S;
-        public List<SpawnPoint> SPAWNPOINTS;
-        public TimeSpan COUNTDOWN_TIME;
-        public bool TEAM_VS_TEAM;
-
-        public float Rating {
-            get {
-                return (SUM_RATINGS / TOTAL_RATINGS) == float.NaN ? 0 : (SUM_RATINGS / TOTAL_RATINGS);
+            if (!(FPSMOGame.Instance.stage == FPSMOGame.Stage.Round && FPSMOGame.Instance.subStage == FPSMOGame.SubStage.Middle))
+            {
+                return;
             }
+
+            if (PlayerDataHandler.Instance[p.truename] == null)
+            {
+                return;
+            }
+
+            Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
+            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
+
+            if (gun.GetStatus(WeaponHandler.Tick) < 10)
+            {
+                return;
+            }
+
+            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32(), 10);
+        }
+
+        public override void Help(Player p)
+        {
+            p.Message("&HShoots a gun");
         }
     }
 }
