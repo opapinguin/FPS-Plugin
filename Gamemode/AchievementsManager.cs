@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using MCGalaxy;
+using MCGalaxy.SQL;
 
 namespace FPSMO
 {
@@ -43,6 +44,8 @@ namespace FPSMO
         internal event EventHandler<AchievementUnlockedEventArgs> AchievementUnlocked;
         private void OnAchievementUnlocked(Player player, Achievement achievement)
         {
+			if (AlreadyHas(player, achievement)) return;
+
             if (AchievementUnlocked != null)
             {
                 var args = new AchievementUnlockedEventArgs()
@@ -53,7 +56,19 @@ namespace FPSMO
 
                 AchievementUnlocked(this, args);
             }
+        }
 
+		private bool AlreadyHas(Player player, Achievement achievement)
+		{
+			List<string[]> matchingRows = 
+				Database.GetRows("PlayersAchievements", "AchievementName", "WHERE Player=@0", player.truename);
+
+			foreach (string[] row in matchingRows)
+			{
+				if (row[0] == achievement.Name) return true;
+			}
+
+			return false;
         }
     }
 }

@@ -11,6 +11,11 @@ namespace FPSMO.DB
 {
     internal static class DatabaseHandler
     {
+        internal static void SubscribeTo(AchievementsManager manager)
+        {
+            manager.AchievementUnlocked += HandleAchievementUnlocked;
+        }
+
         /*****************************
          * FIRST TIME INITIALIZATION *
          *****************************/
@@ -34,6 +39,14 @@ namespace FPSMO.DB
                     new ColumnDesc("Player", ColumnType.VarChar),
                     new ColumnDesc("Kills", ColumnType.UInt32),
                     new ColumnDesc("Deaths", ColumnType.UInt32)
+                });
+            }
+
+            if (!Database.TableExists("PlayersAchievements"))
+            {
+                Database.CreateTable("PlayersAchievements", new ColumnDesc[] {
+                    new ColumnDesc("Player", ColumnType.VarChar),
+                    new ColumnDesc("AchievementName", ColumnType.VarChar)
                 });
             }
 
@@ -75,6 +88,13 @@ GROUP BY RoundID, Team;"
 ;"
             );
 
+        }
+
+        private static void HandleAchievementUnlocked(Object sender, AchievementUnlockedEventArgs args)
+        {
+            Database.AddRow("PlayersAchievements",
+                "Player, AchievementName",
+                args.Player.truename, args.Achievement.Name);
         }
 
         #endregion

@@ -40,8 +40,8 @@ namespace MCGalaxy
         public override void Load(bool startup)
         {
             DatabaseHandler.InitializeDatabase();
-
             var achievementsManager = new AchievementsManager(game);
+            DatabaseHandler.SubscribeTo(achievementsManager);
             var gui = new GUI(game, achievementsManager);
             /***********
              * COMMANDS *
