@@ -44,9 +44,9 @@ namespace FPSMO.Weapons
 
         static Level level;
 
-        public static uint Tick { get { return currentTick; } }
+        internal static uint Tick { get { return currentTick; } }
 
-        public static void Activate()
+        internal static void Activate()
         {
             currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
             MSTick = FPSMOGame.Instance.gameConfig.MS_UPDATE_WEAPON_ANIMATIONS;
@@ -64,7 +64,7 @@ namespace FPSMO.Weapons
             WeaponCollisionsHandler.Activate();
         }
 
-        public static void Deactivate()
+        internal static void Deactivate()
         {
             lock (deactivateLock)
             {
@@ -82,17 +82,17 @@ namespace FPSMO.Weapons
             weaponEntities = new List<WeaponEntity>();
         }
 
-        public static void AddEntity(WeaponEntity anim)
+        internal static void AddEntity(WeaponEntity anim)
         {
             weaponEntities.Add(anim);
         }
 
-        public static void RemoveEntity(WeaponEntity anim)
+        internal static void RemoveEntity(WeaponEntity anim)
         {
             weaponEntities.Remove(anim);
         }
 
-        public static void Update(SchedulerTask task)
+        internal static void Update(SchedulerTask task)
         {
             // 1. Find blocks for tick T
             // 2. Undraw everything from tick T-1 (this caches)

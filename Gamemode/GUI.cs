@@ -4,15 +4,18 @@ using MCGalaxy;
 using System.Collections.Generic;
 using System.Linq;
 using FPSMO.Entities;
-using MCGalaxy.DB;
+using static FPSMO.FPSMOGame;
+using FPSMO.Weapons;
 
 namespace FPSMO
 {
-	public static class GUI
+	internal static class GUI
 	{
         internal static void SubscribeTo(FPSMOGame game)
         {
             game.CountdownStarted += HandleCountdownStarted;
+            game.PlayerShotWeapon += HandlePlayerShotWeapon;
+            game.WeaponStatusChanged += HandleWeaponStatusChanged;
             game.CountdownTicked += HandleCountdownTicked;
             game.CountdownEnded += HandleCountdownEnded;
             game.RoundStarted += HandleRoundStarted;
@@ -26,6 +29,7 @@ namespace FPSMO
             game.WeaponSpeedChanged += HandleWeaponSpeedChanged;
             game.PlayerJoinedTeam += HandlePlayerJoinedTeam;
             game.PlayerKilled += HandlePlayerKilled;
+            game.PlayerHit += HandlePlayerHit;
         }
 
         internal static void HandleCountdownStarted(Object sender, EventArgs args)
@@ -38,6 +42,40 @@ namespace FPSMO
                 ShowTeamStatistics(player);
                 ShowMapInfo(player, game.map, game.mapConfig);
             }
+        }
+
+        internal static void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponArgs args)
+        {
+            FPSMOGame game = (FPSMOGame)sender;
+            Player p = args.p;
+
+            if (!(game.stage == Stage.Round && game.subStage == SubStage.Middle))
+            {
+                return;
+            }
+
+            Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
+            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
+
+            // Can't shoot if the status below 10
+            if (gun.GetStatus(WeaponHandler.Tick) < 10)
+            {
+                return;
+            }
+
+            SetWeaponStatusBar(p, 0);
+
+            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());   // This takes care of the status too
+        }
+
+        internal static void HandleWeaponStatusChanged(Object sender, WeaponStatusChangedEventArgs args)
+        {
+            int status = args.status;
+            Player p = args.p;
+
+            status = Utils.Clamp(status, 0, 10);
+
+            SetWeaponStatusBar(p, status);
         }
 
         internal static void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
@@ -181,6 +219,16 @@ namespace FPSMO
             }
         }
 
+        internal static void HandlePlayerHit(Object sender, PlayerHitEventArgs args)
+        {
+            FPSMOGame game = (FPSMOGame)sender;
+            Player victim = args.victim;
+            Player shooter = args.shooter;
+
+            victim.Message(String.Format("{0} hit you!"), shooter.DisplayName);
+            shooter.Message(String.Format("Hit {0}!"), victim.DisplayName);
+        }
+
         internal static void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
@@ -188,7 +236,7 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{args.Killer.ColoredName} killed {args.Victim.ColoredName}");
+                    $"{args.killer.ColoredName} killed {args.victim.ColoredName}");
             }
         }
 

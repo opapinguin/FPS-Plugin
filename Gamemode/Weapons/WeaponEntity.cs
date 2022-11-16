@@ -30,17 +30,17 @@ namespace FPSMO.Weapons
     /// An abstract block that only exists to send block changes. Not a part of the map
     /// </summary>
     internal struct WeaponBlock : IEqualityComparer<WeaponBlock> {
-        public WeaponBlock(Vec3U16 loc, BlockID block)
+        internal WeaponBlock(Vec3U16 loc, BlockID block)
         {
             x = loc.X;
             y = loc.Y;
             z = loc.Z;
             this.block = block;
         }
-        public System.UInt16 x;
-        public System.UInt16 y;
-        public System.UInt16 z;
-        public BlockID block;
+        internal System.UInt16 x;
+        internal System.UInt16 y;
+        internal System.UInt16 z;
+        internal BlockID block;
 
         public bool Equals(WeaponBlock a, WeaponBlock b)
         {
@@ -58,26 +58,26 @@ namespace FPSMO.Weapons
     /// </summary>
     internal abstract class WeaponEntity
     {
-        public Player shooter;
+        internal Player shooter;
         protected uint fireTimeTick;
-        public float frameLength;   // Number of frames shown at once
-        public bool collided;
+        internal float frameLength;   // Number of frames shown at once
+        internal bool collided;
 
-        public List<WeaponBlock> currentBlocks = new List<WeaponBlock>(); // current tick blocks
-        public List<WeaponBlock> lastBlocks = new List<WeaponBlock>();    // last tick blocks
+        internal List<WeaponBlock> currentBlocks = new List<WeaponBlock>(); // current tick blocks
+        internal List<WeaponBlock> lastBlocks = new List<WeaponBlock>();    // last tick blocks
 
-        public uint damage;
+        internal uint damage;
 
         /// <summary>
         /// Gets the current blocks at a specific animation tick
         /// </summary>
-        public abstract List<WeaponBlock> GetCurrentBlocks(float tick);
+        internal abstract List<WeaponBlock> GetCurrentBlocks(float tick);
 
         /// <summary>
         /// Gets the current blocks in a range of ticks. Interpolates your blocks
         /// Depth first in-order
         /// </summary>
-        public virtual List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, uint depth=0)
+        internal virtual List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, uint depth=0)
         {
             List<WeaponBlock> result = new List<WeaponBlock>();
             List<WeaponBlock> currentBlocks = GetCurrentBlocks(tickStart);
@@ -104,7 +104,7 @@ namespace FPSMO.Weapons
 
     internal class Projectile : WeaponEntity
     {
-        public delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed);  // Location at delegates the parametric function of our choice. Assumes a 1D path
+        internal delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed);  // Location at delegates the parametric function of our choice. Assumes a 1D path
 
         private readonly LocAt locAt;
         private readonly BlockID block;
@@ -112,7 +112,7 @@ namespace FPSMO.Weapons
         private Orientation rotation;
         private readonly uint weaponSpeed;
 
-        public Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, uint dmg, LocAt ft)
+        internal Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, uint dmg, LocAt ft)
         {
             shooter = p;
             fireTimeTick = start;
@@ -127,7 +127,7 @@ namespace FPSMO.Weapons
             WeaponHandler.AddEntity(this);
         }
 
-        public override List<WeaponBlock> GetCurrentBlocks(float tick)  // TODO: Probably want to return a list of blocks, like a short line
+        internal override List<WeaponBlock> GetCurrentBlocks(float tick)  // TODO: Probably want to return a list of blocks, like a short line
         {
             Vec3F32 loc = locAt(tick, origin, rotation, fireTimeTick, weaponSpeed);
             Vec3U16 locU16 = new Vec3U16((ushort)(loc.X / 32), (ushort)(loc.Y / 32), (ushort)(loc.Z / 32));

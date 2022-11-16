@@ -19,33 +19,33 @@ using System.Collections.Generic;
 
 namespace FPSMO
 {
-    public enum Achievement : ushort
+    internal enum Achievement : ushort
     {
         ACHIEVEMENT_TEST = 0,
     }
 
-    public enum AwardEvent : ushort
+    internal enum AwardEvent : ushort
     {
         EVENT_TEST = 0,
     }
 
-    public interface IObserver {
+    internal interface IObserver {
         void OnNotify(ref Player player, AwardEvent award);
     }
 
     class AwardSubject
     {
-        public void Attach(ref IObserver observer)
+        internal void Attach(ref IObserver observer)
         {
             _observers.Add(observer);
             _numAchievements += 1;
         }
-        public void Detach(ref IObserver observer)
+        internal void Detach(ref IObserver observer)
         {
             _observers.Remove(observer);
             _numAchievements -= 1;
         }
-        public void Notify()
+        internal void Notify()
         {
 
         }

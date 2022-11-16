@@ -27,7 +27,8 @@ namespace FPSMO.Commands
         public override void Use(Player p, string message, CommandData data)
         {
             List<string> levels = LevelPicker.GetQueue();
-            p.Message(levels.ToString());
+
+            p.Message(string.Join(", ", levels.ToArray()));
         }
 
         public override void Help(Player p)

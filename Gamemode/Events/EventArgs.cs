@@ -1,8 +1,20 @@
 ﻿using System;
+using FPSMO.Weapons;
 using MCGalaxy;
 
 namespace FPSMO
 {
+	internal class WeaponStatusChangedEventArgs : EventArgs
+    {
+		internal int status { get; set; }
+		internal Player p { get; set; }
+    }
+
+	internal class PlayerShotWeaponArgs : EventArgs
+    {
+		internal Player p { get; set; }
+    }
+
 	internal class CountdownTickedEventArgs : EventArgs
 	{
 		internal int TimeRemaining { get; set; }
@@ -55,7 +67,14 @@ namespace FPSMO
 
 	internal class PlayerKilledEventArgs : EventArgs
 	{
-		internal Player Killer { get; set; }
-		internal Player Victim { get; set; }
+		internal Player killer { get; set; }
+		internal Player victim { get; set; }
+	}
+
+	internal class PlayerHitEventArgs : EventArgs
+	{
+		internal Player shooter { get; set; }
+		internal Player victim { get; set; }
+		internal WeaponEntity we { get; set; }
 	}
 }

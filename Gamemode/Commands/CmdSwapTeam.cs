@@ -67,6 +67,7 @@ namespace FPSMO.Commands
                 TeamHandler.red.Remove(p);
                 TeamHandler.blue.Add(p);
             }
+            PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap = DateTime.Now;
         }
 
         public override void Help(Player p)

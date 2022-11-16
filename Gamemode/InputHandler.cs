@@ -20,7 +20,7 @@ using System;
 
 namespace FPSMO
 {
-    public static class InputHandler
+    internal static class InputHandler
     {
         static void Activate()
         {

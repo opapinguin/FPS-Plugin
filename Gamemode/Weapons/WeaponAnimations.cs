@@ -40,21 +40,21 @@ namespace FPSMO.Weapons
 
         static Dictionary<int, BlockID> blockSenderCache;   // Using a dictionary cache has a few benefits, including preventing duplicate writes
 
-        public static void Activate()
+        internal static void Activate()
         {
             sender = new BufferedBlockSender(FPSMOGame.Instance.map);
             level = FPSMOGame.Instance.map;
             blockSenderCache = new Dictionary<int, BlockID>();
         }
 
-        public static void Deactivate()
+        internal static void Deactivate()
         {
             sender = null;
             level = null;
             blockSenderCache = null;
         }
 
-        public static void Draw(List<WeaponEntity> entities, bool currentTick)
+        internal static void Draw(List<WeaponEntity> entities, bool currentTick)
         {
             foreach (WeaponEntity we in entities)
             {
@@ -74,7 +74,7 @@ namespace FPSMO.Weapons
             }
         }
 
-        public static void Undraw(List<WeaponEntity> weList,bool currentTick)
+        internal static void Undraw(List<WeaponEntity> weList,bool currentTick)
         {
             foreach (WeaponEntity we in weList)
             {
@@ -94,7 +94,7 @@ namespace FPSMO.Weapons
             }
         }
 
-        public static void Flush()
+        internal static void Flush()
         {
             foreach (Player p in FPSMOGame.Instance.players.Values)
             {

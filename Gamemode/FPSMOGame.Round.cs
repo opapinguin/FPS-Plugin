@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using FPSMO.Entities;
 using FPSMO.Weapons;
 using MCGalaxy;
 
@@ -48,18 +49,33 @@ namespace FPSMO
         #region middle
         private void MiddleRound()
         {
-            if (DateTime.UtcNow >= roundStart + roundTime) {
+            if (DateTime.Now >= roundStart + roundTime) {
                 // Move on to the next sub-stage
                 subStage = SubStage.End;
                 return;
             }
 
+            // Update weapon status for all players
+            Dictionary<String, Player > playersCopy = new Dictionary<String, Player>(players);
+            foreach (var kvp in playersCopy)
+            {
+                // Hacky way to get that extra message in when status is 10. Second term gets the number of weapon ticks passed after a round tick
+                if (PlayerDataHandler.Instance[kvp.Key].currentWeapon.GetStatus(WeaponHandler.Tick
+                    - (uint)((float)MS_ROUND_TICK / (float)gameConfig.MS_UPDATE_WEAPON_ANIMATIONS)) < 10)
+                {
+                    OnWeaponStatusChanged(kvp.Value);
+                }
+            }
+
             // The below line is generally bad practice, and indeed we therefore require that updateRound() does the minimum work possible
             // The animation loops and other events are handled by scheduler tasks on other threads and don't just sleep like this
-            Thread.Sleep(MS_ROUND_TICK);
+            // Most of the stuff on this thread is small
+            // TODO: If you want to do extra work while you wait for something to happen, the typical way is caching a datetime for the last time this thread woke up
+            // And sleep only for the time necessary after tasks are performed
+            Thread.Sleep(MS_ROUND_TICK);    // TODO: Add this to the configuration
 
             DateTime roundEnd = roundStart + roundTime;
-            TimeSpan timeLeft = roundEnd - DateTime.UtcNow;
+            TimeSpan timeLeft = roundEnd - DateTime.Now;
             OnRoundTicked((int) timeLeft.TotalSeconds);
         }
 

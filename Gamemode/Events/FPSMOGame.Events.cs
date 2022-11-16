@@ -36,6 +36,31 @@ namespace FPSMO
             }
         }
 
+        internal event EventHandler<WeaponStatusChangedEventArgs> WeaponStatusChanged;
+        internal void OnWeaponStatusChanged(Player p)
+        {
+            if (WeaponStatusChanged != null)
+            {
+                WeaponStatusChangedEventArgs args = new WeaponStatusChangedEventArgs();
+                args.status = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponHandler.Tick);
+                args.p = p;
+
+                WeaponStatusChanged(this, args);
+            }
+        }
+
+        internal event EventHandler<PlayerShotWeaponArgs> PlayerShotWeapon;
+        internal void OnPlayerShotWeapon(Player p)
+        {
+            if (PlayerShotWeapon != null)
+            {
+                PlayerShotWeaponArgs args = new PlayerShotWeaponArgs();
+                args.p = p;
+
+                PlayerShotWeapon(this, args);
+            }
+        }
+
         internal event EventHandler<CountdownTickedEventArgs> CountdownTicked;
         private void OnCountdownTicked(int timeRemaining, bool hasEnoughPlayers)
         {
@@ -181,8 +206,46 @@ namespace FPSMO
             }
         }
 
+        internal event EventHandler<PlayerHitEventArgs> PlayerHit;
+        internal void OnPlayerHitPlayer(Player shooter, Player victim, WeaponEntity we)
+        {
+            // Find the player data
+            PlayerData pd_shooter = PlayerDataHandler.Instance[shooter.truename];
+            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
+
+            // Just quick check if not null i.e. playerdata actually exists
+            if (pd_shooter == null || pd_victim == null) { return; }
+
+            // Change playerdata
+            pd_shooter.hitsGiven += 1;
+            pd_victim.hitsReceived += 1;
+
+            // Handle death or just plain hit
+            if (we.damage >= pd_victim.health)
+            {
+                OnPlayerKilled(shooter, victim); return;
+            }
+            else
+            {
+                pd_victim.health -= (ushort)we.damage;
+            }
+
+            PlayerDataHandler.Instance[shooter.truename] = pd_shooter;
+            PlayerDataHandler.Instance[victim.truename] = pd_victim;
+
+            if (PlayerHit != null)
+            {
+                var args = new PlayerHitEventArgs()
+                {
+                    shooter = shooter,
+                    victim = victim
+                };
+                PlayerHit(this, args);
+            }
+        }
+
         internal event EventHandler<PlayerKilledEventArgs> PlayerKilled;
-        private void OnPlayerKilled(Player killer, Player victim)
+        internal void OnPlayerKilled(Player killer, Player victim)
         {
             PlayerData pd_shooter = PlayerDataHandler.Instance[killer.truename];
             PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
@@ -193,14 +256,12 @@ namespace FPSMO
             PlayerDataHandler.Instance[killer.truename] = pd_shooter;
             PlayerDataHandler.Instance[victim.truename] = pd_victim;
 
-            //FPSMOGame.Instance.MessageMap(CpeMessageType.Normal, String.Format("{0} killed {1}", shooter.ColoredName, victim.ColoredName));
-
             if (PlayerKilled != null)
             {
                 var args = new PlayerKilledEventArgs()
                 {
-                    Killer = killer,
-                    Victim = victim
+                    killer = killer,
+                    victim = victim
                 };
 
                 PlayerKilled(this, args);
@@ -307,31 +368,6 @@ namespace FPSMO
             PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
             TeamHandler.RemovePlayer(p);
             RemoveBindings(p);
-        }
-
-        public void HandleHit(WeaponEntity we, Player shooter, Player victim)
-        {
-            // Find the player data
-            PlayerData pd_shooter = PlayerDataHandler.Instance[shooter.truename];
-            PlayerData pd_victim = PlayerDataHandler.Instance[victim.truename];
-
-            // Just quick check if not null i.e. playerdata actually exists
-            if (pd_shooter == null || pd_victim == null) { return; }
-
-            // Change playerdata
-            pd_shooter.hitsGiven += 1;
-            pd_victim.hitsReceived += 1;
-
-            // Handle death or just plain hit
-            if (we.damage >= pd_victim.health) {
-                OnPlayerKilled(shooter, victim); return;
-            } else
-            {
-                pd_victim.health -= (ushort)we.damage;
-            }
-
-            PlayerDataHandler.Instance[shooter.truename] = pd_shooter;
-            PlayerDataHandler.Instance[victim.truename] = pd_victim;
         }
 
         #endregion

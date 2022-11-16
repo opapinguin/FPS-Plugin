@@ -27,7 +27,7 @@ namespace FPSMO.Configuration
 
     public struct FPSMOMapConfig
     {
-        public FPSMOMapConfig(uint RoundTime)
+        internal FPSMOMapConfig(uint RoundTime)
         {
             // DEFAULT VALUES
             this.ROUND_TIME_S = RoundTime;

@@ -30,7 +30,7 @@ namespace FPSMO.Entities
     /// </summary>
     internal class PlayerData
     {
-        public PlayerData(Player p)
+        internal PlayerData(Player p)
         {
             // Initialize weapons
             gun = new GunWeapon(p);
@@ -39,30 +39,33 @@ namespace FPSMO.Entities
             name = p.truename;
         }
 
-        public string name;
+        internal string name;
 
-        public ushort hitsGiven;
-        public ushort hitsReceived;
-        public ushort kills;
-        public ushort deaths;
+        internal ushort hitsGiven;
+        internal ushort hitsReceived;
+        internal ushort kills;
+        internal ushort deaths;
 
-        public ushort stamina;
-        public ushort health;
-        public string team;
+        internal ushort stamina;
+        internal ushort health;
+        internal string team;
 
-        public bool bVoted;
-        public ushort vote; // Can be 1 2 or 3
+        internal bool bVoted;
+        internal ushort vote; // Can be 1 2 or 3
 
         // Weapons
-        public Weapon currentWeapon;
+        internal Weapon currentWeapon;
 
-        public GunWeapon gun;
-        public RocketWeapon rocket;
+        internal GunWeapon gun;
+        internal RocketWeapon rocket;
 
-        public DateTime lastWeaponSpeedChange;
-        public DateTime lastTeamSwap;
+        internal DateTime lastWeaponSpeedChange;
+        internal DateTime lastTeamSwap;
+        internal DateTime lastHealthChange;
 
-        public void ResetData()
+        internal uint lastHealth;
+
+        internal void ResetData()
         {
             hitsGiven = kills = deaths = 0;
             stamina = health = 10;
@@ -85,7 +88,7 @@ namespace FPSMO.Entities
         private static PlayerDataHandler instance = new PlayerDataHandler();
         private static readonly object padlock = new object();
 
-        public static PlayerDataHandler Instance
+        internal static PlayerDataHandler Instance
         {
             get
             {
@@ -105,13 +108,13 @@ namespace FPSMO.Entities
         /**********
          * FIELDS *
          **********/
-        public Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
-        public int numPlayers = 0;
+        internal Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
+        internal int numPlayers = 0;
 
         /******************
          * HELPER METHODS *
          ******************/
-        public PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
+        internal PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
         {
             get { PlayerData val; return dictPlayerData.TryGetValue(name, out val) ? val : null; }
             set {
@@ -120,12 +123,12 @@ namespace FPSMO.Entities
             }
         }
 
-        public bool PlayerExists(string name)
+        internal bool PlayerExists(string name)
         {
             return dictPlayerData.ContainsKey(name);
         }
 
-        public void ResetPlayerData()
+        internal void ResetPlayerData()
         {            
             foreach (string key in dictPlayerData.Keys)
             {
@@ -133,7 +136,7 @@ namespace FPSMO.Entities
             }
         }
 
-        public void Deactivate()
+        internal void Deactivate()
         {
             dictPlayerData = new Dictionary<string, PlayerData>();
             numPlayers = 0;

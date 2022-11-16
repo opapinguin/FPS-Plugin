@@ -11,17 +11,17 @@ namespace FPSMO.Teams
     {
         private static Random r;
 
-        public static Team red;
-        public static Team blue;
+        internal static Team red;
+        internal static Team blue;
 
-        public static void Activate()
+        internal static void Activate()
         {
             red = new Team("RED");
             blue = new Team("BLUE");
             r = new Random();
         }
 
-        public static void Reset()
+        internal static void Reset()
         {
             red.Reset();
             blue.Reset();
@@ -31,7 +31,7 @@ namespace FPSMO.Teams
         /// <summary>
         /// Assigns teams. First two players in this list will be assigned to red and blue respectively
         /// </summary>
-        public static void AssignTeams(List<Player> players)
+        internal static void AssignTeams(List<Player> players)
         {
             for (int i = 0; i < players.Count; i++)
             {
@@ -55,7 +55,7 @@ namespace FPSMO.Teams
         /// <summary>
         /// Gets the team. Returns null if player not playing or not in a team
         /// </summary>
-        public static Team GetTeam(Player p)
+        internal static Team GetTeam(Player p)
         {
             PlayerData pData = PlayerDataHandler.Instance[p.truename];
             if (pData == null) { return null; }
@@ -76,7 +76,7 @@ namespace FPSMO.Teams
         /// <summary>
         /// Removes player from all teams
         /// </summary>
-        public static void RemovePlayer(Player p)
+        internal static void RemovePlayer(Player p)
         {
             red.Remove(p);
             blue.Remove(p);
@@ -85,7 +85,7 @@ namespace FPSMO.Teams
         /// <summary>
         /// Adds a player to a team. If team is null assign randomly
         /// </summary>
-        public static void AddPlayer(Player p, string team = "")
+        internal static void AddPlayer(Player p, string team = "")
         {
             // As a rule, add to blue if there's no blue members and red if there's no red members
             if (red.Count == 0)

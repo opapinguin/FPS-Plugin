@@ -47,7 +47,7 @@ namespace FPSMO
         {
         }
 
-        public static FPSMOGame Instance
+        internal static FPSMOGame Instance
         {
             get
             {
@@ -67,8 +67,8 @@ namespace FPSMO
          * GAME FIELDS *
          ***************/
         #region Game Fields
-        private const int MS_ROUND_TICK = 1000;  // Quite large but really nothing special needs handling during the round in the main loop
-        public bool bRunning;   // Default = false
+        private int MS_ROUND_TICK;
+        internal bool bRunning;   // Default = false
 
         internal enum Stage
         {
@@ -89,12 +89,12 @@ namespace FPSMO
         internal FPSMOMapConfig mapConfig;
         internal FPSMOGameConfig gameConfig;
 
-        public Dictionary<string, Player> players = new Dictionary<string, Player>();
-        public Level map;
+        internal Dictionary<string, Player> players = new Dictionary<string, Player>();
+        internal Level map;
         DateTime roundStart;
         TimeSpan roundTime;
-        public DateTime RoundEnd { get {return roundStart + roundTime;} }
-        public DateTime RoundStart { get { return roundStart; } }
+        internal DateTime RoundEnd { get {return roundStart + roundTime;} }
+        internal DateTime RoundStart { get { return roundStart; } }
 
         #endregion
         /******************
@@ -102,11 +102,10 @@ namespace FPSMO
          ******************/
         #region Game Loop
 
-        public void Start(string mapName = "")
+        internal void Start(string mapName = "")
         {
             // Hook eventhandlers
             HookEventHandlers();
-            ActivateTasks();
 
             // Prepare the game configuration
             FPSMOConfig<FPSMOMapConfig>.dir = "FPSMOConfig/Maps";
@@ -116,6 +115,9 @@ namespace FPSMO
             // Create a game configuration if it doesn't already exist
             FPSMOConfig<FPSMOGameConfig>.Create("Config", new FPSMOGameConfig(true));
             gameConfig = FPSMOConfig<FPSMOGameConfig>.Read("Config");
+
+            // Use the game configuration
+            MS_ROUND_TICK = (int)gameConfig.MS_ROUND_TICK;
 
             // Pick a level
             LevelPicker.Activate();
@@ -160,7 +162,7 @@ namespace FPSMO
             t.Start();  // Automatically aborts when Run() returns
         }
         
-        public void Stop()
+        internal void Stop()
         {
             Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
 
@@ -170,7 +172,6 @@ namespace FPSMO
             }
 
             UnHookEventHandlers();
-            DeactivateTasks();
             bRunning = false;
 
             // TODO: Remove animations
@@ -180,7 +181,7 @@ namespace FPSMO
             PlayerDataHandler.Instance.Deactivate();
         }
 
-        public void Run()
+        internal void Run()
         {
             while (bRunning)
             {

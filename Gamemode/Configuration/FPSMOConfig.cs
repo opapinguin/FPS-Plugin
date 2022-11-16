@@ -24,9 +24,9 @@ namespace FPSMO.Configuration
     /// </summary>
     internal static class FPSMOConfig<T> where T : struct
     {
-        public static string dir;
+        internal static string dir;
 
-        public static void Create(string key, T obj)
+        internal static void Create(string key, T obj)
         {
             if (!Directory.Exists(dir))
             {
@@ -39,7 +39,7 @@ namespace FPSMO.Configuration
             }
         }
 
-        public static T Read(string key)
+        internal static T Read(string key)
         {
             T result;
             XmlSerializer reader = new XmlSerializer(typeof(T));
@@ -50,7 +50,7 @@ namespace FPSMO.Configuration
             return result;
         }
 
-        public static void Update(string key, T obj)
+        internal static void Update(string key, T obj)
         {
             XmlSerializer writer = new XmlSerializer(typeof(T));
             using (StreamWriter sw = new StreamWriter(dir + "/" + key + ".xml"))
@@ -60,7 +60,7 @@ namespace FPSMO.Configuration
             return;
         }
 
-        public static void Delete(string key)
+        internal static void Delete(string key)
         {
             if (File.Exists(dir + "/" + key + ".xml"))
             {

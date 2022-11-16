@@ -15,7 +15,7 @@ namespace FPSMO.DB
          * FIRST TIME INITIALIZATION *
          *****************************/
         #region Initialization
-        public static void InitializeDatabase()
+        internal static void InitializeDatabase()
         {
             if (!Database.TableExists("Rounds"))
             {
@@ -84,7 +84,7 @@ GROUP BY RoundID, Team;"
         /// <summary>
         /// Saves the playerData into the Rounds and Results tables 
         /// </summary>
-        public static void SaveData(uint roundID, string level, List<PlayerData> data)
+        internal static void SaveData(uint roundID, string level, List<PlayerData> data)
         {
             foreach (PlayerData pd in data)
             {
@@ -99,7 +99,7 @@ GROUP BY RoundID, Team;"
         /// <summary>
         /// Reads the player statistics from the database
         /// </summary>
-        public static PlayerStats LoadPlayerStats(Player p)
+        internal static PlayerStats LoadPlayerStats(Player p)
         {
             PlayerStats stats = new PlayerStats();
 

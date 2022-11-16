@@ -23,13 +23,13 @@ namespace FPSMO
 {
     internal class Team
     {
-        public ushort totalKills;
-        public ushort totalDeaths;
-        public string name;
-        public Dictionary<string, Player> players;
-        public int Count { get { return players.Count; } }
+        internal ushort totalKills;
+        internal ushort totalDeaths;
+        internal string name;
+        internal Dictionary<string, Player> players;
+        internal int Count { get { return players.Count; } }
 
-        public Team(string name)
+        internal Team(string name)
         {
             this.totalKills = 0;
             this.totalDeaths = 0;
@@ -37,7 +37,7 @@ namespace FPSMO
             this.players = new Dictionary<string, Player>();
         }
 
-        public void Add(Player p)
+        internal void Add(Player p)
         {
             PlayerData pData = PlayerDataHandler.Instance[p.truename];
             if (pData != null) {
@@ -48,7 +48,7 @@ namespace FPSMO
             players[p.truename] = p;
         }
 
-        public void Remove(Player p)
+        internal void Remove(Player p)
         {
             PlayerData pData = PlayerDataHandler.Instance[p.truename];
             if (pData != null) {
@@ -59,12 +59,12 @@ namespace FPSMO
             if (players.ContainsKey(p.truename)) { players.Remove(p.truename); }
         }
 
-        public bool Contains(Player p)
+        internal bool Contains(Player p)
         {
             return players.ContainsKey(p.truename);
         }
 
-        public void Reset()
+        internal void Reset()
         {
             Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
 

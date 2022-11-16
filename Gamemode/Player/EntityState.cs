@@ -29,12 +29,12 @@ namespace FPSMO.Entities
 
     class CrawlingState : IEntityState
     {
-        public CrawlingState()
+        internal CrawlingState()
         {
             chargeTime_ = 0;
         }
 
-        //public void HandleInput(ref Player player, Input input)
+        //internal void HandleInput(ref Player player, Input input)
         //{
             //if (input == RELEASE_DOWN)
             //{

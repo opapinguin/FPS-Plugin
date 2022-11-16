@@ -27,25 +27,7 @@ namespace FPSMO.Weapons
 
         public override void Use(Player p, string message, CommandData data)
         {
-            if (!(FPSMOGame.Instance.stage == FPSMOGame.Stage.Round && FPSMOGame.Instance.subStage == FPSMOGame.SubStage.Middle))
-            {
-                return;
-            }
-
-            if (PlayerDataHandler.Instance[p.truename] == null)
-            {
-                return;
-            }
-
-            Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
-            PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
-
-            if (gun.GetStatus(WeaponHandler.Tick) < 10)
-            {
-                return;
-            }
-
-            PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());
+            FPSMOGame.Instance.OnPlayerShotWeapon(p);
         }
 
         public override void Help(Player p)

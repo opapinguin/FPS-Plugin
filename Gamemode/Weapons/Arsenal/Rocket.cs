@@ -25,7 +25,7 @@ namespace FPSMO.Weapons
 {
     internal class RocketWeapon : ProjectileWeapon
     {
-        public RocketWeapon(Player pl)
+        internal RocketWeapon(Player pl)
         {
             FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
 
@@ -41,7 +41,7 @@ namespace FPSMO.Weapons
         /// <summary>
         /// Location at a given tick
         /// </summary>
-        public override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
+        internal override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
         {
             FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
 
@@ -82,7 +82,7 @@ namespace FPSMO.Weapons
                 dir.Z * distance * 32 + helixR * helixDisplacement.Z * 32 + orig.Z);
         }
 
-        public override void Use(Orientation rot, Vec3F32 loc)
+        internal override void Use(Orientation rot, Vec3F32 loc)
         {
             lastFireTick = WeaponHandler.Tick;
             // Instantiate the weapon animation

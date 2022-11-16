@@ -28,25 +28,25 @@ namespace FPSMO.Weapons
 {
     internal abstract class Weapon
     {
-        public abstract void Use(Orientation rot, Vec3F32 loc);
-        public virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
+        internal abstract void Use(Orientation rot, Vec3F32 loc);
+        internal virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
         {
             ushort status = (ushort)((float)(tick - lastFireTick) / (float)reloadTimeTicks * 10);
             return (ushort)(status > 10 ? 10 : status);
         }
-        public virtual void Reset() { lastFireTick = 0; }
+        internal virtual void Reset() { lastFireTick = 0; }
 
-        public string name;
+        internal string name;
         protected uint damage;
         protected uint lastFireTick;    // Much more efficient than using timespans
         protected uint reloadTimeTicks; // Ditto
         protected Player player;
-        public ushort weaponSpeed;
+        internal ushort weaponSpeed;
     }
 
     internal abstract class ProjectileWeapon : Weapon
     {
-        public abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick, uint weaponSpeed);
+        internal abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick, uint weaponSpeed);
 
         protected BlockID block;
         protected float frameLength;

@@ -28,12 +28,12 @@ namespace FPSMO.Weapons
     {
         static Level level;
 
-        public static void Activate()
+        internal static void Activate()
         {
             level = FPSMOGame.Instance.map;
         }
 
-        public static void Update(List<WeaponEntity> weaponEntities)
+        internal static void Update(List<WeaponEntity> weaponEntities)
         {
             foreach (Player p in FPSMOGame.Instance.players.Values)
             {
@@ -41,7 +41,7 @@ namespace FPSMO.Weapons
             }
         }
 
-        public static bool CheckCollision(List<WeaponBlock> blocks)
+        internal static bool CheckCollision(List<WeaponBlock> blocks)
         {
             foreach (WeaponBlock wb in blocks)
             {
@@ -52,7 +52,7 @@ namespace FPSMO.Weapons
             return false;
         }
 
-        public static List<WeaponEntity> GetCollisions(List<WeaponEntity> weaponEntities)
+        internal static List<WeaponEntity> GetCollisions(List<WeaponEntity> weaponEntities)
         {
             List<WeaponEntity> result = new List<WeaponEntity>();
 
@@ -110,7 +110,7 @@ namespace FPSMO.Weapons
 
                             // Some blocks will cause death of players
                             if (!level.Props[block].KillerBlock) continue;
-                            if (level.Config.KillerBlocks) FPSMOGame.Instance.HandleHit(weaponEntities[i], weaponEntities[i].shooter, p);  // TODO: Replace this with a handleDeath for the game
+                            if (level.Config.KillerBlocks) FPSMOGame.Instance.OnPlayerHitPlayer(weaponEntities[i].shooter, p, weaponEntities[i]);
                         }
             }
         }

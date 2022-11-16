@@ -30,7 +30,7 @@ namespace FPSMO.Configuration
 
             this.B_AUTO_START = bAutoStart;
 
-            MS_ROUND_TICK = 100;
+            MS_ROUND_TICK = 50;
             S_VOTETIME = 10;
             MAX_MOVE_DISTANCE = 1.5625f;
             B_SET_MAIN_LEVEL = true;

@@ -22,15 +22,18 @@ using FPSMO.Configuration;
 
 namespace FPSMO
 {
-    public static class LevelPicker
+    internal static class LevelPicker
     {
         static Random rand = new Random();
         static List<string> maps = new List<string>();
         static List<string> queue = new List<string>();
 
-        static public void Activate()
+        static internal void Activate()
         {
             maps = FPSMOConfig<FPSMOGameConfig>.Read("Config").MAPS;    // Is this thread-safe?
+
+            Logger.Log(LogType.ConsoleMessage, "test");
+            Logger.Log(LogType.ConsoleMessage, maps.Count.ToString());
 
             if (maps.Count == 0)
             {
@@ -48,17 +51,17 @@ namespace FPSMO
             }
         }
 
-        static public List<string> GetQueue()
+        static internal List<string> GetQueue()
         {
             return maps;
         }
 
-        static public void UpdateMaps()
+        static internal void UpdateMaps()
         {
             maps = FPSMOConfig<FPSMOGameConfig>.Read("config").MAPS;
         }
 
-        static public void AddQueueLevel(string map)
+        static internal void AddQueueLevel(string map)
         {
             for (int i = maps.Count - 1; i > 0; i--)
             {
@@ -71,7 +74,7 @@ namespace FPSMO
         /// Retrieves the last level and pushes a new one onto the queue
         /// Basically gets the next level
         /// </summary>
-        static public string PopAndPush()
+        static internal string PopAndPush()
         {
             string newMap = queue[0];
             queue.RemoveAt(0);

@@ -43,7 +43,7 @@ namespace FPSMO
 
             SetMainLevel();
 
-            roundStart = DateTime.UtcNow.AddSeconds(delay);
+            roundStart = DateTime.Now.AddSeconds(delay);
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
@@ -70,7 +70,7 @@ namespace FPSMO
             // TODO: change this back to 2
             int minimumPlayersCount = 1;
 
-            for (int i = (int)(roundStart - DateTime.UtcNow).TotalSeconds; i > 0; i--)
+            for (int i = (int)(roundStart - DateTime.Now).TotalSeconds; i > 0; i--)
             {
                 if (!bRunning) return;
                 OnCountdownTicked((int) i, players.Count >= minimumPlayersCount);
@@ -83,7 +83,7 @@ namespace FPSMO
             }
             else
             {
-                roundStart = DateTime.UtcNow.AddSeconds(delay);
+                roundStart = DateTime.Now.AddSeconds(delay);
             }
         }
 

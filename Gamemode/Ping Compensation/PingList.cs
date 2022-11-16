@@ -26,37 +26,37 @@ namespace FPSMO.PingCompensation
     {
         struct TimeStamp
         {
-            public TimeStamp(DateTime dt, T val)
+            internal TimeStamp(DateTime dt, T val)
             {
                 time = dt;
                 value = val;
             }
-            public TimeStamp(T val)
+            internal TimeStamp(T val)
             {
                 time = DateTime.Now;
                 value = val;
             }
-            public DateTime time { get; }
-            public T value { get; }
+            internal DateTime time { get; }
+            internal T value { get; }
         }
 
         List<TimeStamp> timeStamps;
         TimeSpan delay;
 
-        public PingList(int capacity, int delay)
+        internal PingList(int capacity, int delay)
         {
             this.delay = TimeSpan.FromMilliseconds(delay);
 
             timeStamps = new List<TimeStamp>(capacity);
         }
 
-        public void Add(DateTime t, T val)
+        internal void Add(DateTime t, T val)
         {
             timeStamps.Insert(0, new TimeStamp(t, val));
             timeStamps.RemoveAt(timeStamps.Count - 1);
         }
 
-        public T GetAt(DateTime t)
+        internal T GetAt(DateTime t)
         {
             for (int i = 0; i < timeStamps.Count - 2; i++)
             {

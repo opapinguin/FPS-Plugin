@@ -7,6 +7,6 @@ namespace FPSMO.Entities
 {
     internal struct PlayerStats
     {
-        public int totalKills, totalDeaths;
+        internal int totalKills, totalDeaths;
     }
 }
