@@ -32,6 +32,11 @@ namespace FPSMO
             game.PlayerHit += HandlePlayerHit;
         }
 
+        internal static void SubscribeTo(AchievementsManager manager)
+        {
+            manager.AchievementUnlocked += HandleAchievementUnlocked;
+        }
+
         internal static void HandleCountdownStarted(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
@@ -44,7 +49,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponArgs args)
+        internal static void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
             Player p = args.p;
@@ -240,6 +245,17 @@ namespace FPSMO
             }
         }
 
+        internal static void HandleAchievementUnlocked(Object sender, AchievementUnlockedEventArgs args)
+        {
+            Player who = args.Player;
+
+            foreach (Player player in FPSMOGame.Instance.players.Values)
+            {
+                player.SendCpeMessage(CpeMessageType.Normal,
+                    $"{who.ColoredName} &Sunlocked &f{args.Achievement.Name}");
+            }
+        }
+
         private static void ShowMapInfo(Player p, Level level, FPSMOMapConfig mapConfig)
         {
             string authors = string.Join(", ", level.Config.Authors.Split(',').Select(
@@ -250,7 +266,7 @@ namespace FPSMO
 
             if (mapConfig.TOTAL_RATINGS == 0)
             {
-                p.Message(String.Format("This map has not yet been rated"));
+                p.Message("This map has not yet been rated");
             }
             else
             {
@@ -260,7 +276,7 @@ namespace FPSMO
 
         private static void ShowTeamStatistics(Player p)
         {
-            p.SendCpeMessage(CpeMessageType.Status2, String.Format("<Team statistics>"));
+            p.SendCpeMessage(CpeMessageType.Status2, "<Team statistics>");
         }
 
         private static void ShowCountdown(Player player, int timeRemaining)

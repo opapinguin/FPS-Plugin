@@ -49,12 +49,12 @@ namespace FPSMO
             }
         }
 
-        internal event EventHandler<PlayerShotWeaponArgs> PlayerShotWeapon;
+        internal event EventHandler<PlayerShotWeaponEventArgs> PlayerShotWeapon;
         internal void OnPlayerShotWeapon(Player p)
         {
             if (PlayerShotWeapon != null)
             {
-                PlayerShotWeaponArgs args = new PlayerShotWeaponArgs();
+                PlayerShotWeaponEventArgs args = new PlayerShotWeaponEventArgs();
                 args.p = p;
 
                 PlayerShotWeapon(this, args);

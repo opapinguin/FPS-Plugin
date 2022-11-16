@@ -44,6 +44,10 @@ namespace MCGalaxy
              * COMMANDS *
              ************/
             #region Commands
+            var achievementsManager = new AchievementsManager(game);
+            Command.Register(new CmdAchievements(achievementsManager));
+            Command.Register(new CmdAchievementTest(achievementsManager));
+
             Command.Register(new CmdSwapTeam());
 
             Command.Register(new CmdFPSMO());
@@ -58,12 +62,13 @@ namespace MCGalaxy
             #endregion Commands
 
             GUI.SubscribeTo(game);
+            GUI.SubscribeTo(achievementsManager);
             game.Start();   // TODO: Make autostart optional?
         }
 
         public override void Unload(bool shutdown)
         {
-            Command.Register(Command.Find("FPSMOSwapTeam"));
+            Command.Unregister(Command.Find("FPSMOSwapTeam"));
 
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("FPSMOQueue"));
@@ -73,6 +78,9 @@ namespace MCGalaxy
             Command.Unregister(Command.Find("FPSMOShootRocket"));
 
             Command.Unregister(Command.Find("FPSMOWeaponSpeed"));
+
+            Command.Unregister(Command.Find("AchievementTest"));
+            Command.Unregister(Command.Find("Achievements"));
 
             game.Stop();
         }

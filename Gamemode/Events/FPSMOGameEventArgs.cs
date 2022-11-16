@@ -10,7 +10,7 @@ namespace FPSMO
 		internal Player p { get; set; }
     }
 
-	internal class PlayerShotWeaponArgs : EventArgs
+	internal class PlayerShotWeaponEventArgs : EventArgs
     {
 		internal Player p { get; set; }
     }
