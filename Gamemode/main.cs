@@ -40,11 +40,13 @@ namespace MCGalaxy
         public override void Load(bool startup)
         {
             DatabaseHandler.InitializeDatabase();
+
+            var achievementsManager = new AchievementsManager(game);
+            var gui = new GUI(game, achievementsManager);
             /***********
              * COMMANDS *
              ************/
             #region Commands
-            var achievementsManager = new AchievementsManager(game);
             Command.Register(new CmdAchievements(achievementsManager));
             Command.Register(new CmdAchievementTest(achievementsManager));
 
@@ -61,8 +63,6 @@ namespace MCGalaxy
 
             #endregion Commands
 
-            GUI.SubscribeTo(game);
-            GUI.SubscribeTo(achievementsManager);
             game.Start();   // TODO: Make autostart optional?
         }
 

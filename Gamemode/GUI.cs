@@ -9,9 +9,15 @@ using FPSMO.Weapons;
 
 namespace FPSMO
 {
-	internal static class GUI
+	internal class GUI
 	{
-        internal static void SubscribeTo(FPSMOGame game)
+        internal GUI(FPSMOGame game, AchievementsManager manager)
+        {
+            SubscribeTo(game);
+            SubscribeTo(manager);
+        }
+
+        private void SubscribeTo(FPSMOGame game)
         {
             game.CountdownStarted += HandleCountdownStarted;
             game.PlayerShotWeapon += HandlePlayerShotWeapon;
@@ -32,12 +38,12 @@ namespace FPSMO
             game.PlayerHit += HandlePlayerHit;
         }
 
-        internal static void SubscribeTo(AchievementsManager manager)
+        private void SubscribeTo(AchievementsManager manager)
         {
             manager.AchievementUnlocked += HandleAchievementUnlocked;
         }
 
-        internal static void HandleCountdownStarted(Object sender, EventArgs args)
+        internal void HandleCountdownStarted(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -49,7 +55,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponEventArgs args)
+        internal void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
             Player p = args.p;
@@ -73,7 +79,7 @@ namespace FPSMO
             PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());   // This takes care of the status too
         }
 
-        internal static void HandleWeaponStatusChanged(Object sender, WeaponStatusChangedEventArgs args)
+        internal void HandleWeaponStatusChanged(Object sender, WeaponStatusChangedEventArgs args)
         {
             int status = args.status;
             Player p = args.p;
@@ -83,7 +89,7 @@ namespace FPSMO
             SetWeaponStatusBar(p, status);
         }
 
-        internal static void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
+        internal void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -100,7 +106,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandleCountdownEnded(Object sender, EventArgs args)
+        internal void HandleCountdownEnded(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -111,7 +117,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandleRoundStarted(Object sender, EventArgs args)
+        internal void HandleRoundStarted(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -119,7 +125,7 @@ namespace FPSMO
                 ShowRoundStarted(player);
         }
 
-        internal static void HandleRoundTicked(Object sender, RoundTickedEventArgs args)
+        internal void HandleRoundTicked(Object sender, RoundTickedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -127,7 +133,7 @@ namespace FPSMO
                 ShowRoundTimeRemaining(player, args.TimeRemaining);
         }
 
-        internal static void HandleRoundEnded(Object sender, EventArgs args)
+        internal void HandleRoundEnded(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -139,7 +145,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandleVoteStarted(Object sender, VoteStartedEventArgs args)
+        internal void HandleVoteStarted(Object sender, VoteStartedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -147,7 +153,7 @@ namespace FPSMO
                 ShowVoteOptions(player, args.Map1, args.Map2, args.Map3);
         }
 
-        internal static void HandleVoteTicked(Object sender, VoteTickedEventArgs args)
+        internal void HandleVoteTicked(Object sender, VoteTickedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -155,7 +161,7 @@ namespace FPSMO
                 ShowVoteTimeRemaining(player, args.TimeRemaining);
         }
 
-        internal static void HandleVoteEnded(Object sender, VoteEndedEventArgs args)
+        internal void HandleVoteEnded(Object sender, VoteEndedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -167,7 +173,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandlePlayerJoined(Object sender, PlayerJoinedEventArgs args)
+        internal void HandlePlayerJoined(Object sender, PlayerJoinedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
             ShowTeamStatistics(args.Player);
@@ -189,7 +195,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandleGameStopped(Object sender, EventArgs args)
+        internal void HandleGameStopped(Object sender, EventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -202,7 +208,7 @@ namespace FPSMO
             Chat.MessageAll("Parkour Game Stopped");
         }
 
-        internal static void HandleWeaponSpeedChanged(Object sender, WeaponSpeedChangedEventArgs args)
+        internal void HandleWeaponSpeedChanged(Object sender, WeaponSpeedChangedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
             Player player = args.Player;
@@ -213,7 +219,7 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.SmallAnnouncement, ColoredBlocks(amount));
         }
 
-        internal static void HandlePlayerJoinedTeam(Object sender, PlayerJoinedTeamEventArgs args)
+        internal void HandlePlayerJoinedTeam(Object sender, PlayerJoinedTeamEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -224,7 +230,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandlePlayerHit(Object sender, PlayerHitEventArgs args)
+        internal void HandlePlayerHit(Object sender, PlayerHitEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
             Player victim = args.victim;
@@ -234,7 +240,7 @@ namespace FPSMO
             shooter.Message(String.Format("Hit {0}!"), victim.DisplayName);
         }
 
-        internal static void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
+        internal void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
 
@@ -245,7 +251,7 @@ namespace FPSMO
             }
         }
 
-        internal static void HandleAchievementUnlocked(Object sender, AchievementUnlockedEventArgs args)
+        internal void HandleAchievementUnlocked(Object sender, AchievementUnlockedEventArgs args)
         {
             Player who = args.Player;
 
@@ -256,7 +262,7 @@ namespace FPSMO
             }
         }
 
-        private static void ShowMapInfo(Player p, Level level, FPSMOMapConfig mapConfig)
+        private void ShowMapInfo(Player p, Level level, FPSMOMapConfig mapConfig)
         {
             string authors = string.Join(", ", level.Config.Authors.Split(',').Select(
                 x => PlayerInfo.FindExact(x) == null ? x : PlayerInfo.FindExact(x).ColoredName + "%e"));
@@ -274,12 +280,12 @@ namespace FPSMO
             }
         }
 
-        private static void ShowTeamStatistics(Player p)
+        private void ShowTeamStatistics(Player p)
         {
             p.SendCpeMessage(CpeMessageType.Status2, "<Team statistics>");
         }
 
-        private static void ShowCountdown(Player player, int timeRemaining)
+        private void ShowCountdown(Player player, int timeRemaining)
         {
             bool plural = (timeRemaining != 1);
             string message;
@@ -290,82 +296,82 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.Announcement, message);
         }
 
-        private static void ShowNeedMorePlayers(Player player)
+        private void ShowNeedMorePlayers(Player player)
         {
             player.SendCpeMessage(CpeMessageType.Normal, "&WNeed 2 or more non-ref players to start a round.");
         }
 
-        private static void ShowVoteOptions(Player player, string map1, string map2, string map3)
+        private void ShowVoteOptions(Player player, string map1, string map2, string map3)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight2, "Pick a level");
             player.SendCpeMessage(CpeMessageType.BottomRight1, $"{map1}, {map2}, {map3}");
         }
 
-        private static void ShowVoteTimeRemaining(Player player, int timeRemaining)
+        private void ShowVoteTimeRemaining(Player player, int timeRemaining)
         {
             string message = String.Format($"Vote time remaining: {timeRemaining}");
             player.SendCpeMessage(CpeMessageType.BottomRight3, message);
         }
 
-        private static void ShowVoteResults(Player player, string map1, string map2, string map3,
+        private void ShowVoteResults(Player player, string map1, string map2, string map3,
                                      int votes1, int votes2, int votes3)
         {
             player.SendCpeMessage(CpeMessageType.Normal, $"Votes are in! map 1: {votes1} map 2: {votes2} map 3: {votes3}");
         }
 
-        private static void ShowRoundTimeRemaining(Player player, int timeRemaining)
+        private void ShowRoundTimeRemaining(Player player, int timeRemaining)
         {
             player.SendCpeMessage(CpeMessageType.Status3, $"Time remaining: {timeRemaining}");
         }
 
-        private static void ClearBottomRight(Player player)
+        private void ClearBottomRight(Player player)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight1, "");
             player.SendCpeMessage(CpeMessageType.BottomRight2, "");
             player.SendCpeMessage(CpeMessageType.BottomRight3, "");
         }
 
-        private static void ClearStatus(Player player)
+        private void ClearStatus(Player player)
         {
             player.SendCpeMessage(CpeMessageType.Status1, "");
             player.SendCpeMessage(CpeMessageType.Status2, "");
             player.SendCpeMessage(CpeMessageType.Status3, "");
         }
 
-        private static void ShowRoundStarted(Player player)
+        private void ShowRoundStarted(Player player)
         {
             player.SendCpeMessage(CpeMessageType.Normal, "Round has started! You are no longer invincible.");
         }
 
-        private static void InitStatusBars(Player player)
+        private void InitStatusBars(Player player)
         {
             SetHealthBar(player, 10);
             SetStaminaBar(player, 10);
             SetWeaponStatusBar(player, 10);
         }
 
-        private static string ColoredBlocks(int amount)
+        private string ColoredBlocks(int amount)
         {
             string blocks = "▌▌▌▌▌▌▌▌▌▌";
             return $"%4{blocks.Substring(amount)}%2{blocks.Substring(10 - amount)}";
         }
 
-        private static void SetHealthBar(Player player, int amount)
+        private void SetHealthBar(Player player, int amount)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight1, ColoredBlocks(amount));
         }
 
-        private static void SetStaminaBar(Player player, int amount)
+        private void SetStaminaBar(Player player, int amount)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight2, ColoredBlocks(amount));
         }
 
-        private static void SetWeaponStatusBar(Player player, int amount)
+        private void SetWeaponStatusBar(Player player, int amount)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight3, ColoredBlocks(amount));
         }
 
-        private static void ShowLevel(Player p, string mapName)
+        private void ShowLevel(Player p, string mapName)
         {
             p.SendCpeMessage(CpeMessageType.Status1, String.Format("Map: {0}", mapName));
         }
