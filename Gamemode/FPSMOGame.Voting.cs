@@ -140,7 +140,7 @@ namespace FPSMO
 
         private string GetNextMap()
         {
-            Random rand = new Random(Guid.NewGuid().GetHashCode());
+            Random rand = new Random();
             int index = rand.Next(3);
 
             if (votes3 > votes2 && votes2 >= votes1)

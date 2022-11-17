@@ -37,7 +37,19 @@ namespace FPSMO.Entities
             rocket = new RocketWeapon(p);
             ResetData();
             name = p.truename;
+            this.state = new NormalState();
         }
+
+        /// <summary>
+        ///  Handles state changes
+        /// </summary>
+        public void TransitionTo(PlayerState state)
+        {
+            this.state = state;
+            this.state.SetContext(this);
+        }
+
+        private PlayerState state;
 
         internal string name;
 
