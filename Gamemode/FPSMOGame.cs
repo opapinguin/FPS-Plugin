@@ -123,7 +123,7 @@ namespace FPSMO
             LevelPicker.Activate();
             if (mapName == "")
             {
-                map = Level.Load(LevelPicker.RandomMap);
+                map = Level.Load(Server.Config.MainLevel);
             } else
             {
                 map = Level.Load(mapName);

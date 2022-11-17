@@ -31,6 +31,7 @@ namespace FPSMO
             game.VoteTicked += HandleVoteTicked;
             game.VoteEnded += HandleVoteEnded;
             game.PlayerJoined += HandlePlayerJoined;
+            game.PlayerLeft += HandlePlayerLeft;
             game.GameStopped += HandleGameStopped;
             game.WeaponSpeedChanged += HandleWeaponSpeedChanged;
             game.PlayerJoinedTeam += HandlePlayerJoinedTeam;
@@ -193,6 +194,13 @@ namespace FPSMO
                 // TODO Find a way to access round time remaining from there
                 ShowRoundTimeRemaining(args.Player, -1);
             }
+        }
+
+        internal void HandlePlayerLeft(Object sender, PlayerLeftEventArgs args)
+        {
+            FPSMOGame game = (FPSMOGame)sender;
+            ClearBottomRight(args.Player);
+            ClearStatus(args.Player);
         }
 
         internal void HandleGameStopped(Object sender, EventArgs args)

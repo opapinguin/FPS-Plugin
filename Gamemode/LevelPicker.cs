@@ -39,14 +39,13 @@ namespace FPSMO
 
         static internal bool MapExists(string map)
         {
-            Console.WriteLine(_maps.Contains(map));
             return _maps.Contains(map);
         }
 
         static internal void VoteQueue(string map)
         {
             if (!MapExists(map))
-                    throw new ArgumentException($"There is no map called {map} in the current map cycle.");
+                throw new ArgumentException($"There is no map called {map} in the current map cycle.");
 
             _hasMapVoteQueued = true;
             _mapVoteQueued = map;

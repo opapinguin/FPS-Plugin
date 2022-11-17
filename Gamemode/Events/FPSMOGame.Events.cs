@@ -167,6 +167,16 @@ namespace FPSMO
             }
         }
 
+        internal event EventHandler<PlayerLeftEventArgs> PlayerLeft;
+        internal void OnPlayerLeft(Player player)
+        {
+            if (PlayerLeft != null)
+            {
+                var args = new PlayerLeftEventArgs() { Player = player };
+                PlayerLeft(this, args);
+            }
+        }
+
         internal event EventHandler GameStopped;
         private void OnGameStopped()
         {
@@ -315,7 +325,7 @@ namespace FPSMO
 
         private void HandleJoinedLevel(Player p, Level prevLevel, Level level, ref bool announce)
         {
-            if (prevLevel != null && prevLevel.name == map.name && level.name != map.name)   // Maps are not interfaced as comparable
+            if (prevLevel != null && prevLevel.name == map.name && level.name != map.name)
                 PlayerLeftGame(p);
             else if (level.name == map.name)
                 PlayerJoinedGame(p);
@@ -368,6 +378,7 @@ namespace FPSMO
             PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
             TeamHandler.RemovePlayer(p);
             RemoveBindings(p);
+            OnPlayerLeft(p);
         }
 
         #endregion

@@ -53,7 +53,12 @@ namespace FPSMO
 		internal Player Player { get; set; }
     }
 
-	internal class WeaponSpeedChangedEventArgs : EventArgs
+    internal class PlayerLeftEventArgs : EventArgs
+    {
+        internal Player Player { get; set; }
+    }
+
+    internal class WeaponSpeedChangedEventArgs : EventArgs
 	{
 		internal Player Player { get; set; }
         internal int Amount { get; set; }
