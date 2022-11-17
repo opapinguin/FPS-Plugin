@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+
 namespace FPSMO
 {
 	internal static class Utils
@@ -7,5 +9,28 @@ namespace FPSMO
 		{
             return (value < min) ? min : (value > max) ? max : value;
         }
+
+		internal static List<int> RandomSubset(int setCount, int subsetCount)
+		{
+			if (setCount < 0) throw new ArgumentException("Count must be positive");
+
+            // This hat-based algorithm is called Fisher–Yates' shuffle
+			var hat = new List<int>();
+
+			for (int i = 0; i < setCount; i++)
+				hat.Add(i);
+
+			var result = new List<int>();
+			var random = new Random();
+
+			for (int i = 0; i < subsetCount; i++)
+			{
+				int j = random.Next(hat.Count);
+				result.Add(hat[j]);
+				hat.RemoveAt(j);
+			}
+
+			return result;
+		}
 	}
 }

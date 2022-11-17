@@ -53,7 +53,7 @@ namespace MCGalaxy
             Command.Register(new CmdSwapTeam());
 
             Command.Register(new CmdFPSMO());
-            Command.Register(new CmdQueue());
+            Command.Register(new CmdVoteQueue());
             Command.Register(new CmdRate());
 
             Command.Register(new CmdShootGun());
@@ -71,7 +71,7 @@ namespace MCGalaxy
             Command.Unregister(Command.Find("FPSMOSwapTeam"));
 
             Command.Unregister(Command.Find("FPSMO"));
-            Command.Unregister(Command.Find("FPSMOQueue"));
+            Command.Unregister(Command.Find("VoteQueue"));
             Command.Unregister(Command.Find("FPSMORate"));
 
             Command.Unregister(Command.Find("FPSMOShootGun"));

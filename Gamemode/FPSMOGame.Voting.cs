@@ -38,9 +38,10 @@ namespace FPSMO
         internal uint votes1, votes2, votes3;
         private void BeginVoting()
         {
-            map1 = LevelPicker.PopAndPush();
-            map2 = LevelPicker.PopAndPush();
-            map3 = LevelPicker.PopAndPush();
+            List<string> pickedMaps = LevelPicker.PickVotingMaps();
+            map1 = pickedMaps[0];
+            map2 = pickedMaps[1];
+            map3 = pickedMaps[2];
 
             // Move on to the next sub-stage
             subStage = SubStage.Middle;
