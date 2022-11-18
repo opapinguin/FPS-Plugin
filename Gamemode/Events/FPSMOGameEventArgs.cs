@@ -6,13 +6,13 @@ namespace FPSMO
 {
 	internal class WeaponStatusChangedEventArgs : EventArgs
     {
-		internal int status { get; set; }
-		internal Player p { get; set; }
+		internal int Status { get; set; }
+		internal Player Player { get; set; }
     }
 
 	internal class PlayerShotWeaponEventArgs : EventArgs
     {
-		internal Player p { get; set; }
+		internal Player Player { get; set; }
     }
 
 	internal class CountdownTickedEventArgs : EventArgs
@@ -72,14 +72,14 @@ namespace FPSMO
 
 	internal class PlayerKilledEventArgs : EventArgs
 	{
-		internal Player killer { get; set; }
-		internal Player victim { get; set; }
+		internal Player Killer { get; set; }
+		internal Player Victim { get; set; }
 	}
 
 	internal class PlayerHitEventArgs : EventArgs
 	{
-		internal Player shooter { get; set; }
-		internal Player victim { get; set; }
-		internal WeaponEntity we { get; set; }
+		internal Player Shooter { get; set; }
+		internal Player Victim { get; set; }
+		internal WeaponEntity WeaponEntity { get; set; }
 	}
 }

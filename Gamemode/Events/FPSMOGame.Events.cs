@@ -42,8 +42,8 @@ namespace FPSMO
             if (WeaponStatusChanged != null)
             {
                 WeaponStatusChangedEventArgs args = new WeaponStatusChangedEventArgs();
-                args.status = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponHandler.Tick);
-                args.p = p;
+                args.Status = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponHandler.Tick);
+                args.Player = p;
 
                 WeaponStatusChanged(this, args);
             }
@@ -55,7 +55,7 @@ namespace FPSMO
             if (PlayerShotWeapon != null)
             {
                 PlayerShotWeaponEventArgs args = new PlayerShotWeaponEventArgs();
-                args.p = p;
+                args.Player = p;
 
                 PlayerShotWeapon(this, args);
             }
@@ -247,8 +247,8 @@ namespace FPSMO
             {
                 var args = new PlayerHitEventArgs()
                 {
-                    shooter = shooter,
-                    victim = victim
+                    Shooter = shooter,
+                    Victim = victim
                 };
                 PlayerHit(this, args);
             }
@@ -270,8 +270,8 @@ namespace FPSMO
             {
                 var args = new PlayerKilledEventArgs()
                 {
-                    killer = killer,
-                    victim = victim
+                    Killer = killer,
+                    Victim = victim
                 };
 
                 PlayerKilled(this, args);
