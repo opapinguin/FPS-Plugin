@@ -36,6 +36,18 @@ namespace FPSMO
             }
         }
 
+        internal event EventHandler<WeaponChangedEventArgs> WeaponChanged;
+        internal void OnWeaponChanged(Player p)
+        {
+            if (WeaponChanged != null)
+            {
+                WeaponChangedEventArgs args = new WeaponChangedEventArgs();
+                args.p = p;
+
+                WeaponChanged(this, args);
+            }
+        }
+
         internal event EventHandler<WeaponStatusChangedEventArgs> WeaponStatusChanged;
         internal void OnWeaponStatusChanged(Player p)
         {

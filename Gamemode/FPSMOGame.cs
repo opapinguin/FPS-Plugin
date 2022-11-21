@@ -113,7 +113,7 @@ namespace FPSMO
             FPSMOConfig<FPSMOGameConfig>.dir = "FPSMOConfig/Game";
 
             // Create a game configuration if it doesn't already exist
-            FPSMOConfig<FPSMOGameConfig>.Create("Config", new FPSMOGameConfig(true));
+            FPSMOConfig<FPSMOGameConfig>.Create("Config", new FPSMOGameConfig());
             gameConfig = FPSMOConfig<FPSMOGameConfig>.Read("Config");
 
             // Use the game configuration
@@ -133,7 +133,7 @@ namespace FPSMO
             TeamHandler.Activate();
 
             // Create a map configuration if it doesn't already exist. Defaults to main level if no levels have been added
-            FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig(gameConfig.DEFAULT_ROUNDTIME_S));
+            FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig());
             mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
 
             roundTime = TimeSpan.FromSeconds(mapConfig.ROUND_TIME_S);

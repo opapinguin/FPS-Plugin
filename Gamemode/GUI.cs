@@ -21,6 +21,7 @@ namespace FPSMO
         {
             game.CountdownStarted += HandleCountdownStarted;
             game.PlayerShotWeapon += HandlePlayerShotWeapon;
+            game.WeaponChanged += HandleWeaponChanged;
             game.WeaponStatusChanged += HandleWeaponStatusChanged;
             game.CountdownTicked += HandleCountdownTicked;
             game.CountdownEnded += HandleCountdownEnded;
@@ -78,6 +79,16 @@ namespace FPSMO
             SetWeaponStatusBar(p, 0);
 
             PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());   // This takes care of the status too
+        }
+
+        internal void HandleWeaponChanged(Object sender, WeaponChangedEventArgs args)
+        {
+            Player p = args.p;
+            int status = PlayerDataHandler.Instance[p.truename].currentWeapon.GetStatus(WeaponHandler.Tick);
+
+            status = Utils.Clamp(status, 0, 10);
+
+            p.SendCpeMessage(CpeMessageType.SmallAnnouncement, ColoredBlocks(status));
         }
 
         internal void HandleWeaponStatusChanged(Object sender, WeaponStatusChangedEventArgs args)

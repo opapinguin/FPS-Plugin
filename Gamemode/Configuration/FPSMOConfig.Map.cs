@@ -19,34 +19,40 @@ using MCGalaxy.Maths;
 
 namespace FPSMO.Configuration
 {
-    public struct SpawnPoint
+    public class SpawnPoint
     {
         public string team;
         public Vec3U16 loc;
     }
 
-    public struct FPSMOMapConfig
+    public class FPSMOMapConfig
     {
-        internal FPSMOMapConfig(uint RoundTime)
+        public FPSMOMapConfig()
         {
             // DEFAULT VALUES
-            this.ROUND_TIME_S = RoundTime;
+            this.ROUND_TIME_S = 60;
             this.TOTAL_RATINGS = 0;
             this.SUM_RATINGS = 0;
-            this.SPAWNPOINTS = new List<SpawnPoint>();
+            //this.SPAWNPOINTS = new List<SpawnPoint>();    // TODO: Add this later. But need custom parser for it
             this.COUNTDOWN_TIME_S = 10;
             this.TEAM_VS_TEAM = true;
         }
-        public float TOTAL_RATINGS;
-        public float SUM_RATINGS;
-        public uint ROUND_TIME_S;
-        public List<SpawnPoint> SPAWNPOINTS;
-        public uint COUNTDOWN_TIME_S;
-        public bool TEAM_VS_TEAM;
+        public float TOTAL_RATINGS { get; set; }
+        public float SUM_RATINGS { get; set; }
+        public uint ROUND_TIME_S { get; set; }
+        //public List<SpawnPoint> SPAWNPOINTS { get; set; }
+        public uint COUNTDOWN_TIME_S { get; set; }
+        public bool TEAM_VS_TEAM { get; set; }
 
-        public float Rating {
-            get {
+        public float Rating
+        {
+            get
+            {
                 return (SUM_RATINGS / TOTAL_RATINGS) == float.NaN ? 0 : (SUM_RATINGS / TOTAL_RATINGS);
+            }
+            set
+            {
+                ;
             }
         }
     }

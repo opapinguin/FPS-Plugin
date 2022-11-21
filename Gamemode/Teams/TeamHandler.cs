@@ -87,6 +87,10 @@ namespace FPSMO.Teams
         /// </summary>
         internal static void AddPlayer(Player p, string team = "")
         {
+            if (InTeam(p)) {
+                return;
+            }
+
             // As a rule, add to blue if there's no blue members and red if there's no red members
             if (red.Count == 0)
             {
@@ -125,6 +129,20 @@ namespace FPSMO.Teams
         private static void AssignTeam(Player p, ref Team team)
         {
             team.Add(p);
+        }
+
+        private static bool InTeam(Player p)
+        {
+
+            if (red.players.Keys.Contains(p.truename)) {
+                return true;
+            }
+
+            if (blue.players.Keys.Contains(p.truename))
+            {
+                return true;
+            }
+            return false;
         }
     }
 }

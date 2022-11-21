@@ -4,6 +4,11 @@ using MCGalaxy;
 
 namespace FPSMO
 {
+	internal class WeaponChangedEventArgs : EventArgs
+	{
+		internal Player p { get; set; }
+	}
+
 	internal class WeaponStatusChangedEventArgs : EventArgs
     {
 		internal int status { get; set; }

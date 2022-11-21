@@ -15,12 +15,13 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 using MCGalaxy;
 using System.Collections.Generic;
+using System.Linq;
 using BlockID = System.UInt16;
 
 namespace FPSMO.Configuration
 {
-    public struct FPSMOGameConfig {
-        public FPSMOGameConfig(bool bAutoStart)
+    public class FPSMOGameConfig {
+        public FPSMOGameConfig()
         {
             // DEFAULT VALUES
             MAPS = new List<string>
@@ -28,7 +29,7 @@ namespace FPSMO.Configuration
                 Server.Config.MainLevel
             };
 
-            this.B_AUTO_START = bAutoStart;
+            this.B_AUTO_START = true;
 
             MS_ROUND_TICK = 50;
             S_VOTETIME = 10;
@@ -57,33 +58,34 @@ namespace FPSMO.Configuration
             ROCKET_FRAME_LENGTH = 4f;
         }
 
-        public bool B_AUTO_START;
-        public bool B_SET_MAIN_LEVEL;
-        public List<string> MAPS;
-        public uint MS_ROUND_TICK;
-        public uint S_VOTETIME;
-        public float MAX_MOVE_DISTANCE;
-        public uint DEFAULT_ROUNDTIME_S;
+        public List<string> MAPS { get; set; }
 
-        public float GRAVITY;
+        public bool B_AUTO_START { get; set; }
+        public bool B_SET_MAIN_LEVEL { get; set; }
+        public uint MS_ROUND_TICK { get; set; }
+        public uint S_VOTETIME { get; set; }
+        public float MAX_MOVE_DISTANCE { get; set; }
+        public uint DEFAULT_ROUNDTIME_S { get; set; }
 
-        public uint MS_UPDATE_WEAPON_ANIMATIONS;
-        public uint MS_UPDATE_ROUND_STATUS;
+        public float GRAVITY { get; set; }
+
+        public uint MS_UPDATE_WEAPON_ANIMATIONS { get; set; }
+        public uint MS_UPDATE_ROUND_STATUS { get; set; }
 
         // Guns
-        public BlockID GUN_BLOCK;
-        public float MIN_GUN_VELOCITY;   // in meters per second
-        public float MAX_GUN_VELOCITY;   // in meters per second
-        public uint MS_GUN_RELOAD;
-        public uint GUN_DAMAGE;
-        public float GUN_FRAME_LENGTH;  // Number of frames "long" a single shot is
+        public BlockID GUN_BLOCK { get; set; }
+        public float MIN_GUN_VELOCITY { get; set; }   // in meters per second
+        public float MAX_GUN_VELOCITY { get; set; }   // in meters per second
+        public uint MS_GUN_RELOAD { get; set; }
+        public uint GUN_DAMAGE { get; set; }
+        public float GUN_FRAME_LENGTH { get; set; }  // Number of frames "long" a single shot is
 
         // Rockets
-        public BlockID ROCKET_BLOCK;
-        public float MIN_ROCKET_VELOCITY;
-        public float MAX_ROCKET_VELOCITY;
-        public uint MS_ROCKET_RELOAD;
-        public uint ROCKET_DAMAGE;
-        public float ROCKET_FRAME_LENGTH;
+        public BlockID ROCKET_BLOCK { get; set; }
+        public float MIN_ROCKET_VELOCITY { get; set; }
+        public float MAX_ROCKET_VELOCITY { get; set; }
+        public uint MS_ROCKET_RELOAD { get; set; }
+        public uint ROCKET_DAMAGE { get; set; }
+        public float ROCKET_FRAME_LENGTH { get; set; }
     }
 }
