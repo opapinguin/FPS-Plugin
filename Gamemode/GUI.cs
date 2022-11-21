@@ -60,7 +60,7 @@ namespace FPSMO
         internal void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
-            Player p = args.p;
+            Player p = args.Player;
 
             if (!(game.stage == Stage.Round && game.subStage == SubStage.Middle))
             {
@@ -93,8 +93,8 @@ namespace FPSMO
 
         internal void HandleWeaponStatusChanged(Object sender, WeaponStatusChangedEventArgs args)
         {
-            int status = args.status;
-            Player p = args.p;
+            int status = args.Status;
+            Player p = args.Player;
 
             status = Utils.Clamp(status, 0, 10);
 
@@ -124,7 +124,7 @@ namespace FPSMO
 
             foreach (Player player in game.players.Values)
             {
-                player.SendCpeMessage(CpeMessageType.Normal, "");
+                player.SendCpeMessage(CpeMessageType.SmallAnnouncement, "");
                 player.SendCpeMessage(CpeMessageType.Announcement, "");
             }
         }
@@ -153,7 +153,7 @@ namespace FPSMO
             {
                 ClearStatus(player);
                 ClearBottomRight(player);
-                player.Message("&SAnd the winners are: &7not implemented yet.");
+                player.Message("&7The &cRED &7team wins!");
             }
         }
 
@@ -224,7 +224,7 @@ namespace FPSMO
                 ClearStatus(player);
             }
 
-            Chat.MessageAll("Parkour Game Stopped");
+            Chat.MessageAll("&7The FPS game has been stopped.");
         }
 
         internal void HandleWeaponSpeedChanged(Object sender, WeaponSpeedChangedEventArgs args)
@@ -241,22 +241,23 @@ namespace FPSMO
         internal void HandlePlayerJoinedTeam(Object sender, PlayerJoinedTeamEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
+            string color = (args.TeamName.ToUpper() == "RED") ? "&c" : "&9";
 
             foreach (Player player in game.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{args.Player.ColoredName} joined team {args.TeamName.ToUpper()}");
+                    $"{args.Player.ColoredName} &7joined team {color}{args.TeamName.ToUpper()}&7!");
             }
         }
 
         internal void HandlePlayerHit(Object sender, PlayerHitEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
-            Player victim = args.victim;
-            Player shooter = args.shooter;
+            Player victim = args.Victim;
+            Player shooter = args.Shooter;
 
-            victim.Message(String.Format("{0} hit you!"), shooter.DisplayName);
-            shooter.Message(String.Format("Hit {0}!"), victim.DisplayName);
+            victim.Message($"&7You got hit by {shooter.ColoredName}");
+            shooter.Message("&7You've hit {shooter.ColoredName}!");
         }
 
         internal void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
@@ -266,7 +267,7 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{args.killer.ColoredName} killed {args.victim.ColoredName}");
+                    $"{args.Killer.ColoredName} &7killed {args.Victim.ColoredName}");
             }
         }
 
@@ -277,31 +278,41 @@ namespace FPSMO
             foreach (Player player in FPSMOGame.Instance.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{who.ColoredName} &Sunlocked &f{args.Achievement.Name}");
+                    $"{who.ColoredName} &7unlocked &f{args.Achievement.Name}");
             }
         }
 
-        private void ShowMapInfo(Player p, Level level, FPSMOMapConfig mapConfig)
+        private void ShowMapInfo(Player player, Level level, FPSMOMapConfig mapConfig)
         {
-            string authors = string.Join(", ", level.Config.Authors.Split(',').Select(
-                x => PlayerInfo.FindExact(x) == null ? x : PlayerInfo.FindExact(x).ColoredName + "%e"));
+            string authors = string.Join(", ", level.Config.Authors.Split(','));
 
-            p.Message(String.Format("Starting new round"));
-            p.Message(String.Format("This map was made by {0}", authors));
+            player.Message("&7Starting new round");
+            player.Message($"&7This map was made by &f{authors}");
 
             if (mapConfig.TOTAL_RATINGS == 0)
             {
-                p.Message("This map has not yet been rated");
+                player.Message("&7This map has not yet been rated");
             }
             else
             {
-                p.Message(String.Format("This map has a rating of {0}", mapConfig.Rating.ToString("0.00")));
+                float rating = mapConfig.Rating;
+                string formattedRating = $"{RatingColor(rating)}{rating.ToString("0.00")}";
+                player.Message($"&7This map has a rating of {formattedRating}");
             }
         }
 
-        private void ShowTeamStatistics(Player p)
+        private string RatingColor(float rating)
         {
-            p.SendCpeMessage(CpeMessageType.Status2, "<Team statistics>");
+            if (0f <= rating && rating < 1f) return Colors.gray;
+            if (1f <= rating && rating < 2f) return Colors.maroon;
+            if (2f <= rating && rating < 3f) return Colors.gold;
+            if (3f <= rating && rating < 4f) return Colors.green;
+            else                             return Colors.lime;
+        }
+
+        private void ShowTeamStatistics(Player player)
+        {
+            player.SendCpeMessage(CpeMessageType.Status2, "<Team statistics>");
         }
 
         private void ShowCountdown(Player player, int timeRemaining)
@@ -309,8 +320,8 @@ namespace FPSMO
             bool plural = (timeRemaining != 1);
             string message;
 
-            if (plural) message = $"&4Starting in &f{timeRemaining} &4seconds";
-            else message = $"&4Starting in &f{timeRemaining} &4second";
+            if (plural) message = $"&2Starting in &f{timeRemaining} &2seconds";
+            else message = $"&2Starting in &f{timeRemaining} &2second";
 
             player.SendCpeMessage(CpeMessageType.Announcement, message);
         }
@@ -322,25 +333,26 @@ namespace FPSMO
 
         private void ShowVoteOptions(Player player, string map1, string map2, string map3)
         {
-            player.SendCpeMessage(CpeMessageType.BottomRight2, "Pick a level");
-            player.SendCpeMessage(CpeMessageType.BottomRight1, $"{map1}, {map2}, {map3}");
+            player.SendCpeMessage(CpeMessageType.BottomRight2, "&ePick a level");
+            player.SendCpeMessage(CpeMessageType.BottomRight1, $"&c{map1}, &a{map2}, &9{map3}");
         }
 
         private void ShowVoteTimeRemaining(Player player, int timeRemaining)
         {
-            string message = String.Format($"Vote time remaining: {timeRemaining}");
+            string message = String.Format($"&eVote time remaining: {timeRemaining}");
             player.SendCpeMessage(CpeMessageType.BottomRight3, message);
         }
 
         private void ShowVoteResults(Player player, string map1, string map2, string map3,
                                      int votes1, int votes2, int votes3)
         {
-            player.SendCpeMessage(CpeMessageType.Normal, $"Votes are in! map 1: {votes1} map 2: {votes2} map 3: {votes3}");
+            player.SendCpeMessage(CpeMessageType.Normal, $"&7Votes are in!");
+            player.SendCpeMessage(CpeMessageType.Normal, $"&c{map1}: {votes1} &ç{map2}: {votes2} {map3}: {votes3}");
         }
 
         private void ShowRoundTimeRemaining(Player player, int timeRemaining)
         {
-            player.SendCpeMessage(CpeMessageType.Status3, $"Time remaining: {timeRemaining}");
+            player.SendCpeMessage(CpeMessageType.Status3, $"&7Time remaining: &f{timeRemaining}");
         }
 
         private void ClearBottomRight(Player player)
@@ -359,7 +371,7 @@ namespace FPSMO
 
         private void ShowRoundStarted(Player player)
         {
-            player.SendCpeMessage(CpeMessageType.Normal, "Round has started! You are no longer invincible.");
+            player.SendCpeMessage(CpeMessageType.Normal, "&7Round has started! You are no longer invincible.");
         }
 
         private void InitStatusBars(Player player)
@@ -392,7 +404,7 @@ namespace FPSMO
 
         private void ShowLevel(Player p, string mapName)
         {
-            p.SendCpeMessage(CpeMessageType.Status1, String.Format("Map: {0}", mapName));
+            p.SendCpeMessage(CpeMessageType.Status1, String.Format("&7Map: {0}", mapName));
         }
     }
 }
