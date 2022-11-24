@@ -6,15 +6,30 @@ using System.Linq;
 using FPSMO.Entities;
 using static FPSMO.FPSMOGame;
 using FPSMO.Weapons;
+using MCGalaxy.Events.PlayerEvents;
 
 namespace FPSMO
 {
 	internal class GUI
 	{
-        internal GUI(FPSMOGame game, AchievementsManager manager)
+        internal GUI(FPSMOPlugin plugin, FPSMOGame game, AchievementsManager manager)
         {
             SubscribeTo(game);
             SubscribeTo(manager);
+            SubscribeTo(plugin);
+
+            // MCGalaxy-related events
+            OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.Normal);
+        }
+
+        internal void UnsubscribeFromAll(FPSMOPlugin plugin, FPSMOGame game, AchievementsManager manager)
+        {
+            UnsubscribeFrom(game);
+            UnsubscribeFrom(manager);
+            UnsubscribeFrom(plugin);
+
+            // MCGalaxy-related events
+            OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
         }
 
         private void SubscribeTo(FPSMOGame game)
@@ -40,9 +55,49 @@ namespace FPSMO
             game.PlayerHit += HandlePlayerHit;
         }
 
+        private void UnsubscribeFrom(FPSMOGame game)
+        {
+            game.CountdownStarted -= HandleCountdownStarted;
+            game.PlayerShotWeapon -= HandlePlayerShotWeapon;
+            game.WeaponChanged -= HandleWeaponChanged;
+            game.WeaponStatusChanged -= HandleWeaponStatusChanged;
+            game.CountdownTicked -= HandleCountdownTicked;
+            game.CountdownEnded -= HandleCountdownEnded;
+            game.RoundStarted -= HandleRoundStarted;
+            game.RoundTicked -= HandleRoundTicked;
+            game.RoundEnded -= HandleRoundEnded;
+            game.VoteStarted -= HandleVoteStarted;
+            game.VoteTicked -= HandleVoteTicked;
+            game.VoteEnded -= HandleVoteEnded;
+            game.PlayerJoined -= HandlePlayerJoined;
+            game.PlayerLeft -= HandlePlayerLeft;
+            game.GameStopped -= HandleGameStopped;
+            game.WeaponSpeedChanged -= HandleWeaponSpeedChanged;
+            game.PlayerJoinedTeam -= HandlePlayerJoinedTeam;
+            game.PlayerKilled -= HandlePlayerKilled;
+            game.PlayerHit -= HandlePlayerHit;
+        }
+
         private void SubscribeTo(AchievementsManager manager)
         {
             manager.AchievementUnlocked += HandleAchievementUnlocked;
+        }
+
+        private void UnsubscribeFrom(AchievementsManager manager)
+        {
+            manager.AchievementUnlocked -= HandleAchievementUnlocked;
+        }
+
+        private void SubscribeTo(FPSMOPlugin plugin)
+        {
+            plugin.PluginLoaded += HandlePluginLoaded;
+            plugin.PluginUnloading += HandlePluginUnloading;
+        }
+
+        private void UnsubscribeFrom(FPSMOPlugin plugin)
+        {
+            plugin.PluginLoaded -= HandlePluginLoaded;
+            plugin.PluginUnloading += HandlePluginUnloading;
         }
 
         internal void HandleCountdownStarted(Object sender, EventArgs args)
@@ -51,7 +106,6 @@ namespace FPSMO
 
             foreach (Player player in game.players.Values)
             {
-                ShowLevel(player, game.map.name);
                 ShowTeamStatistics(player);
                 ShowMapInfo(player, game.map, game.mapConfig);
             }
@@ -151,7 +205,8 @@ namespace FPSMO
 
             foreach (Player player in game.players.Values)
             {
-                ClearStatus(player);
+                player.SendCpeMessage(CpeMessageType.Status2, "");
+                player.SendCpeMessage(CpeMessageType.Status3, "");
                 ClearBottomRight(player);
                 player.Message("&7The &cRED &7team wins!");
             }
@@ -189,7 +244,6 @@ namespace FPSMO
         {
             FPSMOGame game = (FPSMOGame)sender;
             ShowTeamStatistics(args.Player);
-            ShowLevel(args.Player, game.map.name);
 
             if (game.stage == FPSMOGame.Stage.Voting)
             {
@@ -211,7 +265,8 @@ namespace FPSMO
         {
             FPSMOGame game = (FPSMOGame)sender;
             ClearBottomRight(args.Player);
-            ClearStatus(args.Player);
+            args.Player.SendCpeMessage(CpeMessageType.Status2, "");
+            args.Player.SendCpeMessage(CpeMessageType.Status3, "");
         }
 
         internal void HandleGameStopped(Object sender, EventArgs args)
@@ -221,7 +276,8 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 ClearBottomRight(player);
-                ClearStatus(player);
+                player.SendCpeMessage(CpeMessageType.Status2, "");
+                player.SendCpeMessage(CpeMessageType.Status3, "");
             }
 
             Chat.MessageAll("&7The FPS game has been stopped.");
@@ -279,6 +335,31 @@ namespace FPSMO
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
                     $"{who.ColoredName} &7unlocked &f{args.Achievement.Name}");
+            }
+        }
+
+        internal void HandleJoinedLevel(Player player, Level from, Level to, ref bool announce)
+        {
+            ShowMap(player, to.name);
+        }
+
+        internal void HandlePluginLoaded(Object sender, EventArgs args)
+        {
+            Player[] players = PlayerInfo.Online.Items;
+
+            foreach (Player player in players)
+            {
+                ShowMap(player, player.Level.name);
+            }
+        }
+
+        internal void HandlePluginUnloading(Object sender, EventArgs args)
+        {
+            Player[] players = PlayerInfo.Online.Items;
+
+            foreach (Player player in players)
+            {
+                player.SendCpeMessage(CpeMessageType.Status1, "");
             }
         }
 
@@ -362,13 +443,6 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.BottomRight3, "");
         }
 
-        private void ClearStatus(Player player)
-        {
-            player.SendCpeMessage(CpeMessageType.Status1, "");
-            player.SendCpeMessage(CpeMessageType.Status2, "");
-            player.SendCpeMessage(CpeMessageType.Status3, "");
-        }
-
         private void ShowRoundStarted(Player player)
         {
             player.SendCpeMessage(CpeMessageType.Normal, "&7Round has started! You are no longer invincible.");
@@ -402,9 +476,9 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.BottomRight3, ColoredBlocks(amount));
         }
 
-        private void ShowLevel(Player p, string mapName)
+        private void ShowMap(Player player, string mapName)
         {
-            p.SendCpeMessage(CpeMessageType.Status1, String.Format("&7Map: {0}", mapName));
+            player.SendCpeMessage(CpeMessageType.Status1, $"Map: {mapName}");
         }
     }
 }

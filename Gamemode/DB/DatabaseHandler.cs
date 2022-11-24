@@ -16,6 +16,11 @@ namespace FPSMO.DB
             manager.AchievementUnlocked += HandleAchievementUnlocked;
         }
 
+        internal static void UnsubscribeFrom(AchievementsManager manager)
+        {
+            manager.AchievementUnlocked -= HandleAchievementUnlocked;
+        }
+
         /*****************************
          * FIRST TIME INITIALIZATION *
          *****************************/

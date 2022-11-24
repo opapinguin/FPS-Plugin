@@ -155,10 +155,7 @@ namespace FPSMO
 
             bRunning = true;
 
-            Thread t = new Thread(Run)
-            {
-                Name = "FPSMO"
-            };
+            Thread t = new Thread(Run) { Name = "FPSMO" };
             t.Start();  // Automatically aborts when Run() returns
         }
         

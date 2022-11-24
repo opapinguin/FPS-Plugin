@@ -13,76 +13,93 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-using MCGalaxy.Tasks;
-using MCGalaxy.Events;
-using FPSMO;
-using MCGalaxy.Events.PlayerEvents;
 using System;
-using MCGalaxy.Network;
-using MCGalaxy.SQL;
+using FPSMO;
 using FPSMO.Commands;
-using FPSMO.Weapons;
 using FPSMO.DB;
-using FPSMO.Teams;
+using FPSMO.Weapons;
 
 namespace MCGalaxy
 {
-    internal class FPSMO : Plugin
+    internal class FPSMOPlugin : Plugin
     {
-        FPSMOGame game = FPSMOGame.Instance;
+        private FPSMOGame _game;
+        private GUI _gui;
+        private AchievementsManager _achievementsManager;
 
         public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
-
         public override string name { get { return "FPSMO"; } }
-
         public override string MCGalaxy_Version { get { return "1.9.4.0"; } }
+
+        internal event EventHandler PluginLoaded;
+        private void OnPluginLoaded()
+        {
+            if (PluginLoaded != null) PluginLoaded(this, EventArgs.Empty);
+        }
+
+        internal event EventHandler PluginUnloading;
+        private void OnPluginUnloading()
+        {
+            if (PluginUnloading != null) PluginUnloading(this, EventArgs.Empty);
+        }
 
         public override void Load(bool startup)
         {
-            DatabaseHandler.InitializeDatabase();
-            var achievementsManager = new AchievementsManager(game);
-            DatabaseHandler.SubscribeTo(achievementsManager);
-            var gui = new GUI(game, achievementsManager);
-            /***********
-             * COMMANDS *
-             ************/
-            #region Commands
-            Command.Register(new CmdAchievements(achievementsManager));
-            Command.Register(new CmdAchievementTest(achievementsManager));
+            _game = FPSMOGame.Instance;
+            _achievementsManager = new AchievementsManager(_game);
 
-            Command.Register(new CmdSwapTeam());
+            InitDatabase();
+            InitGUI();
+            RegisterCommands();
 
-            Command.Register(new CmdFPSMO());
-            Command.Register(new CmdVoteQueue());
-            Command.Register(new CmdRate());
-
-            Command.Register(new CmdShootGun());
-            Command.Register(new CmdShootRocket());
-
-            Command.Register(new CmdWeaponSpeed());
-
-            #endregion Commands
-
-            game.Start();   // TODO: Make autostart optional?
+            _game.Start();
+            OnPluginLoaded();
         }
 
         public override void Unload(bool shutdown)
         {
-            Command.Unregister(Command.Find("FPSMOSwapTeam"));
+            OnPluginUnloading();
+            UnregisterCommands();
+            DatabaseHandler.UnsubscribeFrom(_achievementsManager);
+            _gui.UnsubscribeFromAll(this, _game, _achievementsManager);
+            _game.Stop();
+        }
 
+        private void InitGUI()
+        {
+            _gui = new GUI(this, _game, _achievementsManager);
+        }
+
+        private void InitDatabase()
+        {
+            DatabaseHandler.InitializeDatabase();
+            DatabaseHandler.SubscribeTo(_achievementsManager);
+        }
+
+        private void RegisterCommands()
+        {
+            Command.Register(new CmdAchievements(_achievementsManager));
+            Command.Register(new CmdAchievementTest(_achievementsManager));
+            Command.Register(new CmdSwapTeam());
+            Command.Register(new CmdFPSMO());
+            Command.Register(new CmdVoteQueue());
+            Command.Register(new CmdRate());
+            Command.Register(new CmdShootGun());
+            Command.Register(new CmdShootRocket());
+            Command.Register(new CmdWeaponSpeed());
+        }
+
+        private void UnregisterCommands()
+        {
+            Command.Unregister(Command.Find("FPSMOSwapTeam"));
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("VoteQueue"));
             Command.Unregister(Command.Find("FPSMORate"));
-
             Command.Unregister(Command.Find("FPSMOShootGun"));
             Command.Unregister(Command.Find("FPSMOShootRocket"));
-
             Command.Unregister(Command.Find("FPSMOWeaponSpeed"));
-
             Command.Unregister(Command.Find("AchievementTest"));
             Command.Unregister(Command.Find("Achievements"));
-
-            game.Stop();
         }
     }
 
