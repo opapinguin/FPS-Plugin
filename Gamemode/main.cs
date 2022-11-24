@@ -61,8 +61,8 @@ namespace MCGalaxy
             OnPluginUnloading();
             UnregisterCommands();
             DatabaseHandler.UnsubscribeFrom(_achievementsManager);
-            _gui.UnsubscribeFromAll(this, _game, _achievementsManager);
             _game.Stop();
+            _gui.UnsubscribeFromAll(this, _game, _achievementsManager);
         }
 
         private void InitGUI()

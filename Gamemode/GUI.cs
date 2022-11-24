@@ -478,7 +478,7 @@ namespace FPSMO
 
         private void ShowMap(Player player, string mapName)
         {
-            player.SendCpeMessage(CpeMessageType.Status1, $"Map: {mapName}");
+            player.SendCpeMessage(CpeMessageType.Status1, $"&e{Symbol.Bold("Map")}&f: {mapName}");
         }
     }
 }
