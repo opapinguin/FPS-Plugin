@@ -108,6 +108,7 @@ namespace FPSMO
             {
                 ShowTeamStatistics(player);
                 ShowMapInfo(player, game.map, game.mapConfig);
+                ShowInventory(player);
             }
         }
 
@@ -130,7 +131,7 @@ namespace FPSMO
                 return;
             }
 
-            SetWeaponStatusBar(p, 0);
+            ShowWeaponReload(p, 0);
 
             PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());   // This takes care of the status too
         }
@@ -152,7 +153,7 @@ namespace FPSMO
 
             status = Utils.Clamp(status, 0, 10);
 
-            SetWeaponStatusBar(p, status);
+            ShowWeaponReload(p, status);
         }
 
         internal void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
@@ -188,7 +189,9 @@ namespace FPSMO
             FPSMOGame game = (FPSMOGame)sender;
 
             foreach (Player player in game.players.Values)
+            {
                 ShowRoundStarted(player);
+            }
         }
 
         internal void HandleRoundTicked(Object sender, RoundTickedEventArgs args)
@@ -251,7 +254,7 @@ namespace FPSMO
             }
             else
             {
-                InitStatusBars(args.Player);
+                ShowInventory(args.Player);
             }
 
             if (game.stage == FPSMOGame.Stage.Round)
@@ -448,32 +451,95 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.Normal, "&7Round has started! You are no longer invincible.");
         }
 
-        private void InitStatusBars(Player player)
+        private void ShowInventory(Player player)
         {
-            SetHealthBar(player, 10);
-            SetStaminaBar(player, 10);
-            SetWeaponStatusBar(player, 10);
+            ShowHealthAndStamina(player, health: 10, stamina: 10);
+            ShowWeaponReload(player, 10);
+            ShowAmmunitions(player, 5);
         }
 
-        private string ColoredBlocks(int amount)
+        private void ShowAmmunitions(Player player, int amount)
         {
-            string blocks = "▌▌▌▌▌▌▌▌▌▌";
-            return $"%4{blocks.Substring(amount)}%2{blocks.Substring(10 - amount)}";
+            string message = StatusBar(Symbol.HAND_GUN, Symbol.HANDGUN_OUTLINE,
+                                       amount, size: 10, insertSpaces: true);
+            player.SendCpeMessage(CpeMessageType.BottomRight1, message);
         }
 
-        private void SetHealthBar(Player player, int amount)
+        private string ColoredBlocks(int amount, int total = 10)
         {
-            player.SendCpeMessage(CpeMessageType.BottomRight1, ColoredBlocks(amount));
+            char b = Symbol.SQUARE_FULL;
+            string blocks = $"{b}{b}{b}{b}{b}{b}{b}{b}{b}{b}";
+            return $"%4{blocks.Substring(amount)}%2{blocks.Substring(total - amount)}";
         }
 
-        private void SetStaminaBar(Player player, int amount)
+        private string StatusBar(char fullChar, char halfChar, char emptyChar,
+                                 int amount, int size, bool insertSpaces = false)
+        {
+            char[] bar = new char[size];
+
+            int full = amount / 2;
+            int half = amount % 2;
+
+            for (int i = 0; i < full; i++)
+            {
+                bar[i] = fullChar;
+            }
+
+            for (int i = full; i < full + half; i++)
+            {
+                bar[i] = halfChar;
+            }
+
+            for (int i = full + half; i < size; i++)
+            {
+                bar[i] = emptyChar;
+            }
+
+            if (insertSpaces)
+            {
+                return Utils.InsertSpaceBetweenCharacters(new string(bar));
+            }
+
+            return new string(bar);
+        }
+
+        private string StatusBar(char fullChar, char emptyChar,
+                                 int amount, int size, bool insertSpaces = false)
+        {
+            char[] bar = new char[size];
+            int full = amount;
+
+            for (int i = 0; i < full; i++)
+            {
+                bar[i] = fullChar;
+            }
+
+            for (int i = full; i < size; i++)
+            {
+                bar[i] = emptyChar;
+            }
+
+            if (insertSpaces)
+            {
+                return Utils.InsertSpaceBetweenCharacters(new string(bar));
+            }
+
+            return new string(bar);
+        }
+
+        private string HeartBar(int amount)
+        {
+            return StatusBar(Symbol.HEART_FULL, Symbol.HEART_HALF, Symbol.HEART_EMPTY, amount, size: 5);
+        }
+
+        private void ShowHealthAndStamina(Player player, int health, int stamina)
+        {
+            player.SendCpeMessage(CpeMessageType.BottomRight3, $"{HeartBar(health)} &e{Symbol.Bold("Stamina")}&f: {stamina}");
+        }
+
+        private void ShowWeaponReload(Player player, int amount)
         {
             player.SendCpeMessage(CpeMessageType.BottomRight2, ColoredBlocks(amount));
-        }
-
-        private void SetWeaponStatusBar(Player player, int amount)
-        {
-            player.SendCpeMessage(CpeMessageType.BottomRight3, ColoredBlocks(amount));
         }
 
         private void ShowMap(Player player, string mapName)

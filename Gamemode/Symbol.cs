@@ -90,6 +90,12 @@ namespace FPSMO
         internal static char SWORD = '\u2556';
         internal static char SQUARE_FULL = '\u2555';
         internal static char SQUARE_HALF = '\u2563';
+        internal static char BOW_OUTLINE = '\u2552';
+        internal static char HANDGUN_OUTLINE = '\u2553';
+        internal static char ROCKET_OUTLINE = '\u256B';
+        internal static char BAZOOKA_OUTLINE = '\u256A';
+        internal static char LASERGUN_OUTLINE = '\u2518';
+        internal static char SWORD_OUTLINE = '\u250C';
 
         private static char[] _lowercaseAlphabet = new char[]
         { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',

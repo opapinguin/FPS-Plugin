@@ -32,5 +32,24 @@ namespace FPSMO
 
 			return result;
 		}
+
+		internal static string InsertSpaceBetweenCharacters(string text)
+		{
+			if (text.Length == 0) return text;
+
+			char[] characters = text.ToCharArray();
+			char[] result = new char[characters.Length * 2 - 1];
+			bool lastCharacter;
+
+			for (int i = 0; i < characters.Length; i++)
+			{
+				result[2 * i] = characters[i];
+				lastCharacter = (i == characters.Length - 1);
+
+				if (!lastCharacter) result[2 * i + 1] = ' ';
+			}
+
+			return new string(result);
+		}
 	}
 }
