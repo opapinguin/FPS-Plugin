@@ -81,7 +81,7 @@ namespace MCGalaxy
             Command.Register(new CmdAchievements(_achievementsManager));
             Command.Register(new CmdAchievementTest(_achievementsManager));
             Command.Register(new CmdSwapTeam());
-            Command.Register(new CmdFPSMO());
+            Command.Register(new CmdFPS(_game));
             Command.Register(new CmdVoteQueue());
             Command.Register(new CmdRate());
             Command.Register(new CmdShootGun());
