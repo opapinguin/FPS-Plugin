@@ -25,59 +25,42 @@ namespace FPSMO
     internal static class LevelPicker
     {
         static private Random _random = new Random();
-        static private List<string> _maps = new List<string>();
         static private bool _hasMapVoteQueued = false;
         static private string _mapVoteQueued;
 
-        static internal string RandomMap => _maps[_random.Next(_maps.Count)];
-
-        static internal void Activate()
-        {
-            _maps = FPSMOConfig<FPSMOGameConfig>.Read("Config").MAPS;    // Is this thread-safe?
-            if (_maps.Count == 0) _maps = new List<string> { Server.Config.MainLevel };
-        }
-
-        static internal bool MapExists(string map)
-        {
-            return _maps.Contains(map);
-        }
-
         static internal void VoteQueue(string map)
         {
-            if (!MapExists(map))
-                throw new ArgumentException($"There is no map called {map} in the current map cycle.");
-
             _hasMapVoteQueued = true;
             _mapVoteQueued = map;
         }
 
-        static internal List<string> PickVotingMaps()
+        static internal List<string> PickVotingMaps(List<string> maps)
         {
-            if (_maps.Count == 1)
-                return new List<string>() { _maps[0], _maps[0], _maps[0] };
-            else if (_maps.Count == 2)
-                return new List<string>() { _maps[0], _maps[1], _maps[1] };
+            if (maps.Count == 1)
+                return new List<string>() { maps[0], maps[0], maps[0] };
+            else if (maps.Count == 2)
+                return new List<string>() { maps[0], maps[1], maps[1] };
 
             List<string> mapsPool;
             List<int> indexes;
 
             if (_hasMapVoteQueued)
             {
-                mapsPool = new List<string>(_maps);
+                mapsPool = new List<string>(maps);
                 mapsPool.Remove(_mapVoteQueued);
                 indexes = Utils.RandomSubset(mapsPool.Count, 2);
-                indexes.Add(_maps.IndexOf(_mapVoteQueued));
+                indexes.Add(maps.IndexOf(_mapVoteQueued));
             }
             else
             {
-                mapsPool = _maps;
+                mapsPool = maps;
                 indexes = Utils.RandomSubset(mapsPool.Count, 3);
             }
 
             var pickedMaps = new List<string>();
 
             foreach (int index in indexes)
-                pickedMaps.Add(_maps[index]);
+                pickedMaps.Add(maps[index]);
 
             _hasMapVoteQueued = false;
             return pickedMaps;

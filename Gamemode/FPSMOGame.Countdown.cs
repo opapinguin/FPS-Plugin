@@ -36,12 +36,7 @@ namespace FPSMO
         private void BeginCountdown(uint delay)
         {
             // Get the configuration
-            mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
-            gameConfig = FPSMOConfig<FPSMOGameConfig>.Read("Config");
-
-            // TODO: Get player configuration as well here
-
-            SetMainLevel();
+            mapData = _databaseManager.GetMapData(map.name);
 
             roundStart = DateTime.Now.AddSeconds(delay);
 
@@ -49,14 +44,6 @@ namespace FPSMO
             subStage = SubStage.Middle;
 
             OnCountdownStarted();
-        }
-
-        private void SetMainLevel()
-        {
-            if (gameConfig.B_SET_MAIN_LEVEL)
-            {
-                Server.Config.MainLevel = map.name;
-            }
         }
 
         #endregion

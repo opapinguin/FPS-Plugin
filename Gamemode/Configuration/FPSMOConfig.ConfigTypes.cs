@@ -13,6 +13,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -25,112 +26,5 @@ namespace FPSMO.Configuration
     /// <summary>
     /// The strategy interface
     /// </summary>
-    internal interface IParserStrategy
-    {
-        object FromString(string str);
-        string ToString(object value);
-    }
 
-    internal class ParserContext
-    {
-        private IParserStrategy strategy;
-
-        public void SetStrategy(IParserStrategy strategy)
-        {
-            this.strategy = strategy;
-        }
-
-        public object FromString(string str)
-        {
-            return strategy.FromString(str);
-        }
-        
-        public string ToString(object value)
-        {
-            return this.strategy.ToString(value);
-        }
-    }
-
-    internal class IntParser : IParserStrategy
-    {
-        public object FromString(string str)
-        {
-            return int.Parse(str);
-        }
-        public string ToString(object value)
-        {
-            return ((int)value).ToString();
-        }
-    }
-
-    internal class UIntParser : IParserStrategy {
-        public object FromString(string str)
-        {
-            return uint.Parse(str);
-        }
-        public string ToString(object value)
-        {
-            return ((uint)value).ToString();
-        }
-    }
-
-    internal class FloatParser : IParserStrategy
-    {
-        public object FromString(string str)
-        {
-            return float.Parse(str);
-        }
-        public string ToString(object value)
-        {
-            return ((float)value).ToString();
-        }
-    }
-
-    internal class StringListParser : IParserStrategy
-    {
-        public object FromString(string str)
-        {
-            return str.Split(',').ToList();
-        }
-        public string ToString(object value)
-        {
-            return string.Join(",", ((List<string>)value).ToArray());
-        }
-    }
-
-    internal class BooleanParser : IParserStrategy
-    {
-        public object FromString(string str)
-        {
-            if (str.ToLower() == "true")
-            {
-                return true;
-            } else
-            {
-                return false;
-            }
-        }
-        public string ToString(object value)
-        {
-            if ((bool)value)
-            {
-                return "true";
-            } else
-            {
-                return "false";
-            }
-        }
-    }
-
-    internal class UInt16Parser : IParserStrategy
-    {
-        public object FromString(string str)
-        {
-            return System.UInt16.Parse(str);
-        }
-        public string ToString(object value)
-        {
-            return ((System.UInt16)value).ToString();
-        }
-    }
 }

@@ -43,7 +43,7 @@ namespace FPSMO.Entities
         /// <summary>
         ///  Handles state changes
         /// </summary>
-        public void TransitionTo(PlayerState state)
+        internal void TransitionTo(PlayerState state)
         {
             this.state = state;
             this.state.SetContext(this);

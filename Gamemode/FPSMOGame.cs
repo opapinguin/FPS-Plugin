@@ -24,6 +24,8 @@ using FPSMO.Configuration;
 using FPSMO.Weapons;
 using FPSMO.Entities;
 using FPSMO.Teams;
+using FPSMO.DB;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace FPSMO
 {
@@ -67,7 +69,6 @@ namespace FPSMO
          * GAME FIELDS *
          ***************/
         #region Game Fields
-        private int MS_ROUND_TICK;
         internal bool bRunning;   // Default = false
 
         internal enum Stage
@@ -86,14 +87,26 @@ namespace FPSMO
         internal Stage stage;
         internal SubStage subStage;
 
-        internal FPSMOMapConfig mapConfig;
-        internal FPSMOGameConfig gameConfig;
+        internal MapData mapData;
+        private GameProperties _gameProperties;
+        private DatabaseManager _databaseManager;
+        private bool _movingToNextMap = false;
+
+        internal void SetDatabaseManager(DatabaseManager databaseManager)
+        {
+            _databaseManager = databaseManager;
+        }
+
+        internal void SetGameProperties(GameProperties gameProperties)
+        {
+            _gameProperties = gameProperties;
+        }
 
         internal Dictionary<string, Player> players = new Dictionary<string, Player>();
         internal Level map;
         DateTime roundStart;
         TimeSpan roundTime;
-        internal DateTime RoundEnd { get {return roundStart + roundTime;} }
+        internal DateTime RoundEnd { get { return roundStart + roundTime; } }
         internal DateTime RoundStart { get { return roundStart; } }
 
         #endregion
@@ -102,41 +115,50 @@ namespace FPSMO
          ******************/
         #region Game Loop
 
-        internal void Start(string mapName = "")
+        internal void Start()
         {
+            string[] mapPool = _databaseManager.GetMapPool();
+
+            if (mapPool.Length == 0)
+            {
+                Logger.Log(LogType.Warning, "Cannot start the game: the map pool is empty.");
+                return;
+            }
+
+            Random random = new Random();
+            int mapIndex = random.Next(mapPool.Length);
+
+            Start(mapPool[mapIndex]);
+        }
+
+        internal void Start(string mapName)
+        {
+            string[] mapPool = _databaseManager.GetMapPool();
+
+            if (!mapPool.CaselessContains(mapName))
+            {
+                Logger.Log(LogType.Warning, "Could not start game on {mapName}: it is not in the pool.");
+                return;
+            }
+
+
             // Hook eventhandlers
             HookEventHandlers();
 
-            // Prepare the game configuration
-            FPSMOConfig<FPSMOMapConfig>.dir = "FPSMOConfig/Maps";
-            FPSMOConfig<FPSMOPlayerConfig>.dir = "FPSMOConfig/Player";
-            FPSMOConfig<FPSMOGameConfig>.dir = "FPSMOConfig/Game";
-
-            // Create a game configuration if it doesn't already exist
-            FPSMOConfig<FPSMOGameConfig>.Create("Config", new FPSMOGameConfig());
-            gameConfig = FPSMOConfig<FPSMOGameConfig>.Read("Config");
-
-            // Use the game configuration
-            MS_ROUND_TICK = (int)gameConfig.MS_ROUND_TICK;
-
-            // Pick a level
-            LevelPicker.Activate();
-            if (mapName == "")
-            {
-                map = Level.Load(Server.Config.MainLevel);
-            } else
-            {
-                map = Level.Load(mapName);
-            }
+            map = Level.Load(mapName);
+            mapData = _databaseManager.GetMapData(map.name);
 
             // Activate teams
             TeamHandler.Activate();
 
-            // Create a map configuration if it doesn't already exist. Defaults to main level if no levels have been added
-            FPSMOConfig<FPSMOMapConfig>.Create(Server.Config.MainLevel, new FPSMOMapConfig());
-            mapConfig = FPSMOConfig<FPSMOMapConfig>.Read(map.name);
-
-            roundTime = TimeSpan.FromSeconds(mapConfig.ROUND_TIME_S);
+            if (mapData is null || mapData.RoundDurationSeconds is null)
+            {
+                roundTime = TimeSpan.FromSeconds(_gameProperties.DefaultRoundDurationSeconds);
+            }
+            else
+            {
+                roundTime = TimeSpan.FromSeconds((double)mapData.RoundDurationSeconds);
+            }
 
             // Add the players to the game
             players = new Dictionary<string, Player>();
@@ -157,6 +179,7 @@ namespace FPSMO
 
             Thread t = new Thread(Run) { Name = "FPSMO" };
             t.Start();  // Automatically aborts when Run() returns
+            Chat.MessageAll($"&SFPS was started on &T{mapName}&S.");
         }
         
         internal void Stop()
@@ -176,6 +199,7 @@ namespace FPSMO
             WeaponHandler.Deactivate();
 
             PlayerDataHandler.Instance.Deactivate();
+            Chat.MessageAll($"&SFPS was stopped.");
         }
 
         internal void Run()
@@ -185,7 +209,14 @@ namespace FPSMO
                 switch (stage)
                 {
                     case Stage.Countdown:
-                        UpdateCountdown(mapConfig.COUNTDOWN_TIME_S, subStage);
+                        if (mapData is null || mapData.CountdownTimeSeconds is null)
+                        {
+                            UpdateCountdown(_gameProperties.CountdownDurationSeconds, subStage);
+                        }
+                        else
+                        {
+                            UpdateCountdown((uint)mapData.CountdownTimeSeconds, subStage);
+                        }
                         break;
                     case Stage.Round:
                         UpdateRound(subStage);

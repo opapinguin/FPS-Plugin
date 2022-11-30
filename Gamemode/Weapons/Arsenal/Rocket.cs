@@ -27,15 +27,13 @@ namespace FPSMO.Weapons
     {
         internal RocketWeapon(Player pl)
         {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
             name = "rocket";
-            damage = config.ROCKET_DAMAGE;
-            reloadTimeTicks = config.MS_ROCKET_RELOAD / config.MS_UPDATE_WEAPON_ANIMATIONS;
+            damage = Constants.ROCKET_DAMAGE;
+            reloadTimeTicks = Constants.MS_ROCKET_RELOAD / Constants.MS_UPDATE_WEAPON_ANIMATIONS;
             player = pl;
-            block = config.ROCKET_BLOCK;
+            block = Constants.ROCKET_BLOCK;
             lastFireTick = WeaponHandler.Tick;
-            frameLength = config.ROCKET_FRAME_LENGTH;
+            frameLength = Constants.ROCKET_FRAME_LENGTH;
         }
 
         /// <summary>
@@ -43,17 +41,15 @@ namespace FPSMO.Weapons
         /// </summary>
         internal override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
         {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
             float timeSpanTicks = tick - fireTime;
-            float time = timeSpanTicks * config.MS_UPDATE_WEAPON_ANIMATIONS / 1000;
+            float time = timeSpanTicks * Constants.MS_UPDATE_WEAPON_ANIMATIONS / 1000;
 
-            float absVelocity = (float)speed / 10 * (config.MAX_ROCKET_VELOCITY - config.MIN_ROCKET_VELOCITY) + config.MIN_ROCKET_VELOCITY;
+            float absVelocity = (float)speed / 10 * (Constants.MAX_ROCKET_VELOCITY - Constants.MIN_ROCKET_VELOCITY) + Constants.MIN_ROCKET_VELOCITY;
 
             float distance = absVelocity * time;
 
             Vec3F32 dir = DirUtils.GetDirVector(rot.RotY, rot.HeadX);
-            Vec3F32 velBar = Vec3F32.Normalise(new Vec3F32(dir.X * absVelocity, dir.Y * absVelocity - config.GRAVITY * time, dir.Y * absVelocity));  // Velocity of the parabola
+            Vec3F32 velBar = Vec3F32.Normalise(new Vec3F32(dir.X * absVelocity, dir.Y * absVelocity - Constants.GRAVITY * time, dir.Y * absVelocity));  // Velocity of the parabola
 
             // HELIX CALCULATION
 
@@ -78,7 +74,7 @@ namespace FPSMO.Weapons
 
             // Note these are precise coordinates, and so are actually large by a factor of 32
             return new Vec3F32(dir.X * distance * 32 + helixR * helixDisplacement.X * 32 + orig.X,
-                dir.Y * distance * 32 - 0.5f * config.GRAVITY * time * time * 32 + helixR * helixDisplacement.Y * 32 + cubicDisplacementY * 32 + orig.Y,
+                dir.Y * distance * 32 - 0.5f * Constants.GRAVITY * time * time * 32 + helixR * helixDisplacement.Y * 32 + cubicDisplacementY * 32 + orig.Y,
                 dir.Z * distance * 32 + helixR * helixDisplacement.Z * 32 + orig.Z);
         }
 

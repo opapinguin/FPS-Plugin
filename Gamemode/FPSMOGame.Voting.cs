@@ -38,7 +38,7 @@ namespace FPSMO
         internal uint votes1, votes2, votes3;
         private void BeginVoting()
         {
-            List<string> pickedMaps = LevelPicker.PickVotingMaps();
+            List<string> pickedMaps = LevelPicker.PickVotingMaps(_databaseManager.GetMapPool().ToList());
             map1 = pickedMaps[0];
             map2 = pickedMaps[1];
             map3 = pickedMaps[2];
@@ -55,7 +55,7 @@ namespace FPSMO
         #region middle
         private void MiddleVoting()
         {
-            for (uint i = gameConfig.S_VOTETIME; i > 0; i--)
+            for (uint i = _gameProperties.VoteDurationSeconds; i > 0; i--)
             {
                 if (!bRunning) return;
                 OnVoteTicked((int)i);
@@ -79,9 +79,6 @@ namespace FPSMO
             nextMap = GetNextMap();
 
             // TODO: Save Stats for player configuration
-            FPSMOConfig<FPSMOGameConfig>.Update("Config", gameConfig);
-            FPSMOConfig<FPSMOMapConfig>.Update(FPSMOGame.Instance.map.name, mapConfig);
-
 
             PlayerDataHandler.Instance.ResetPlayerData();
             ResetVotes();
@@ -169,10 +166,15 @@ namespace FPSMO
 
         private void MoveToNextMap(string map)
         {
-            foreach (Player p in players.Values)
+            _movingToNextMap = true;
+            List<Player> playersList = players.Values.ToList();
+
+            foreach (Player p in playersList)
             {
                 PlayerActions.ChangeMap(p, map);
             }
+
+            _movingToNextMap = false;
         }
 
         #endregion

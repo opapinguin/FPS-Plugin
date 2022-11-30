@@ -27,15 +27,13 @@ namespace FPSMO.Weapons
     {
         internal GunWeapon(Player pl)
         {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
             name = "gun";
-            damage = config.GUN_DAMAGE;
-            reloadTimeTicks = config.MS_GUN_RELOAD / config.MS_UPDATE_WEAPON_ANIMATIONS;
+            damage = Constants.GUN_DAMAGE;
+            reloadTimeTicks = Constants.MS_GUN_RELOAD / Constants.MS_UPDATE_WEAPON_ANIMATIONS;
             player = pl;
-            block = config.GUN_BLOCK;
+            block = Constants.GUN_BLOCK;
             lastFireTick = WeaponHandler.Tick;
-            frameLength = config.GUN_FRAME_LENGTH;
+            frameLength = Constants.GUN_FRAME_LENGTH;
         }
 
         /// <summary>
@@ -43,12 +41,10 @@ namespace FPSMO.Weapons
         /// </summary>
         internal override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
         {
-            FPSMOGameConfig config = FPSMOGame.Instance.gameConfig;
-
             float timeSpanTicks = tick - fireTime;
-            float time = timeSpanTicks * config.MS_UPDATE_WEAPON_ANIMATIONS / 1000;
+            float time = timeSpanTicks * Constants.MS_UPDATE_WEAPON_ANIMATIONS / 1000;
 
-            float velocity = (float)speed / 10 * (config.MAX_GUN_VELOCITY - config.MIN_GUN_VELOCITY) + config.MIN_GUN_VELOCITY;
+            float velocity = (float)speed / 10 * (Constants.MAX_GUN_VELOCITY - Constants.MIN_GUN_VELOCITY) + Constants.MIN_GUN_VELOCITY;
 
             float distance = velocity * time;
 
@@ -56,7 +52,7 @@ namespace FPSMO.Weapons
 
             // Note these are precise coordinates, and so are actually small by a factor of 32
             return new Vec3F32(dir.X * distance * 32 + orig.X,
-                dir.Y * distance * 32 - 0.5f * config.GRAVITY * time * time * 32 + orig.Y,
+                dir.Y * distance * 32 - 0.5f * Constants.GRAVITY * time * time * 32 + orig.Y,
                 dir.Z * distance * 32 + orig.Z);
         }
 

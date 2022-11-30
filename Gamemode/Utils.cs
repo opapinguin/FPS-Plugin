@@ -51,5 +51,10 @@ namespace FPSMO
 
 			return new string(result);
 		}
+
+		internal static string RemoveSpaces(string text)
+		{
+			return text.Replace(" ", "");
+		}
 	}
 }

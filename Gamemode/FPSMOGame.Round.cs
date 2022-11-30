@@ -61,7 +61,7 @@ namespace FPSMO
             {
                 // Hacky way to get that extra message in when status is 10. Second term gets the number of weapon ticks passed after a round tick
                 if (PlayerDataHandler.Instance[kvp.Key].currentWeapon.GetStatus(WeaponHandler.Tick
-                    - (uint)((float)MS_ROUND_TICK / (float)gameConfig.MS_UPDATE_WEAPON_ANIMATIONS)) < 10)
+                    - (uint)((float)Constants.MS_ROUND_TICK / (float)Constants.MS_UPDATE_WEAPON_ANIMATIONS)) < 10)
                 {
                     OnWeaponStatusChanged(kvp.Value);
                 }
@@ -72,7 +72,7 @@ namespace FPSMO
             // Most of the stuff on this thread is small
             // TODO: If you want to do extra work while you wait for something to happen, the typical way is caching a datetime for the last time this thread woke up
             // And sleep only for the time necessary after tasks are performed
-            Thread.Sleep(MS_ROUND_TICK);    // TODO: Add this to the configuration
+            Thread.Sleep((int)Constants.MS_ROUND_TICK);    // TODO: Add this to the configuration
 
             DateTime roundEnd = roundStart + roundTime;
             TimeSpan timeLeft = roundEnd - DateTime.Now;

@@ -28,74 +28,74 @@ namespace FPSMO.Entities
     {
         protected PlayerData context;    // Would have preferred the context to be the Player class but we can't access that.
 
-        public void SetContext(PlayerData pd)
+        internal void SetContext(PlayerData pd)
         {
             this.context = pd;
         }
 
-        public virtual void HandleLandEvent() { }
-        public virtual void HandleJumpEvent() { }
-        public virtual void HandleNormalEvent() { }
-        public virtual void HandleRunEvent() { }
-        public virtual void HandleCrawlEvent() { }
-        public virtual void HandleLedgeGrabEvent() { }
+        internal virtual void HandleLandEvent() { }
+        internal virtual void HandleJumpEvent() { }
+        internal virtual void HandleNormalEvent() { }
+        internal virtual void HandleRunEvent() { }
+        internal virtual void HandleCrawlEvent() { }
+        internal virtual void HandleLedgeGrabEvent() { }
     }
 
-    class NormalState : PlayerState
+    internal class NormalState : PlayerState
     {
-        public override void HandleJumpEvent()
+        internal override void HandleJumpEvent()
         {
             this.context.TransitionTo(new JumpingState());
         }
 
-        public override void HandleRunEvent()
+        internal override void HandleRunEvent()
         {
             // TODO: Check stamina here
             this.context.TransitionTo(new RunningState());
         }
 
-        public override void HandleCrawlEvent()
+        internal override void HandleCrawlEvent()
         {
             this.context.TransitionTo(new CrawlingState());
         }
     }
 
-    class JumpingState : PlayerState
+    internal class JumpingState : PlayerState
     {
-        public override void HandleLandEvent()
+        internal override void HandleLandEvent()
         {
             this.context.TransitionTo(new NormalState());
         }
 
-        public override void HandleLedgeGrabEvent()
+        internal override void HandleLedgeGrabEvent()
         {
             // TODO: Check stamina here
             this.context.TransitionTo(new LedgeGrabState());
         }
     }
 
-    class LedgeGrabState : PlayerState
+    internal class LedgeGrabState : PlayerState
     {
-        public override void HandleLedgeGrabEvent()
+        internal override void HandleLedgeGrabEvent()
         {
             this.context.TransitionTo(new NormalState());
         }
     }
 
-    class RunningState : PlayerState
+    internal class RunningState : PlayerState
     {
-        public override void HandleRunEvent()
+        internal override void HandleRunEvent()
         {
             this.context.TransitionTo(new NormalState());
         }
 
-        public override void HandleJumpEvent()
+        internal override void HandleJumpEvent()
         {
             this.context.TransitionTo(new JumpingState());
         }
     }
 
-    class CrawlingState : PlayerState
+    internal class CrawlingState : PlayerState
     {
     }
 

@@ -14,6 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPSMO.Configuration;
+using FPSMO.DB;
 using MCGalaxy;
 using System.IO;
 
@@ -26,10 +27,19 @@ namespace FPSMO.Commands
         public override string type { get { return CommandTypes.Games; } }
         public override bool SuperUseable { get { return false; } }
 
+        private DatabaseManager _databaseManager;
+
+        internal CmdRate(DatabaseManager databaseManager)
+        {
+            _databaseManager = databaseManager;
+        }
+
         public override void Use(Player p, string message, CommandData data)
         {
+            // UNDONE
             int rating;
             int oldRating = int.MaxValue;
+
             if (message == "")
             {
                 Help(p); return;
@@ -68,32 +78,22 @@ namespace FPSMO.Commands
 
             levelList.Update(p.truename, rating.ToString());
 
-            FPSMOMapConfig config = FPSMOGame.Instance.mapConfig;
+            MapData config = FPSMOGame.Instance.mapData;
 
             if (oldRating == int.MaxValue)
             {
-                config.SUM_RATINGS += rating;
-                config.TOTAL_RATINGS += 1;
-
-                p.SetMoney(p.money + 5);
-                p.Message("Thank you for voting! You received 5 " + Server.Config.Currency);
+                p.Message("Thank you for voting!");
             }
             else
             {
-                config.SUM_RATINGS -= oldRating;
-                config.SUM_RATINGS += rating;
-
-                p.Message("Thank you for rating this map!");
+                p.Message("Your vote has been updated");
             }
-
-            // Update configuration
-            FPSMOConfig<FPSMOMapConfig>.Update(FPSMOGame.Instance.map.name, config);
-            FPSMOGame.Instance.mapConfig = config;
 
             levelList.Save();
             p.level.SaveSettings();
         }
-        protected static bool CheckIsAuthor(Player p)
+
+        private static bool CheckIsAuthor(Player p)
         {
             string[] authors = p.level.Config.Authors.SplitComma();
             return authors.CaselessContains(p.truename);
@@ -101,7 +101,7 @@ namespace FPSMO.Commands
 
         public override void Help(Player p)
         {
-            p.Message("&T/Rate [num]");
+            p.Message("&T/rate [num]");
             p.Message("&HRates a map from 1 to 5");
         }
     }

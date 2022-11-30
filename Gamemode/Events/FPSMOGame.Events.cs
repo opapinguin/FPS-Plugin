@@ -337,10 +337,14 @@ namespace FPSMO
 
         private void HandleJoinedLevel(Player p, Level prevLevel, Level level, ref bool announce)
         {
-            if (prevLevel != null && prevLevel.name == map.name && level.name != map.name)
+            if (prevLevel != null && prevLevel.name == map.name && level.name != map.name && !_movingToNextMap)
+            {
                 PlayerLeftGame(p);
+            }
             else if (level.name == map.name)
+            {
                 PlayerJoinedGame(p);
+            }
         }
 
         private void HandlePlayerMove(Player p, Position next, byte yaw, byte pitch, ref bool cancel)
@@ -351,7 +355,7 @@ namespace FPSMO
             if (p.Game.Noclip == null) p.Game.Noclip = new MCGalaxy.Games.NoclipDetector(p);
             if (p.Game.Speed == null) p.Game.Speed = new MCGalaxy.Games.SpeedhackDetector(p);
 
-            bool reverted = p.Game.Noclip.Detect(next) || p.Game.Speed.Detect(next, gameConfig.MAX_MOVE_DISTANCE);
+            bool reverted = p.Game.Noclip.Detect(next) || p.Game.Speed.Detect(next, Constants.MAX_MOVE_DISTANCE);
             if (reverted) cancel = true;
         }
 

@@ -14,6 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPSMO.Configuration;
+using FPSMO.DB;
 using MCGalaxy;
 using System;
 using System.IO;
@@ -31,6 +32,13 @@ namespace FPSMO.Commands
 
         internal bool CanUse => (_lastVoteQueue is null || (DateTime.Now - _lastVoteQueue) > _spanBetweenUses);
 
+        private DatabaseManager _databaseManager;
+
+        internal CmdVoteQueue(DatabaseManager databaseManager)
+        {
+            _databaseManager = databaseManager;
+        }
+
         public override void Use(Player p, string message)
         {
             if (message is null || message == "")
@@ -45,7 +53,7 @@ namespace FPSMO.Commands
                 return;
             }
 
-            if (!LevelPicker.MapExists(message))
+            if (!_databaseManager.IsInMapPool(message))
             {
                 p.Message($"&SThere is no map &T\"{message}\" in the current map cycle.");
                 return;

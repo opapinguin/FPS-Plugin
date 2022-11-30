@@ -14,10 +14,15 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
  */
 
 using System;
+using System.IO;
 using FPSMO;
 using FPSMO.Commands;
+using FPSMO.Configuration;
 using FPSMO.DB;
 using FPSMO.Weapons;
+using MCGalaxy;
+using MCGalaxy.Events.PlayerEvents;
+using MCGalaxy.Games;
 
 namespace MCGalaxy
 {
@@ -26,6 +31,8 @@ namespace MCGalaxy
         private FPSMOGame _game;
         private GUI _gui;
         private AchievementsManager _achievementsManager;
+        private DatabaseManager _databaseManager;
+        private GameProperties _gameProperties;
 
         public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
         public override string name { get { return "FPSMO"; } }
@@ -46,13 +53,17 @@ namespace MCGalaxy
         public override void Load(bool startup)
         {
             _game = FPSMOGame.Instance;
-            _achievementsManager = new AchievementsManager(_game);
+            _achievementsManager = LoadAchievementsManager(_game);
+            _databaseManager = LoadDatabaseManager(_achievementsManager);
+            _gui = LoadGUI(_game, _achievementsManager);
+            _game.SetDatabaseManager(_databaseManager);
 
-            InitDatabase();
-            InitGUI();
+            LoadGameProperties();
             RegisterCommands();
 
-            _game.Start();
+            if (_gameProperties.AutoStart)
+                StartGame();
+
             OnPluginLoaded();
         }
 
@@ -60,20 +71,66 @@ namespace MCGalaxy
         {
             OnPluginUnloading();
             UnregisterCommands();
-            DatabaseHandler.UnsubscribeFrom(_achievementsManager);
+            StopGame();
+            UnloadAchievementsManager();
+            UnloadDatabaseManager();
+            UnloadGUI();
+        }
+
+        private AchievementsManager LoadAchievementsManager(FPSMOGame game)
+        {
+            var achievementsManager = new AchievementsManager();
+            achievementsManager.Observe(game);
+
+            return achievementsManager;
+        }
+
+        private void UnloadAchievementsManager()
+        {
+            _achievementsManager.Unobserve(_game);
+        }
+
+        private DatabaseManager LoadDatabaseManager(AchievementsManager achievementsManager)
+        {
+            var databaseManager = new DatabaseManager();
+            databaseManager.CreateTables(checkExistence: true);
+            databaseManager.Observe(_achievementsManager);
+
+            return databaseManager;
+        }
+
+        private void UnloadDatabaseManager()
+        {
+            _databaseManager.Unobserve(_achievementsManager);
+        }
+
+        private GUI LoadGUI(FPSMOGame game, AchievementsManager achievementsManager)
+        {
+            var gui = new GUI();
+            gui.Observe(this);
+            gui.Observe(_game);
+            gui.Observe(_achievementsManager);
+            gui.ObserveJoinedLevel();
+
+            return gui;
+        }
+
+        private void UnloadGUI()
+        {
+            _gui.Unobserve(this);
+            _gui.Unobserve(_game);
+            _gui.Unobserve(_achievementsManager);
+            _gui.UnobserveJoinedLevel();
+        }
+
+        private void StartGame()
+        {
+            _game.Start();
+        }
+
+        private void StopGame()
+        {
             _game.Stop();
-            _gui.UnsubscribeFromAll(this, _game, _achievementsManager);
-        }
-
-        private void InitGUI()
-        {
-            _gui = new GUI(this, _game, _achievementsManager);
-        }
-
-        private void InitDatabase()
-        {
-            DatabaseHandler.InitializeDatabase();
-            DatabaseHandler.SubscribeTo(_achievementsManager);
         }
 
         private void RegisterCommands()
@@ -81,9 +138,9 @@ namespace MCGalaxy
             Command.Register(new CmdAchievements(_achievementsManager));
             Command.Register(new CmdAchievementTest(_achievementsManager));
             Command.Register(new CmdSwapTeam());
-            Command.Register(new CmdFPS(_game));
-            Command.Register(new CmdVoteQueue());
-            Command.Register(new CmdRate());
+            Command.Register(new CmdFPS(_game, _databaseManager));
+            Command.Register(new CmdVoteQueue(_databaseManager));
+            Command.Register(new CmdRate(_databaseManager));
             Command.Register(new CmdShootGun());
             Command.Register(new CmdShootRocket());
             Command.Register(new CmdWeaponSpeed());
@@ -101,6 +158,21 @@ namespace MCGalaxy
             Command.Unregister(Command.Find("AchievementTest"));
             Command.Unregister(Command.Find("Achievements"));
         }
-    }
 
+        private void LoadGameProperties()
+        {
+            if (!Directory.Exists(Constants.FPS_DIRECTORY_PATH))
+            {
+                Directory.CreateDirectory(Constants.FPS_DIRECTORY_PATH);
+            }
+
+            if (!File.Exists(Constants.GAME_PROPERTIES_FILE_PATH))
+            {
+                GameProperties.Save(GameProperties.Default(), Constants.FPS_DIRECTORY_PATH);
+            }
+
+            _gameProperties = GameProperties.Load(Constants.GAME_PROPERTIES_FILE_PATH);
+            _game.SetGameProperties(_gameProperties);
+        }
+    }
 }

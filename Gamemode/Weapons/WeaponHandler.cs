@@ -49,7 +49,7 @@ namespace FPSMO.Weapons
         internal static void Activate()
         {
             currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
-            MSTick = FPSMOGame.Instance.gameConfig.MS_UPDATE_WEAPON_ANIMATIONS;
+            MSTick = Constants.MS_UPDATE_WEAPON_ANIMATIONS;
 
             level = FPSMOGame.Instance.map;
 

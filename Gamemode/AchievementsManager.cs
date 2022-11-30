@@ -19,7 +19,7 @@ namespace FPSMO
 
 		internal List<Achievement> Achievements => _achievements;
 
-		internal AchievementsManager(FPSMOGame game)
+		internal AchievementsManager()
 		{
 			// TODO
 		}
@@ -69,6 +69,16 @@ namespace FPSMO
 			}
 
 			return false;
+        }
+
+        internal void Observe(FPSMOGame game)
+        {
+            // Subscribe to events here
+        }
+
+        internal void Unobserve(FPSMOGame game)
+        {
+            // Unsubscribe from events here
         }
     }
 }

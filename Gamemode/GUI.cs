@@ -11,28 +11,18 @@ using MCGalaxy.Events.PlayerEvents;
 namespace FPSMO
 {
 	internal class GUI
-	{
-        internal GUI(FPSMOPlugin plugin, FPSMOGame game, AchievementsManager manager)
-        {
-            SubscribeTo(game);
-            SubscribeTo(manager);
-            SubscribeTo(plugin);
-
-            // MCGalaxy-related events
-            OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.Normal);
-        }
-
+    {
         internal void UnsubscribeFromAll(FPSMOPlugin plugin, FPSMOGame game, AchievementsManager manager)
         {
-            UnsubscribeFrom(game);
-            UnsubscribeFrom(manager);
-            UnsubscribeFrom(plugin);
+            Unobserve(game);
+            Unobserve(manager);
+            Unobserve(plugin);
 
             // MCGalaxy-related events
-            OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
+            
         }
 
-        private void SubscribeTo(FPSMOGame game)
+        internal void Observe(FPSMOGame game)
         {
             game.CountdownStarted += HandleCountdownStarted;
             game.PlayerShotWeapon += HandlePlayerShotWeapon;
@@ -55,7 +45,7 @@ namespace FPSMO
             game.PlayerHit += HandlePlayerHit;
         }
 
-        private void UnsubscribeFrom(FPSMOGame game)
+        internal void Unobserve(FPSMOGame game)
         {
             game.CountdownStarted -= HandleCountdownStarted;
             game.PlayerShotWeapon -= HandlePlayerShotWeapon;
@@ -78,26 +68,36 @@ namespace FPSMO
             game.PlayerHit -= HandlePlayerHit;
         }
 
-        private void SubscribeTo(AchievementsManager manager)
+        internal void Observe(AchievementsManager manager)
         {
             manager.AchievementUnlocked += HandleAchievementUnlocked;
         }
 
-        private void UnsubscribeFrom(AchievementsManager manager)
+        internal void Unobserve(AchievementsManager manager)
         {
             manager.AchievementUnlocked -= HandleAchievementUnlocked;
         }
 
-        private void SubscribeTo(FPSMOPlugin plugin)
+        internal void Observe(FPSMOPlugin plugin)
         {
             plugin.PluginLoaded += HandlePluginLoaded;
             plugin.PluginUnloading += HandlePluginUnloading;
         }
 
-        private void UnsubscribeFrom(FPSMOPlugin plugin)
+        internal void Unobserve(FPSMOPlugin plugin)
         {
             plugin.PluginLoaded -= HandlePluginLoaded;
             plugin.PluginUnloading += HandlePluginUnloading;
+        }
+
+        internal void ObserveJoinedLevel()
+        {
+            OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.Normal);
+        }
+
+        internal void UnobserveJoinedLevel()
+        {
+            OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
         }
 
         internal void HandleCountdownStarted(Object sender, EventArgs args)
@@ -107,7 +107,7 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 ShowTeamStatistics(player);
-                ShowMapInfo(player, game.map, game.mapConfig);
+                ShowMapInfo(player, game.map, game.mapData);
                 ShowInventory(player);
             }
         }
@@ -366,20 +366,23 @@ namespace FPSMO
             }
         }
 
-        private void ShowMapInfo(Player player, Level level, FPSMOMapConfig mapConfig)
+        private void ShowMapInfo(Player player, Level level, MapData mapConfig)
         {
+            // UNDONE
             string authors = string.Join(", ", level.Config.Authors.Split(','));
 
             player.Message("&7Starting new round");
             player.Message($"&7This map was made by &f{authors}");
 
-            if (mapConfig.TOTAL_RATINGS == 0)
+            bool hasBeenRated = false;
+
+            if (hasBeenRated)
             {
                 player.Message("&7This map has not yet been rated");
             }
             else
             {
-                float rating = mapConfig.Rating;
+                float rating = 5f;
                 string formattedRating = $"{RatingColor(rating)}{rating.ToString("0.00")}";
                 player.Message($"&7This map has a rating of {formattedRating}");
             }
