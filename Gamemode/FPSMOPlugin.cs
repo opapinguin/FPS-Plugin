@@ -151,7 +151,7 @@ namespace MCGalaxy
             Command.Unregister(Command.Find("FPSMOSwapTeam"));
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("VoteQueue"));
-            Command.Unregister(Command.Find("FPSMORate"));
+            Command.Unregister(Command.Find("Rate"));
             Command.Unregister(Command.Find("FPSMOShootGun"));
             Command.Unregister(Command.Find("FPSMOShootRocket"));
             Command.Unregister(Command.Find("FPSMOWeaponSpeed"));

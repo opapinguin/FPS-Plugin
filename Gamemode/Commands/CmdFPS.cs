@@ -344,8 +344,7 @@ namespace FPSMO.Commands
 
             if (mapData is null)
             {
-                player.Message($"&WMap &T{map} &Hhasn't been configured yet.");
-                player.Message($"&WConfigure it by setting any property.");
+                player.Message($"&WMap &T{map} &Whasn't been configured yet.");
                 return;
             }
 

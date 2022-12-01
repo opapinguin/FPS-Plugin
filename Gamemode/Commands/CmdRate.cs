@@ -16,14 +16,14 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 using FPSMO.Configuration;
 using FPSMO.DB;
 using MCGalaxy;
+using MCGalaxy.Commands;
 using System.IO;
 
 namespace FPSMO.Commands
 {
     internal class CmdRate : Command2
     {
-        public override string name { get { return "FPSMORate"; } }
-        public override string shortcut { get { return "Rate"; } }
+        public override string name { get { return "Rate"; } }
         public override string type { get { return CommandTypes.Games; } }
         public override bool SuperUseable { get { return false; } }
 
@@ -34,75 +34,75 @@ namespace FPSMO.Commands
             _databaseManager = databaseManager;
         }
 
-        public override void Use(Player p, string message, CommandData data)
+        public override void Use(Player player, string message, CommandData data)
         {
-            // UNDONE
-            int rating;
-            int oldRating = int.MaxValue;
-
             if (message == "")
             {
-                Help(p); return;
+                Help(player);
+                return;
             }
-
-            if (!int.TryParse(message, out rating))
+            else if (message.ToLower() == "remove")
             {
-                p.Message("Not a valid input");
+                RemoveRating(player.level, player);
                 return;
             }
 
-            if (rating > 5 || rating < 1)
-            {
-                p.Message("Not a valid input");
+            int rating = 0;
+
+            if (!CommandParser.GetInt(player, message, "Rating", ref rating, min: 0, max: 5))
                 return;
+
+            Level level = player.level;
+
+            if (IsLevelAuthor(level, player))
+            {
+                player.Message($"Cannot rate {level.name} as you are an author of it"); return;
             }
 
-            string path = "FPSMO/Ratings";
+            int? previousRating = _databaseManager.GetRating(level.name, player);
+            _databaseManager.SetRating(level.name, player, rating);
 
-            if (CheckIsAuthor(p))
+            if (previousRating is null)
             {
-                p.Message("Cannot rate this map as you are an author of it"); return;
+                player.Message("&SThank you for rating this map.");
+                player.Message($"&SYour rating: &T{rating}/5&S.");
             }
-
-            if (!Directory.Exists(path))
+            else if (previousRating != rating)
             {
-                Directory.CreateDirectory(path);
-            }
-
-            PlayerExtList levelList = PlayerExtList.Load(path + "/" + p.level.name + ".txt"); // Automatically creates the file as well
-
-            if (levelList.Contains(p.truename))
-            {
-                oldRating = int.Parse(levelList.FindData(p.truename));
-            }
-
-            levelList.Update(p.truename, rating.ToString());
-
-            MapData config = FPSMOGame.Instance.mapData;
-
-            if (oldRating == int.MaxValue)
-            {
-                p.Message("Thank you for voting!");
+                player.Message($"&SYou have updated your rating to &T{rating}/5&S.");
             }
             else
             {
-                p.Message("Your vote has been updated");
+                player.Message($"&WYour rating for this map is already &T{rating}/5WS.");
             }
-
-            levelList.Save();
-            p.level.SaveSettings();
         }
 
-        private static bool CheckIsAuthor(Player p)
+        private void RemoveRating(Level level, Player player)
         {
-            string[] authors = p.level.Config.Authors.SplitComma();
-            return authors.CaselessContains(p.truename);
+            int? previousRating = _databaseManager.GetRating(level.name, player);
+
+            if (previousRating is null)
+            {
+                player.Message("&WYour haven't rated this map yet.");
+            }
+            else
+            {
+                _databaseManager.RemoveRating(level.name, player);
+                player.Message($"&SYour rating on &T{level.name} &Swas removed.");
+            }
+
+        }
+
+        private bool IsLevelAuthor(Level level, Player player)
+        {
+            string[] authors = level.Config.Authors.SplitComma();
+            return authors.CaselessContains(player.truename);
         }
 
         public override void Help(Player p)
         {
-            p.Message("&T/rate [num]");
-            p.Message("&HRates a map from 1 to 5");
+            p.Message("&T/rate <0-5> &H- rates current map.");
+            p.Message("&T/rate remove &H- removes your rating.");
         }
     }
 }

@@ -7,6 +7,7 @@ using FPSMO.Entities;
 using MCGalaxy.SQL;
 using System.Data;
 using FPSMO.Configuration;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 
 namespace FPSMO.DB
 {
@@ -121,6 +122,42 @@ namespace FPSMO.DB
         internal void RemoveMap(string map)
         {
             Database.DeleteRows("FPS_MapPool", "WHERE map_name=@0", map);
+        }
+
+        internal int? GetRating(string mapName, Player player)
+        {
+            List<string[]> matches = Database.GetRows("FPS_Rating", "rating",
+                                                      $"WHERE map_name=@0 and player_name=@1", mapName, player.truename);
+
+            if (matches.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                string[] onlyMatch = matches[0];
+                return int.Parse(onlyMatch[0]);
+            }
+        }
+
+        internal void SetRating(string mapName, Player player, int rating)
+        {
+            int? previousRating = GetRating(mapName, player);
+
+            if (previousRating is null)
+            {
+                Database.AddRow("FPS_Rating", "map_name, player_name, rating", mapName, player.truename, rating);
+            }
+            else if (previousRating != rating)
+            {
+                Database.UpdateRows("FPS_Rating", "rating=@2", "WHERE map_name=@0 and player_name=@1",
+                                     mapName, player.truename, rating);
+            }
+        }
+
+        internal void RemoveRating(string mapName, Player player)
+        {
+            Database.DeleteRows("FPS_Rating", "WHERE map_name=@0 and player_name=@1", mapName, player.truename);
         }
     }
 }
