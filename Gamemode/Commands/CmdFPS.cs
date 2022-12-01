@@ -20,6 +20,8 @@ using MCGalaxy.Commands;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.Remoting.Messaging;
 
 namespace FPSMO.Commands
 {
@@ -39,35 +41,51 @@ namespace FPSMO.Commands
             _databaseManager = databaseManager;
         }
 
-        public override void Use(Player p, string message)
+        public override void Use(Player player, string message)
         {
             string[] args = message.ToLower().SplitSpaces();
 
             switch (args[0])
             {
                 case "start":
-                    Start(p, args);
+                    Start(player, args);
                     break;
                 case "stop":
-                    Stop(p, args);
+                    Stop(player, args);
                     break;
                 case "end":
-                    End(p, args);
+                    End(player, args);
                     break;
                 case "add":
-                    Add(p, args);
+                    Add(player, args);
                     break;
                 case "remove":
-                    Remove(p, args);
+                    Remove(player, args);
                     break;
                 case "config":
-                    Config(p, args);
+                    Config(player, args);
+                    break;
+                case "list":
+                    List(player, args);
                     break;
                 default:
-                    Help(p);
+                    Help(player);
                     return;
             }
         }
+
+        private void List(Player player, string[] args)
+        {
+            string[] mapPool = _databaseManager.GetMapPool();
+
+            MultiPageOutput.Output(player, mapPool,
+                formatter: (mapName) => mapName,
+                cmd: "fps list",
+                type: "maps",
+                modifier: args.Length >= 2 ? args[1] : "",
+                lines: false);
+        }
+
 
         public override void Help(Player player, string message)
         {
@@ -88,6 +106,7 @@ namespace FPSMO.Commands
             player.Message("&T/fps end &H- Ends current round of First-person shooter.");
             player.Message("&T/fps add [map] &H- Adds map to the map pool.");
             player.Message("&T/fps remove [map] &H- Removes map from the map pool.");
+            player.Message("&T/fps list &H- Lists maps in the pool.");
             player.Message("&T/fps config [map]&H- Manages configuration for &T<map>&H.");
             player.Message("&HRun &T/help fps config &Hfor help about map configuration.");
         }
@@ -202,6 +221,7 @@ namespace FPSMO.Commands
             if (!LevelInfo.MapExists(map))
             {
                 player.Message($"&WMap &T{map} &Wdoes not exist.");
+                return;
             }
 
             _databaseManager.AddMap(map);
