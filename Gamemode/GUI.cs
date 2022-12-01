@@ -12,13 +12,6 @@ namespace FPSMO
 {
 	internal class GUI
     {
-        internal void UnsubscribeFromAll(FPSMOPlugin plugin, FPSMOGame game, AchievementsManager manager)
-        {
-            Unobserve(game);
-            Unobserve(manager);
-            Unobserve(plugin);
-        }
-
         internal void Observe(FPSMOGame game)
         {
             game.CountdownStarted += HandleCountdownStarted;
