@@ -87,4 +87,9 @@ namespace FPSMO
 		internal Player Victim { get; set; }
 		internal WeaponEntity WeaponEntity { get; set; }
 	}
+
+	internal class CountdownStartedEventArgs : EventArgs
+	{
+		internal float? MapAverageRating { get; set; }
+	}
 }

@@ -17,9 +17,6 @@ namespace FPSMO
             Unobserve(game);
             Unobserve(manager);
             Unobserve(plugin);
-
-            // MCGalaxy-related events
-            
         }
 
         internal void Observe(FPSMOGame game)
@@ -100,15 +97,18 @@ namespace FPSMO
             OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
         }
 
-        internal void HandleCountdownStarted(Object sender, EventArgs args)
+        internal void HandleCountdownStarted(Object sender, CountdownStartedEventArgs args)
         {
             FPSMOGame game = (FPSMOGame)sender;
+            List<Player> players = game.players.Values.ToList();
 
-            foreach (Player player in game.players.Values)
+            foreach (Player player in players)
             {
-                ShowTeamStatistics(player);
-                ShowMapInfo(player, game.map, game.mapData);
+                player.Message("&SStarting new round...");
+
+                ShowMapInfo(player, game.map, args.MapAverageRating);
                 ShowInventory(player);
+                ShowTeamStatistics(player);
             }
         }
 
@@ -211,7 +211,7 @@ namespace FPSMO
                 player.SendCpeMessage(CpeMessageType.Status2, "");
                 player.SendCpeMessage(CpeMessageType.Status3, "");
                 ClearBottomRight(player);
-                player.Message("&7The &cRED &7team wins!");
+                player.Message("&SThe &cRED &Steam wins!");
             }
         }
 
@@ -283,7 +283,7 @@ namespace FPSMO
                 player.SendCpeMessage(CpeMessageType.Status3, "");
             }
 
-            Chat.MessageAll("&7The FPS game has been stopped.");
+            Chat.MessageAll("&SThe FPS game has been stopped.");
         }
 
         internal void HandleWeaponSpeedChanged(Object sender, WeaponSpeedChangedEventArgs args)
@@ -305,7 +305,7 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{args.Player.ColoredName} &7joined team {color}{args.TeamName.ToUpper()}&7!");
+                    $"{args.Player.ColoredName} &Sjoined team {color}{args.TeamName.ToUpper()}&S!");
             }
         }
 
@@ -315,8 +315,8 @@ namespace FPSMO
             Player victim = args.Victim;
             Player shooter = args.Shooter;
 
-            victim.Message($"&7You got hit by {shooter.ColoredName}");
-            shooter.Message("&7You've hit {shooter.ColoredName}!");
+            victim.Message($"&SYou got hit by {shooter.ColoredName}");
+            shooter.Message("&SYou've hit {shooter.ColoredName}!");
         }
 
         internal void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
@@ -326,7 +326,7 @@ namespace FPSMO
             foreach (Player player in game.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{args.Killer.ColoredName} &7killed {args.Victim.ColoredName}");
+                    $"{args.Killer.ColoredName} &Skilled {args.Victim.ColoredName}");
             }
         }
 
@@ -337,7 +337,7 @@ namespace FPSMO
             foreach (Player player in FPSMOGame.Instance.players.Values)
             {
                 player.SendCpeMessage(CpeMessageType.Normal,
-                    $"{who.ColoredName} &7unlocked &f{args.Achievement.Name}");
+                    $"{who.ColoredName} &Sunlocked &f{args.Achievement.Name}");
             }
         }
 
@@ -366,25 +366,23 @@ namespace FPSMO
             }
         }
 
-        private void ShowMapInfo(Player player, Level level, MapData mapConfig)
+        private void ShowMapInfo(Player player, Level level, float? rating)
         {
-            // UNDONE
             string authors = string.Join(", ", level.Config.Authors.Split(','));
 
-            player.Message("&7Starting new round");
-            player.Message($"&7This map was made by &f{authors}");
-
-            bool hasBeenRated = false;
-
-            if (hasBeenRated)
+            if (authors.Length != 0)
             {
-                player.Message("&7This map has not yet been rated");
+                player.Message($"&SThis map was made by &T{authors}&S.");
+            }
+
+            if (rating != null)
+            {
+                string formattedRating = $"{RatingColor(rating.Value)}{rating.Value.ToString("0.00")}";
+                player.Message($"&SThis map has an average rating of &T{formattedRating}/5&S.");
             }
             else
             {
-                float rating = 5f;
-                string formattedRating = $"{RatingColor(rating)}{rating.ToString("0.00")}";
-                player.Message($"&7This map has a rating of {formattedRating}");
+                player.Message("&SThis map has not yet been rated.");
             }
         }
 
@@ -433,13 +431,13 @@ namespace FPSMO
         private void ShowVoteResults(Player player, string map1, string map2, string map3,
                                      int votes1, int votes2, int votes3)
         {
-            player.SendCpeMessage(CpeMessageType.Normal, $"&7Votes are in!");
+            player.SendCpeMessage(CpeMessageType.Normal, $"&SVotes are in!");
             player.SendCpeMessage(CpeMessageType.Normal, $"&c{map1}: {votes1} &ç{map2}: {votes2} {map3}: {votes3}");
         }
 
         private void ShowRoundTimeRemaining(Player player, int timeRemaining)
         {
-            player.SendCpeMessage(CpeMessageType.Status3, $"&7Time remaining: &f{timeRemaining}");
+            player.SendCpeMessage(CpeMessageType.Status3, $"&STime remaining: &T{timeRemaining}");
         }
 
         private void ClearBottomRight(Player player)
@@ -451,7 +449,7 @@ namespace FPSMO
 
         private void ShowRoundStarted(Player player)
         {
-            player.SendCpeMessage(CpeMessageType.Normal, "&7Round has started! You are no longer invincible.");
+            player.SendCpeMessage(CpeMessageType.Normal, "&SRound has started! You are no longer invincible.");
         }
 
         private void ShowInventory(Player player)

@@ -27,12 +27,14 @@ namespace FPSMO
 {
     internal sealed partial class FPSMOGame
     {
-        internal event EventHandler CountdownStarted;
+        internal event EventHandler<CountdownStartedEventArgs> CountdownStarted;
         private void OnCountdownStarted()
         {
             if (CountdownStarted != null)
             {
-                CountdownStarted(this, EventArgs.Empty);
+                var args = new CountdownStartedEventArgs();
+                args.MapAverageRating = _databaseManager.AverageRating(map.name);
+                CountdownStarted(this, args);
             }
         }
 

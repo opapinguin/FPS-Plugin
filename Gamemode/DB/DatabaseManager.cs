@@ -8,6 +8,7 @@ using MCGalaxy.SQL;
 using System.Data;
 using FPSMO.Configuration;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
+using MCGalaxy.DB;
 
 namespace FPSMO.DB
 {
@@ -158,6 +159,23 @@ namespace FPSMO.DB
         internal void RemoveRating(string mapName, Player player)
         {
             Database.DeleteRows("FPS_Rating", "WHERE map_name=@0 and player_name=@1", mapName, player.truename);
+        }
+
+        internal float? AverageRating(string mapName)
+        {
+            List<string[]> matches = Database.GetRows("FPS_Rating",
+                "AVG(rating)", $"WHERE map_name=@0 GROUP BY map_name", mapName);
+
+            if (matches.Count == 0)
+            {
+                return null;
+            }
+            else
+            {
+                string[] onlyMatch = matches[0];
+                float result = float.Parse(onlyMatch[0], System.Globalization.CultureInfo.InvariantCulture);
+                return result;
+            }
         }
     }
 }
