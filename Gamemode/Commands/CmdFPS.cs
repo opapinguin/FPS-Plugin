@@ -185,7 +185,25 @@ namespace FPSMO.Commands
 
         private void End(Player player, string[] args)
         {
-            player.Message("&WThis command wasn't implemented yet.");
+            if (!_game.bRunning)
+            {
+                player.Message("&WThere is no FPS game running.");
+                return;
+            }
+            else if (_game.stage == FPSMOGame.Stage.Countdown)
+            {
+                player.Message("&WCannot end game during countdown.");
+                return;
+            }
+            else if (_game.stage == FPSMOGame.Stage.Voting)
+            {
+                player.Message("&WCannot end game during a vote.");
+                return;
+            }
+
+            _game.stage = FPSMOGame.Stage.Round;
+            _game.subStage = FPSMOGame.SubStage.End;
+            Chat.MessageAll($"&SRound was ended by {player.ColoredName}.");
         }
 
         private void Add(Player player, string[] args)

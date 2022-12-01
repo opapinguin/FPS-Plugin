@@ -141,7 +141,6 @@ namespace FPSMO
                 return;
             }
 
-
             // Hook eventhandlers
             HookEventHandlers();
 
