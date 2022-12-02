@@ -9,6 +9,7 @@ using System.Data;
 using FPSMO.Configuration;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using MCGalaxy.DB;
+using MCGalaxy.Events.LevelEvents;
 
 namespace FPSMO.DB
 {
@@ -22,6 +23,18 @@ namespace FPSMO.DB
         internal void Unobserve(AchievementsManager manager)
         {
             manager.AchievementUnlocked -= HandleAchievementUnlocked;
+        }
+
+        internal void ObserveMCGalaxy()
+        {
+            OnLevelDeletedEvent.Register(HandleLevelDeleted, Priority.Normal);
+            OnLevelRenamedEvent.Register(HandleLevelRenamed, Priority.Normal);
+        }
+
+        internal void UnobserveMCGalaxy()
+        {
+            OnLevelDeletedEvent.Unregister(HandleLevelDeleted);
+            OnLevelRenamedEvent.Unregister(HandleLevelRenamed);
         }
 
         internal void CreateTables(bool checkExistence)
@@ -176,6 +189,31 @@ namespace FPSMO.DB
                 float result = float.Parse(onlyMatch[0], System.Globalization.CultureInfo.InvariantCulture);
                 return result;
             }
+        }
+
+        internal void HandleLevelDeleted(string mapName)
+        {
+            Database.UpdateRows("FPS_Player", "favourite_map_name=NULL", "WHERE favourite_map_name=@0", mapName);
+            Database.DeleteRows("FPS_MapPool", "WHERE map_name=@0", mapName);
+            Database.DeleteRows("FPS_Rating", "WHERE map_name=@0", mapName);
+            Database.DeleteRows("FPS_SpawnPoint", "WHERE map_name=@0", mapName);
+            Database.DeleteRows("FPS_MapData", "WHERE name=@0", mapName);
+        }
+
+        internal void HandleLevelRenamed(string previousName, string newName)
+        {
+            Database.UpdateRows("FPS_Player", "favourite_map_name=@0", "WHERE favourite_map_name=@1",
+                newName, previousName);
+            Database.UpdateRows("FPS_Rating", "map_name=@0", "WHERE map_name=@1",
+                newName, previousName);
+            Database.UpdateRows("FPS_SpawnPoint", "map_name=@0", "WHERE map_name=@1",
+                newName, previousName);
+            Database.UpdateRows("FPS_Round", "map_name=@0", "WHERE map_name=@1",
+                newName, previousName);
+            Database.UpdateRows("FPS_MapPool", "map_name=@0", "WHERE map_name=@1",
+                newName, previousName);
+            Database.UpdateRows("FPS_MapData", "name=@0", "WHERE name=@1",
+                newName, previousName);
         }
     }
 }

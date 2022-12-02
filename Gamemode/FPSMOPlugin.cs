@@ -95,6 +95,7 @@ namespace MCGalaxy
             var databaseManager = new DatabaseManager();
             databaseManager.CreateTables(checkExistence: true);
             databaseManager.Observe(_achievementsManager);
+            databaseManager.ObserveMCGalaxy();
 
             return databaseManager;
         }
@@ -102,6 +103,7 @@ namespace MCGalaxy
         private void UnloadDatabaseManager()
         {
             _databaseManager.Unobserve(_achievementsManager);
+            _databaseManager.UnobserveMCGalaxy();
         }
 
         private GUI LoadGUI(FPSMOGame game, AchievementsManager achievementsManager)

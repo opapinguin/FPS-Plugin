@@ -54,7 +54,6 @@ namespace FPSMO.DB
 	player_name VARCHAR(64),
 	map_name VARCHAR(256),
 	rating INTEGER,
-	FOREIGN KEY (player_name) REFERENCES FPS_Player(name),
 	PRIMARY KEY (player_name, map_name)
 );"
             },
@@ -63,7 +62,6 @@ namespace FPSMO.DB
 @"CREATE TABLE FPS_PlayerAchievement (
 	player_name VARCHAR(64),
 	achievement_name VARCHAR(64),
-	FOREIGN KEY (player_name) REFERENCES FPS_Player(name),
 	PRIMARY KEY (player_name, achievement_name)
 );"
 			},
@@ -74,9 +72,7 @@ namespace FPSMO.DB
 	round_id INTEGER NOT NULL,
 	victim VARCHAR(64) NOT NULL,
 	killer VARCHAR(64),
-	reason VARCHAR(16),
-	FOREIGN KEY (victim) REFERENCES FPS_Player(name),
-	FOREIGN KEY (killer) REFERENCES FPS_Player(name)
+	reason VARCHAR(16)
 );"
             }
 		};
