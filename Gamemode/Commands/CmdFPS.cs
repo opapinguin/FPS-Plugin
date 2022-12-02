@@ -62,6 +62,9 @@ namespace FPSMO.Commands
                 case "remove":
                     Remove(player, args);
                     break;
+                case "status":
+                    Status(player, args);
+                    break;
                 case "config":
                     Config(player, args);
                     break;
@@ -101,12 +104,13 @@ namespace FPSMO.Commands
         public override void Help(Player player)
         {
             player.Message("&T/fps start [map] &H- Starts First-person shooter.");
-            player.Message("&T/fps stop &H- Stops First-person shooter.");
-            player.Message("&T/fps end &H- Ends current round of First-person shooter.");
+            player.Message("&T/fps stop &H- Stops FPS.");
+            player.Message("&T/fps end &H- Ends current round of FPS.");
             player.Message("&T/fps add [map] &H- Adds map to the map pool.");
             player.Message("&T/fps remove [map] &H- Removes map from the map pool.");
+            player.Message("&T/fps status &H- Prints status for FPS.");
             player.Message("&T/fps list &H- Lists maps in the pool.");
-            player.Message("&T/fps config [map]&H- Manages configuration for &T<map>&H.");
+            player.Message("&T/fps config [map] &H- Manages configuration for &T<map>&H.");
             player.Message("&HRun &T/help fps config &Hfor help about map configuration.");
         }
 
@@ -277,6 +281,18 @@ namespace FPSMO.Commands
 
             _databaseManager.RemoveMap(map);
             player.Message($"&SMap &T{map} &Swas removed from the pool.");
+        }
+
+        private void Status(Player player, string[] args)
+        {
+            if (_game.bRunning)
+            {
+                player.Message($"&SFPS is currently running on &T{_game.map.name}&S.");
+            }
+            else
+            {
+                player.Message($"&SFPS isn't currently running.");
+            }
         }
 
         private void Config(Player player, string[] args)
