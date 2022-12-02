@@ -36,7 +36,7 @@ namespace MCGalaxy
 
         public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
         public override string name { get { return "FPSMO"; } }
-        public override string MCGalaxy_Version { get { return "1.9.4.0"; } }
+        public override string MCGalaxy_Version { get { return "1.9.4.4"; } }
 
         internal event EventHandler PluginLoaded;
         private void OnPluginLoaded()

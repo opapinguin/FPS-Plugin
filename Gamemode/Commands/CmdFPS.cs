@@ -78,12 +78,11 @@ namespace FPSMO.Commands
         {
             string[] mapPool = _databaseManager.GetMapPool();
 
-            MultiPageOutput.Output(player, mapPool,
+            Paginator.Output(player, mapPool,
                 formatter: (mapName) => mapName,
                 cmd: "fps list",
                 type: "maps",
-                modifier: args.Length >= 2 ? args[1] : "",
-                lines: false);
+                modifier: args.Length >= 2 ? args[1] : "");
         }
 
 
