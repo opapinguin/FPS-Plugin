@@ -79,7 +79,7 @@ namespace FPSMO.Commands
 
         private void List(Player player, string[] args)
         {
-            string[] mapPool = _databaseManager.GetMapPool();
+            string[] mapPool = _databaseManager.GetMapsPool();
 
             Paginator.Output(player, mapPool,
                 formatter: (mapName) => mapName,
@@ -143,12 +143,12 @@ namespace FPSMO.Commands
             {
                 map = args[1];
             }
-            else if (!player.IsSuper && _databaseManager.IsInMapPool(player.Level.name))
+            else if (!player.IsSuper && _databaseManager.IsInMapsPool(player.Level.name))
             {
                 map = player.Level.name;
             }
 
-            string[] mapPool = _databaseManager.GetMapPool();
+            string[] mapPool = _databaseManager.GetMapsPool();
 
             if (map is null)
             {
@@ -233,7 +233,7 @@ namespace FPSMO.Commands
                 return;
             }
 
-            if (_databaseManager.IsInMapPool(map))
+            if (_databaseManager.IsInMapsPool(map))
             {
                 player.Message($"&WMap &T{map} &Wis already in map pool.");
                 return;
@@ -267,7 +267,7 @@ namespace FPSMO.Commands
                 return;
             }
 
-            if (!_databaseManager.IsInMapPool(map))
+            if (!_databaseManager.IsInMapsPool(map))
             {
                 player.Message($"&WMap &T{map} &Wis not is the map pool.");
                 return;
@@ -330,7 +330,7 @@ namespace FPSMO.Commands
                 return;
             }
 
-            if (_databaseManager.IsInMapPool(map))
+            if (_databaseManager.IsInMapsPool(map))
             {
                 player.Message($"&WCannot erase configuration for &T{map}&W: it's in the map pool.");
                 player.Message($"&WPlease run &T/fps remove {map} &Wfirst.");

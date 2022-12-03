@@ -127,7 +127,7 @@ namespace FPSMO
         }
 
         internal event EventHandler<VoteStartedEventArgs> VoteStarted;
-        private void OnVoteStarted(string map1, string map2, string map3)
+        private void OnVoteStarted(string map1, string map2, string map3, int count)
         {
             if (VoteStarted != null)
             {
@@ -135,6 +135,7 @@ namespace FPSMO
                 args.Map1 = map1;
                 args.Map2 = map2;
                 args.Map3 = map3;
+                args.Count = count;
                 VoteStarted(this, args);
             }
         }
@@ -296,7 +297,6 @@ namespace FPSMO
 
         private void HookEventHandlers()
         {
-            OnPlayerConnectEvent.Register(HandlePlayerConnect, Priority.High);
             OnPlayerMoveEvent.Register(HandlePlayerMove, Priority.High);
             OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.High);
             OnPlayerChatEvent.Register(HandePlayerChat, Priority.High);
@@ -306,7 +306,6 @@ namespace FPSMO
 
         private void UnHookEventHandlers()
         {
-            OnPlayerConnectEvent.Unregister(HandlePlayerConnect);
             OnPlayerMoveEvent.Unregister(HandlePlayerMove);
             OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
             OnPlayerChatEvent.Unregister(HandePlayerChat);
@@ -361,19 +360,40 @@ namespace FPSMO
             if (reverted) cancel = true;
         }
 
-        private void HandlePlayerConnect(Player p)
+        private void HandleVoting(Player player, string message)
         {
-            PlayerJoinedGame(p);
-            // TODO: Add round recorder here
+            if (stage != Stage.Voting || subStage != SubStage.Middle) return;
+
+            int mapNumber = 0;
+
+            if (GetVotingMessage(message, ref mapNumber))
+            {
+                Vote(player, mapNumber);
+                player.cancelchat = true;
+            }
         }
 
-        private void HandleVoting(Player p, string msg)
+        private bool GetVotingMessage(string message, ref int mapNumber)
         {
-            if (FPSMOGame.Instance.stage != Stage.Voting || FPSMOGame.Instance.subStage != SubStage.Middle) { return; }
-            msg = msg.ToLower().TrimEnd();
-            UpdateVote(msg, p, "1", "one", ref votes1);
-            UpdateVote(msg, p, "2", "two", ref votes2);
-            UpdateVote(msg, p, "3", "three", ref votes3);
+            message = message.ToLower().TrimEnd();
+
+            if (message == "1")
+            {
+                mapNumber = 1;
+                return true;
+            }
+            else if (message == "2")
+            {
+                mapNumber = 2;
+                return true;
+            }
+            else if (message == "3" && map3 != null)
+            {
+                mapNumber = 3;
+                return true;
+            }
+
+            return false;
         }
 
         /******************

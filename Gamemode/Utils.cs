@@ -56,5 +56,32 @@ namespace FPSMO
 		{
 			return text.Replace(" ", "");
 		}
+
+		internal static List<int> ArgMaxAllIndexes(int[] array)
+		{
+			if (array.Length == 0)
+			{
+				return new List<int>();
+			}
+
+			int maximum = array[0];
+			List<int> indexes = new List<int>() { 0 };
+
+			for (int i = 1; i < array.Length; i++)
+			{
+				if (array[i] == maximum)
+				{
+					indexes.Add(i);
+				}
+				else if (array[i] > maximum)
+				{
+					indexes.Clear();
+					maximum = array[i];
+					indexes.Add(i);
+				}
+			}
+
+			return indexes;
+		}
 	}
 }

@@ -109,7 +109,7 @@ namespace FPSMO.DB
             return (GetMapData(mapName) != null);
         }
 
-        internal string[] GetMapPool()
+        internal string[] GetMapsPool()
         {
             var mapPool = new List<string>();
             List<string[]> matches = Database.GetRows("FPS_MapPool", "map_name");
@@ -122,9 +122,9 @@ namespace FPSMO.DB
             return mapPool.ToArray();
         }
 
-        internal bool IsInMapPool(string map)
+        internal bool IsInMapsPool(string map)
         {
-            string[] mapPool = GetMapPool();
+            string[] mapPool = GetMapsPool();
             return (mapPool.Contains(map));
         }
 

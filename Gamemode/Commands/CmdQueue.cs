@@ -21,16 +21,16 @@ using System.IO;
 
 namespace FPSMO.Commands
 {
-    internal class CmdVoteQueue : Command2
+    internal class CmdQueue : Command2
     {
-        public override string name { get { return "VoteQueue"; } }
+        public override string name { get { return "Queue"; } }
         public override string type { get { return CommandTypes.Games; } }
         public override bool SuperUseable { get { return false; } }
 
         private DatabaseManager _databaseManager;
         private LevelPicker _levelPicker;
 
-        internal CmdVoteQueue(DatabaseManager databaseManager, LevelPicker levelPicker)
+        internal CmdQueue(DatabaseManager databaseManager, LevelPicker levelPicker)
         {
             _databaseManager = databaseManager;
             _levelPicker = levelPicker;
@@ -38,37 +38,37 @@ namespace FPSMO.Commands
 
         public override void Use(Player p, string message)
         {
-            if (message is null || message == "")
+            if (message == "")
             {
-                p.Message("&HUsage: &T/votequeue <map>&H.");
+                p.Message("&HUsage: &T/queue <map>&H.");
                 return;
             }
 
             if (!_databaseManager.IsInMapsPool(message))
             {
-                p.Message($"&SThere is no map &T\"{message}\" in the maps pool.");
+                p.Message($"&WThere is no map &T\"{message}\" &Win the maps pool.");
                 return;
             }
 
             if (_levelPicker.HasMapQueued)
             {
-                p.Message($"&WCould not vote-queue &T{message}&W: there is already a map queued.");
+                p.Message($"&WCould not queue &T{message}&W: there is already a map queued.");
                 return;
             }
             else if (_levelPicker.HasMapVoteQueued)
             {
-                p.Message($"&WCould not vote-queue &T{message}&W: there is already a map vote-queued.");
+                p.Message($"&WCould not queue &T{message}&W: there is already a map vote-queued.");
                 return;
             }
 
-            _levelPicker.VoteQueue(message);
-            Chat.MessageAll($"&T{message} &Swill be included in next vote.");
+            _levelPicker.Queue(message);
+            Chat.MessageAll($"&T{message} &Shas been queued for next round.");
         }
 
         public override void Help(Player p)
         {
-            p.Message("&T/votequeue <map>");
-            p.Message("&H<map> will be included to the votes at the end of this round.");
+            p.Message("&T/queue <map>");
+            p.Message("&HQueues <map> for next round.");
         }
     }
 }

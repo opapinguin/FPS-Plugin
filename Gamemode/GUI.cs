@@ -213,7 +213,7 @@ namespace FPSMO
             FPSMOGame game = (FPSMOGame)sender;
 
             foreach (Player player in game.players.Values)
-                ShowVoteOptions(player, args.Map1, args.Map2, args.Map3);
+                ShowVoteOptions(player, args.Map1, args.Map2, args.Map3, args.Count);
         }
 
         internal void HandleVoteTicked(Object sender, VoteTickedEventArgs args)
@@ -415,6 +415,20 @@ namespace FPSMO
             player.SendCpeMessage(CpeMessageType.BottomRight1, $"&c{map1}, &a{map2}, &9{map3}");
         }
 
+        private void ShowVoteOptions(Player player, string map1, string map2, string map3, int count)
+        {
+            player.SendCpeMessage(CpeMessageType.BottomRight2, "&ePick a level");
+
+            if (count == 2)
+            {
+                player.SendCpeMessage(CpeMessageType.BottomRight1, $"&d1: {map1}, &a2: {map2}");
+            }
+            else if (count == 3)
+            {
+                player.SendCpeMessage(CpeMessageType.BottomRight1, $"&d1: {map1}, &a2: {map2}, &93: {map3}");
+            }
+        }
+
         private void ShowVoteTimeRemaining(Player player, int timeRemaining)
         {
             string message = String.Format($"&eVote time remaining: {timeRemaining}");
@@ -425,7 +439,15 @@ namespace FPSMO
                                      int votes1, int votes2, int votes3)
         {
             player.SendCpeMessage(CpeMessageType.Normal, $"&SVotes are in!");
-            player.SendCpeMessage(CpeMessageType.Normal, $"&c{map1}: {votes1} &ç{map2}: {votes2} {map3}: {votes3}");
+
+            if (map3 != null)
+            {
+                player.SendCpeMessage(CpeMessageType.Normal, $"&d{map1}: {votes1} &a{map2}: {votes2} &9{map3}: {votes3}");
+            }
+            else
+            {
+                player.SendCpeMessage(CpeMessageType.Normal, $"&d{map1}: {votes1} &a{map2}: {votes2}");
+            }
         }
 
         private void ShowRoundTimeRemaining(Player player, int timeRemaining)

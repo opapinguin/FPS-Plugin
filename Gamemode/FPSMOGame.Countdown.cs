@@ -35,9 +35,6 @@ namespace FPSMO
         #region begin
         private void BeginCountdown(uint delay)
         {
-            // Get the configuration
-            mapData = _databaseManager.GetMapData(map.name);
-
             roundStart = DateTime.Now.AddSeconds(delay);
 
             // Move on to the next sub-stage

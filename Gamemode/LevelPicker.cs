@@ -19,50 +19,124 @@ using System.Linq;
 using System.Text;
 using MCGalaxy;
 using FPSMO.Configuration;
+using FPSMO.DB;
 
 namespace FPSMO
 {
-    internal static class LevelPicker
+    internal class LevelPicker
     {
-        static private Random _random = new Random();
-        static private bool _hasMapVoteQueued = false;
-        static private string _mapVoteQueued;
+        private Random _random = new Random();
+        internal bool HasMapVoteQueued { get; private set; } = false;
+        private string _mapVoteQueued;
+        internal bool HasMapQueued { get; private set; } = false;
+        private string _mapQueued;
+        private DatabaseManager _databaseManager;
+        private readonly int _historySize;
+        internal List<string> LastMapsPlayed { get; private set; }
 
-        static internal void VoteQueue(string map)
+        internal LevelPicker(DatabaseManager databaseManager, int historySize)
         {
-            _hasMapVoteQueued = true;
-            _mapVoteQueued = map;
-        }
+            _databaseManager = databaseManager;
 
-        static internal List<string> PickVotingMaps(List<string> maps)
-        {
-            if (maps.Count == 1)
-                return new List<string>() { maps[0], maps[0], maps[0] };
-            else if (maps.Count == 2)
-                return new List<string>() { maps[0], maps[1], maps[1] };
-
-            List<string> mapsPool;
-            List<int> indexes;
-
-            if (_hasMapVoteQueued)
+            if (historySize >= 0)
             {
-                mapsPool = new List<string>(maps);
-                mapsPool.Remove(_mapVoteQueued);
-                indexes = Utils.RandomSubset(mapsPool.Count, 2);
-                indexes.Add(maps.IndexOf(_mapVoteQueued));
+                _historySize = historySize;
             }
             else
             {
-                mapsPool = maps;
-                indexes = Utils.RandomSubset(mapsPool.Count, 3);
+                Logger.Log(LogType.Warning, "Can't use {historySize} for map_history. Using 0 instead...");
+                _historySize = 0;
             }
 
+            LastMapsPlayed = new List<string>();
+        }
+
+        internal void VoteQueue(string map)
+        {
+            HasMapVoteQueued = true;
+            _mapVoteQueued = map;
+        }
+
+        internal void Queue(string map)
+        {
+            HasMapQueued = true;
+            _mapQueued = map;
+        }
+
+        internal void Register(string map)
+        {
+            LastMapsPlayed.Add(map);
+
+            if (LastMapsPlayed.Count > _historySize)
+                LastMapsPlayed.RemoveAt(0);
+        }
+
+        private string Cycle(List<string> mapPool, string lastPlayed)
+        {
+            if (lastPlayed is null) return mapPool[0];
+            int mapIndex = mapPool.IndexOf(lastPlayed);
+
+            if (mapIndex == -1)
+            {
+                return mapPool[0];
+            }
+            else
+            {
+                string nextMap = mapPool[(mapIndex + 1) % mapPool.Count];
+                return nextMap;
+            }
+        }
+
+        private List<string> Deterministic(string item)
+        {
+            return new List<string>() { item };
+        }
+
+        internal List<string> PickVotingMaps()
+        {
+            List<string> mapsPool = _databaseManager.GetMapsPool().ToList(); ;
+            bool isHistorySaturated = (_historySize >= mapsPool.Count - 1);
+
+            if (mapsPool.Count == 0) return new List<string>();
+
+            if (HasMapQueued)
+            {
+                HasMapQueued = false;
+                return Deterministic(_mapQueued);
+            }
+            else if (isHistorySaturated)
+            {
+                return Deterministic(Cycle(mapsPool, LastMapsPlayed.LastOrDefault()));
+            }
+            else if (mapsPool.Count == 2)
+            {
+                return mapsPool.ToList();
+            }
+
+            List<int> indexes;
             var pickedMaps = new List<string>();
 
-            foreach (int index in indexes)
-                pickedMaps.Add(maps[index]);
+            if (HasMapVoteQueued)
+            {
+                var mapsPoolReduced = new List<string>(mapsPool);
+                mapsPoolReduced.Remove(_mapVoteQueued);
+                indexes = Utils.RandomSubset(mapsPoolReduced.Count, 2);
 
-            _hasMapVoteQueued = false;
+                foreach (int index in indexes)
+                    pickedMaps.Add(mapsPoolReduced[index]);
+
+                pickedMaps.Add(_mapVoteQueued);
+                HasMapVoteQueued = false;
+            }
+            else
+            {
+                indexes = Utils.RandomSubset(mapsPool.Count, 3);
+
+                foreach (int index in indexes)
+                    pickedMaps.Add(mapsPool[index]);
+
+            }
+
             return pickedMaps;
         }
     }

@@ -24,5 +24,12 @@ namespace FPSMO.Configuration
         internal string Name { get; set; }
         internal uint? RoundDurationSeconds { get; set; }
         internal uint? CountdownTimeSeconds { get; set; }
+
+        internal static MapData Default(string mapName)
+        {
+            MapData mapData = new MapData();
+            mapData.Name = mapName;
+            return mapData;
+        }
     }
 }

@@ -36,6 +36,7 @@ namespace FPSMO
 		internal string Map1 { get; set; }
         internal string Map2 { get; set; }
         internal string Map3 { get; set; }
+		internal int Count { get; set; }
     }
 
 	internal class VoteTickedEventArgs : EventArgs

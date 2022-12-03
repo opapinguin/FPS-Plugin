@@ -45,9 +45,7 @@ namespace FPSMO
         private static FPSMOGame instance = null;
         private static readonly object padlock = new object();
 
-        FPSMOGame()
-        {
-        }
+        private FPSMOGame() {}
 
         internal static FPSMOGame Instance
         {
@@ -88,6 +86,7 @@ namespace FPSMO
         internal SubStage subStage;
 
         internal MapData mapData;
+        internal LevelPicker LevelPicker { get; set; }
         private GameProperties _gameProperties;
         private DatabaseManager _databaseManager;
         private bool _movingToNextMap = false;
@@ -117,7 +116,7 @@ namespace FPSMO
 
         internal void Start()
         {
-            string[] mapPool = _databaseManager.GetMapPool();
+            string[] mapPool = _databaseManager.GetMapsPool();
 
             if (mapPool.Length == 0)
             {
@@ -133,7 +132,7 @@ namespace FPSMO
 
         internal void Start(string mapName)
         {
-            string[] mapPool = _databaseManager.GetMapPool();
+            string[] mapPool = _databaseManager.GetMapsPool();
 
             if (!mapPool.CaselessContains(mapName))
             {
@@ -141,44 +140,46 @@ namespace FPSMO
                 return;
             }
 
-            // Hook eventhandlers
-            HookEventHandlers();
-
-            map = Level.Load(mapName);
-            mapData = _databaseManager.GetMapData(map.name);
-
-            // Activate teams
-            TeamHandler.Activate();
-
-            if (mapData is null || mapData.RoundDurationSeconds is null)
-            {
-                roundTime = TimeSpan.FromSeconds(_gameProperties.DefaultRoundDurationSeconds);
-            }
-            else
-            {
-                roundTime = TimeSpan.FromSeconds((double)mapData.RoundDurationSeconds);
-            }
-
-            // Add the players to the game
             players = new Dictionary<string, Player>();
-
-            foreach (Player p in PlayerInfo.Online.Items)
-            {
-                if (p.level.name == map.name)
-                {
-                    PlayerJoinedGame(p);
-                }
-            }
-
-            // Start the game
-            stage = Stage.Countdown;
-            subStage = SubStage.Begin;
+            HookEventHandlers();
+            StartRound(mapName);
 
             bRunning = true;
 
             Thread t = new Thread(Run) { Name = "FPSMO" };
             t.Start();  // Automatically aborts when Run() returns
             Chat.MessageAll($"&SFPS was started on &T{mapName}&S.");
+        }
+
+        private void StartRound(string mapName)
+        {
+            map = Level.Load(mapName);
+            mapData = _databaseManager.GetMapData(map.name) ?? MapData.Default(mapName);
+            LevelPicker.Register(mapName);
+
+            TeamHandler.Activate();
+            PlayerDataHandler.Instance.ResetPlayerData();
+            ResetVotes();
+
+            if (mapData.RoundDurationSeconds is null)
+                roundTime = TimeSpan.FromSeconds(_gameProperties.DefaultRoundDurationSeconds);
+            else
+                roundTime = TimeSpan.FromSeconds((double)mapData.RoundDurationSeconds);
+
+            MovePlayersToNextMap(mapName);
+            CountStandingPlayersAsJoining(mapName);
+
+            stage = Stage.Countdown;
+            subStage = SubStage.Begin;
+        }
+
+        private void CountStandingPlayersAsJoining(string levelName)
+        {
+            foreach (Player player in PlayerInfo.Online.Items)
+            {
+                if (player.level.name == levelName)
+                    PlayerJoinedGame(player);
+            }
         }
         
         internal void Stop()
@@ -208,7 +209,7 @@ namespace FPSMO
                 switch (stage)
                 {
                     case Stage.Countdown:
-                        if (mapData is null || mapData.CountdownTimeSeconds is null)
+                        if (mapData.CountdownTimeSeconds is null)
                         {
                             UpdateCountdown(_gameProperties.CountdownDurationSeconds, subStage);
                         }

@@ -73,7 +73,7 @@ namespace FPSMO.Commands
             }
             else
             {
-                player.Message($"&WYour rating for this map is already &T{rating}/5WS.");
+                player.Message($"&WYour rating for this map is already &T{rating}/5&S.");
             }
         }
 

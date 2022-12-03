@@ -38,14 +38,35 @@ namespace FPSMO
         internal uint votes1, votes2, votes3;
         private void BeginVoting()
         {
-            List<string> pickedMaps = LevelPicker.PickVotingMaps(_databaseManager.GetMapPool().ToList());
+            List<string> pickedMaps = LevelPicker.PickVotingMaps();
+
+            if (pickedMaps.Count == 0)
+            {
+                Stop();
+            }
+            else if (pickedMaps.Count == 1)
+            {
+                string mapName = pickedMaps[0];
+                StartRound(mapName);
+                return;
+            }
+            else if (pickedMaps.Count == 2)
+            {
+                map1 = pickedMaps[0];
+                map2 = pickedMaps[1];
+                map3 = null;
+
+                subStage = SubStage.Middle;
+                OnVoteStarted(map1, map2, null, count: 2);
+                return;
+            }
+
             map1 = pickedMaps[0];
             map2 = pickedMaps[1];
             map3 = pickedMaps[2];
 
-            // Move on to the next sub-stage
             subStage = SubStage.Middle;
-            OnVoteStarted(map1, map2, map3);
+            OnVoteStarted(map1, map2, map3, count: 3);
         }
 
         #endregion
@@ -74,22 +95,9 @@ namespace FPSMO
         #region end
         private void EndVoting()
         {
-            string nextMap;
-
-            nextMap = GetNextMap();
-
-            // TODO: Save Stats for player configuration
-
-            PlayerDataHandler.Instance.ResetPlayerData();
-            ResetVotes();
-
-            MoveToNextMap(nextMap);
-
-            // Move on to the next sub-stage and stage
-            stage = Stage.Countdown;
-            subStage = SubStage.Begin;
-
+            string nextMap = GetNextMap();
             OnVoteEnded();
+            StartRound(nextMap);
         }
 
         #endregion
@@ -99,63 +107,68 @@ namespace FPSMO
          ******************/
         #region Helper Methods
 
-        /// <summary>
-        /// Handles a message like "1" or "2" in one function. Updates the vote based on the message
-        /// </summary>
-        private void UpdateVote(string msg, Player p, string numInt, string numStr, ref uint votes)
+        private void Vote(Player player, int mapNumber)
         {
-            if (msg == numInt || msg == numStr)
-            {
-                if (PlayerDataHandler.Instance[p.truename].bVoted)
-                {
-                    votes++;
-                    ushort prevVote = PlayerDataHandler.Instance[p.truename].vote;
-                    switch (prevVote)
-                    {
-                        case 1:
-                            votes1--;
-                            break;
-                        case 2:
-                            votes2--;
-                            break;
-                        case 3:
-                            votes3--;
-                            break;
-                    }
+            PlayerData playerData = PlayerDataHandler.Instance[player.truename];
 
-                    PlayerDataHandler.Instance[p.truename].vote = ushort.Parse(numInt);
-                } else
+            if (playerData.bVoted)
+            {
+                int previousVote = (int)playerData.vote;
+
+                switch (previousVote)
                 {
-                    votes += 1;
-                    PlayerDataHandler.Instance[p.truename].bVoted = true;
-                    PlayerDataHandler.Instance[p.truename].vote = ushort.Parse(numInt);
+                    case 1:
+                        votes1--;
+                        break;
+                    case 2:
+                        votes2--;
+                        break;
+                    case 3:
+                        votes3--;
+                        break;
                 }
-                p.Message("Thank you for voting");
-                p.cancelchat = true;
             }
+
+            playerData.vote = (ushort)mapNumber;
+
+            switch (mapNumber)
+            {
+                case 1:
+                    votes1++;
+                    break;
+                case 2:
+                    votes2++;
+                    break;
+                case 3:
+                    votes3++;
+                    break;
+            }
+
+            playerData.bVoted = true;
+            player.Message($"&SYour vote: &T{mapNumber}&S.");
         }
 
         private string GetNextMap()
         {
-            Random rand = new Random();
-            int index = rand.Next(3);
+            int count = (map3 is null) ? 2 : 3;
+            int[] votes;
+            List<int> indexes;
 
-            if (votes3 > votes2 && votes2 >= votes1)
-            {
-                return map3;
-            }
-            else if (votes2 > votes1 && votes1 >= votes3)
-            {
-                return map2;
-            }
-            else if (votes1 > votes3 && votes3 >= votes2)
-            {
-                return map1;
-            } else
-            {
-                // votes1 == votes2 == votes3, only way to get here
-                return index == 0 ? map1 : (index == 1 ? map2 : map3);
-            }
+            if (count == 2)
+                votes = new int[] { (int)votes1, (int)votes2 };
+            else
+                votes = new int[] { (int)votes1, (int)votes2, (int)votes3 };
+
+            indexes = Utils.ArgMaxAllIndexes(votes);
+            var maps = new List<string>();
+
+            if (indexes.Contains(0)) maps.Add(map1);
+            if (indexes.Contains(1)) maps.Add(map2);
+            if (indexes.Contains(2)) maps.Add(map3);
+
+            Random rand = new Random();
+            int index = rand.Next(indexes.Count);
+            return maps[index];
         }
 
         private void ResetVotes()
@@ -164,17 +177,14 @@ namespace FPSMO
             map1 = map2 = map3 = "";
         }
 
-        private void MoveToNextMap(string map)
+        private void MovePlayersToNextMap(string map)
         {
-            _movingToNextMap = true;
             List<Player> playersList = players.Values.ToList();
 
             foreach (Player p in playersList)
             {
                 PlayerActions.ChangeMap(p, map);
             }
-
-            _movingToNextMap = false;
         }
 
         #endregion

@@ -33,6 +33,7 @@ namespace MCGalaxy
         private AchievementsManager _achievementsManager;
         private DatabaseManager _databaseManager;
         private GameProperties _gameProperties;
+        private FPSMO.LevelPicker _levelPicker;
 
         public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
         public override string name { get { return "FPSMO"; } }
@@ -59,6 +60,11 @@ namespace MCGalaxy
             _game.SetDatabaseManager(_databaseManager);
 
             LoadGameProperties();
+
+            _levelPicker = new FPSMO.LevelPicker(_databaseManager, (int)_gameProperties.MapHistory);
+            _game.LevelPicker = _levelPicker;
+
+            UnloadVanillaCommands();
             RegisterCommands();
 
             if (_gameProperties.AutoStart)
@@ -70,7 +76,9 @@ namespace MCGalaxy
         public override void Unload(bool shutdown)
         {
             OnPluginUnloading();
+
             UnregisterCommands();
+            ReloadVanillaCommands();
             StopGame();
             UnloadAchievementsManager();
             UnloadDatabaseManager();
@@ -141,7 +149,8 @@ namespace MCGalaxy
             Command.Register(new CmdAchievementTest(_achievementsManager));
             Command.Register(new CmdSwapTeam());
             Command.Register(new CmdFPS(_game, _databaseManager));
-            Command.Register(new CmdVoteQueue(_databaseManager));
+            Command.Register(new CmdVoteQueue(_databaseManager, _levelPicker));
+            Command.Register(new CmdQueue(_databaseManager, _levelPicker));
             Command.Register(new CmdRate(_databaseManager));
             Command.Register(new CmdShootGun());
             Command.Register(new CmdShootRocket());
@@ -153,12 +162,23 @@ namespace MCGalaxy
             Command.Unregister(Command.Find("FPSMOSwapTeam"));
             Command.Unregister(Command.Find("FPSMO"));
             Command.Unregister(Command.Find("VoteQueue"));
+            Command.Unregister(Command.Find("Queue"));
             Command.Unregister(Command.Find("Rate"));
             Command.Unregister(Command.Find("FPSMOShootGun"));
             Command.Unregister(Command.Find("FPSMOShootRocket"));
             Command.Unregister(Command.Find("FPSMOWeaponSpeed"));
             Command.Unregister(Command.Find("AchievementTest"));
             Command.Unregister(Command.Find("Achievements"));
+        }
+
+        private void UnloadVanillaCommands()
+        {
+            Command.Unregister(Command.Find("Queue"));
+        }
+
+        private void ReloadVanillaCommands()
+        {
+            Command.Register(new MCGalaxy.Commands.Fun.CmdQueue());
         }
 
         private void LoadGameProperties()
