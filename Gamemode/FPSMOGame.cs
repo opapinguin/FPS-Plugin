@@ -88,6 +88,7 @@ namespace FPSMO
         internal MapData mapData;
         internal LevelPicker LevelPicker { get; set; }
         private GameProperties _gameProperties;
+        private string _serverNameNoSuffix = Server.Config.Name;
         private DatabaseManager _databaseManager;
         private bool _movingToNextMap = false;
 
@@ -168,6 +169,7 @@ namespace FPSMO
 
             MovePlayersToNextMap(mapName);
             CountStandingPlayersAsJoining(mapName);
+            Server.Config.Name = _serverNameNoSuffix + $" (map: {mapName})";
 
             stage = Stage.Countdown;
             subStage = SubStage.Begin;
@@ -199,6 +201,7 @@ namespace FPSMO
             WeaponHandler.Deactivate();
 
             PlayerDataHandler.Instance.Deactivate();
+            Server.Config.Name = _serverNameNoSuffix;
             Chat.MessageAll($"&SFPS was stopped.");
         }
 
