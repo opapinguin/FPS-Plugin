@@ -20,117 +20,116 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FPS.Weapons
+namespace FPS.Weapons;
+
+/// <summary>
+/// Handles weapon animations and collisions
+/// </summary>
+internal static class WeaponHandler
 {
-    /// <summary>
-    /// Handles weapon animations and collisions
-    /// </summary>
-    internal static class WeaponHandler
+    /**********
+     * FIELDS *
+     **********/
+    static readonly object activateLock = new object();
+    static readonly object deactivateLock = new object();
+
+    static SchedulerTask task;
+    static Scheduler instance;
+
+    static uint MSTick;
+    static uint currentTick;
+
+    static List<WeaponEntity> weaponEntities = new List<WeaponEntity>();
+    static List<WeaponEntity> collidingEntities = new List<WeaponEntity>();
+
+    static Level level;
+
+    internal static uint Tick { get { return currentTick; } }
+
+    internal static void Activate()
     {
-        /**********
-         * FIELDS *
-         **********/
-        static readonly object activateLock = new object();
-        static readonly object deactivateLock = new object();
+        currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
+        MSTick = Constants.MS_UPDATE_WEAPON_ANIMATIONS;
 
-        static SchedulerTask task;
-        static Scheduler instance;
+        level = FPSMOGame.Instance.map;
 
-        static uint MSTick;
-        static uint currentTick;
-
-        static List<WeaponEntity> weaponEntities = new List<WeaponEntity>();
-        static List<WeaponEntity> collidingEntities = new List<WeaponEntity>();
-
-        static Level level;
-
-        internal static uint Tick { get { return currentTick; } }
-
-        internal static void Activate()
+        lock (activateLock)
         {
-            currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
-            MSTick = Constants.MS_UPDATE_WEAPON_ANIMATIONS;
+            if (instance != null) return;   // Singleton boilerplate
+            instance = new Scheduler("WeaponAnimationsScheduler");
+            task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSTick));
+        }
 
-            level = FPSMOGame.Instance.map;
+        WeaponAnimsHandler.Activate();
+        WeaponCollisionsHandler.Activate();
+    }
 
-            lock (activateLock)
+    internal static void Deactivate()
+    {
+        lock (deactivateLock)
+        {
+            if (instance != null)
             {
-                if (instance != null) return;   // Singleton boilerplate
-                instance = new Scheduler("WeaponAnimationsScheduler");
-                task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSTick));
-            }
-
-            WeaponAnimsHandler.Activate();
-            WeaponCollisionsHandler.Activate();
-        }
-
-        internal static void Deactivate()
-        {
-            lock (deactivateLock)
-            {
-                if (instance != null)
-                {
-                    instance.Cancel(task);
-                    instance = null;
-                }
-            }
-
-            WeaponAnimsHandler.Undraw(weaponEntities, currentTick : true);
-            WeaponAnimsHandler.Deactivate();
-            currentTick = 10;
-
-            weaponEntities = new List<WeaponEntity>();
-        }
-
-        internal static void AddEntity(WeaponEntity anim)
-        {
-            weaponEntities.Add(anim);
-        }
-
-        internal static void RemoveEntity(WeaponEntity anim)
-        {
-            weaponEntities.Remove(anim);
-        }
-
-        internal static void Update(SchedulerTask task)
-        {
-            // 1. Find blocks for tick T
-            // 2. Undraw everything from tick T-1 (this caches)
-            // 3. Remove animations that were found to collide at T-1
-            // 4. Set collidingEntities to tick T's colliding entities
-            // 5. For entities that did collide, add to the collided entities list
-            // 6. Check collisions against players and handle hits
-            // 7. Draw all animations for tick T (this caches)
-            // 8. Actually flush the animations (draw them)
-            // 8. Increase tick to T+1
-            // Rinse and repeat
-
-            UpdateEntityBlocks();
-            WeaponAnimsHandler.Undraw(weaponEntities, currentTick : false);
-            RemoveEntities(collidingEntities);
-            collidingEntities = WeaponCollisionsHandler.GetCollisions(weaponEntities);  // Time-wise the heaviest line of code here
-            WeaponAnimsHandler.Draw(weaponEntities, currentTick : true);
-            WeaponCollisionsHandler.Update(weaponEntities);
-            WeaponAnimsHandler.Flush();
-            currentTick++;
-        }
-
-        private static void UpdateEntityBlocks()
-        {
-            for (int i = 0; i < weaponEntities.Count; i++)
-            {
-                WeaponEntity we = weaponEntities[i];
-                we.lastBlocks = we.currentBlocks;
-                we.currentBlocks = we.GetCurrentBlocksInterpolate(Tick, Tick + we.frameLength);
+                instance.Cancel(task);
+                instance = null;
             }
         }
 
-        private static void RemoveEntities(List<WeaponEntity> weList)
+        WeaponAnimsHandler.Undraw(weaponEntities, currentTick : true);
+        WeaponAnimsHandler.Deactivate();
+        currentTick = 10;
+
+        weaponEntities = new List<WeaponEntity>();
+    }
+
+    internal static void AddEntity(WeaponEntity anim)
+    {
+        weaponEntities.Add(anim);
+    }
+
+    internal static void RemoveEntity(WeaponEntity anim)
+    {
+        weaponEntities.Remove(anim);
+    }
+
+    internal static void Update(SchedulerTask task)
+    {
+        // 1. Find blocks for tick T
+        // 2. Undraw everything from tick T-1 (this caches)
+        // 3. Remove animations that were found to collide at T-1
+        // 4. Set collidingEntities to tick T's colliding entities
+        // 5. For entities that did collide, add to the collided entities list
+        // 6. Check collisions against players and handle hits
+        // 7. Draw all animations for tick T (this caches)
+        // 8. Actually flush the animations (draw them)
+        // 8. Increase tick to T+1
+        // Rinse and repeat
+
+        UpdateEntityBlocks();
+        WeaponAnimsHandler.Undraw(weaponEntities, currentTick : false);
+        RemoveEntities(collidingEntities);
+        collidingEntities = WeaponCollisionsHandler.GetCollisions(weaponEntities);  // Time-wise the heaviest line of code here
+        WeaponAnimsHandler.Draw(weaponEntities, currentTick : true);
+        WeaponCollisionsHandler.Update(weaponEntities);
+        WeaponAnimsHandler.Flush();
+        currentTick++;
+    }
+
+    private static void UpdateEntityBlocks()
+    {
+        for (int i = 0; i < weaponEntities.Count; i++)
         {
-            foreach (WeaponEntity entity in weList)
-            {
-                WeaponHandler.RemoveEntity(entity);
-            }
+            WeaponEntity we = weaponEntities[i];
+            we.lastBlocks = we.currentBlocks;
+            we.currentBlocks = we.GetCurrentBlocksInterpolate(Tick, Tick + we.frameLength);
+        }
+    }
+
+    private static void RemoveEntities(List<WeaponEntity> weList)
+    {
+        foreach (WeaponEntity entity in weList)
+        {
+            WeaponHandler.RemoveEntity(entity);
         }
     }
 }

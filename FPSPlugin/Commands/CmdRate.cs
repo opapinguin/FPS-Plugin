@@ -19,90 +19,89 @@ using MCGalaxy;
 using MCGalaxy.Commands;
 using System.IO;
 
-namespace FPS.Commands
+namespace FPS.Commands;
+
+internal class CmdRate : Command2
 {
-    internal class CmdRate : Command2
+    public override string name { get { return "Rate"; } }
+    public override string type { get { return CommandTypes.Games; } }
+    public override bool SuperUseable { get { return false; } }
+
+    private DatabaseManager _databaseManager;
+
+    internal CmdRate(DatabaseManager databaseManager)
     {
-        public override string name { get { return "Rate"; } }
-        public override string type { get { return CommandTypes.Games; } }
-        public override bool SuperUseable { get { return false; } }
+        _databaseManager = databaseManager;
+    }
 
-        private DatabaseManager _databaseManager;
-
-        internal CmdRate(DatabaseManager databaseManager)
+    public override void Use(Player player, string message, CommandData data)
+    {
+        if (message == "")
         {
-            _databaseManager = databaseManager;
+            Help(player);
+            return;
+        }
+        else if (message.ToLower() == "remove")
+        {
+            RemoveRating(player.level, player);
+            return;
         }
 
-        public override void Use(Player player, string message, CommandData data)
+        int rating = 0;
+
+        if (!CommandParser.GetInt(player, message, "Rating", ref rating, min: 0, max: 5))
+            return;
+
+        Level level = player.level;
+
+        if (IsLevelAuthor(level, player))
         {
-            if (message == "")
-            {
-                Help(player);
-                return;
-            }
-            else if (message.ToLower() == "remove")
-            {
-                RemoveRating(player.level, player);
-                return;
-            }
-
-            int rating = 0;
-
-            if (!CommandParser.GetInt(player, message, "Rating", ref rating, min: 0, max: 5))
-                return;
-
-            Level level = player.level;
-
-            if (IsLevelAuthor(level, player))
-            {
-                player.Message($"Cannot rate {level.name} as you are an author of it"); return;
-            }
-
-            int? previousRating = _databaseManager.GetRating(level.name, player);
-            _databaseManager.SetRating(level.name, player, rating);
-
-            if (previousRating is null)
-            {
-                player.Message("&SThank you for rating this map.");
-                player.Message($"&SYour rating: &T{rating}/5&S.");
-            }
-            else if (previousRating != rating)
-            {
-                player.Message($"&SYou have updated your rating to &T{rating}/5&S.");
-            }
-            else
-            {
-                player.Message($"&WYour rating for this map is already &T{rating}/5&S.");
-            }
+            player.Message($"Cannot rate {level.name} as you are an author of it"); return;
         }
 
-        private void RemoveRating(Level level, Player player)
+        int? previousRating = _databaseManager.GetRating(level.name, player);
+        _databaseManager.SetRating(level.name, player, rating);
+
+        if (previousRating is null)
         {
-            int? previousRating = _databaseManager.GetRating(level.name, player);
+            player.Message("&SThank you for rating this map.");
+            player.Message($"&SYour rating: &T{rating}/5&S.");
+        }
+        else if (previousRating != rating)
+        {
+            player.Message($"&SYou have updated your rating to &T{rating}/5&S.");
+        }
+        else
+        {
+            player.Message($"&WYour rating for this map is already &T{rating}/5&S.");
+        }
+    }
 
-            if (previousRating is null)
-            {
-                player.Message("&WYour haven't rated this map yet.");
-            }
-            else
-            {
-                _databaseManager.RemoveRating(level.name, player);
-                player.Message($"&SYour rating on &T{level.name} &Swas removed.");
-            }
+    private void RemoveRating(Level level, Player player)
+    {
+        int? previousRating = _databaseManager.GetRating(level.name, player);
 
+        if (previousRating is null)
+        {
+            player.Message("&WYour haven't rated this map yet.");
+        }
+        else
+        {
+            _databaseManager.RemoveRating(level.name, player);
+            player.Message($"&SYour rating on &T{level.name} &Swas removed.");
         }
 
-        private bool IsLevelAuthor(Level level, Player player)
-        {
-            string[] authors = level.Config.Authors.SplitComma();
-            return authors.CaselessContains(player.truename);
-        }
+    }
 
-        public override void Help(Player p)
-        {
-            p.Message("&T/rate <0-5> &H- rates current map.");
-            p.Message("&T/rate remove &H- removes your rating.");
-        }
+    private bool IsLevelAuthor(Level level, Player player)
+    {
+        string[] authors = level.Config.Authors.SplitComma();
+        return authors.CaselessContains(player.truename);
+    }
+
+    public override void Help(Player p)
+    {
+        p.Message("&T/rate <0-5> &H- rates current map.");
+        p.Message("&T/rate remove &H- removes your rating.");
     }
 }

@@ -19,64 +19,62 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
-namespace FPS
+namespace FPS;
+
+internal class Team
 {
-    internal class Team
+    internal ushort totalKills;
+    internal ushort totalDeaths;
+    internal string name;
+    internal Dictionary<string, Player> players;
+    internal int Count { get { return players.Count; } }
+
+    internal Team(string name)
     {
-        internal ushort totalKills;
-        internal ushort totalDeaths;
-        internal string name;
-        internal Dictionary<string, Player> players;
-        internal int Count { get { return players.Count; } }
+        this.totalKills = 0;
+        this.totalDeaths = 0;
+        this.name = name.ToUpper();
+        this.players = new Dictionary<string, Player>();
+    }
 
-        internal Team(string name)
-        {
-            this.totalKills = 0;
-            this.totalDeaths = 0;
-            this.name = name.ToUpper();
-            this.players = new Dictionary<string, Player>();
+    internal void Add(Player p)
+    {
+        PlayerData pData = PlayerDataHandler.Instance[p.truename];
+        if (pData != null) {
+            pData.team = name;
+            PlayerDataHandler.Instance[p.truename] = pData;
         }
 
-        internal void Add(Player p)
-        {
-            PlayerData pData = PlayerDataHandler.Instance[p.truename];
-            if (pData != null) {
-                pData.team = name;
-                PlayerDataHandler.Instance[p.truename] = pData;
-            }
+        players[p.truename] = p;
+    }
 
-            players[p.truename] = p;
+    internal void Remove(Player p)
+    {
+        PlayerData pData = PlayerDataHandler.Instance[p.truename];
+        if (pData != null) {
+            pData.team = "NONE";
+            PlayerDataHandler.Instance[p.truename] = pData;
         }
 
-        internal void Remove(Player p)
-        {
-            PlayerData pData = PlayerDataHandler.Instance[p.truename];
-            if (pData != null) {
-                pData.team = "NONE";
-                PlayerDataHandler.Instance[p.truename] = pData;
-            }
+        if (players.ContainsKey(p.truename)) { players.Remove(p.truename); }
+    }
 
-            if (players.ContainsKey(p.truename)) { players.Remove(p.truename); }
+    internal bool Contains(Player p)
+    {
+        return players.ContainsKey(p.truename);
+    }
+
+    internal void Reset()
+    {
+        Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
+
+        foreach (Player p in playersCopy.Values)
+        {
+            Remove(p);
         }
 
-        internal bool Contains(Player p)
-        {
-            return players.ContainsKey(p.truename);
-        }
-
-        internal void Reset()
-        {
-            Dictionary<string, Player> playersCopy = new Dictionary<string, Player>(players);
-
-            foreach (Player p in playersCopy.Values)
-            {
-                Remove(p);
-            }
-
-            players = new Dictionary<string, Player>();
-            totalKills = 0;
-            totalDeaths = 0;
-        }
+        players = new Dictionary<string, Player>();
+        totalKills = 0;
+        totalDeaths = 0;
     }
 }
-

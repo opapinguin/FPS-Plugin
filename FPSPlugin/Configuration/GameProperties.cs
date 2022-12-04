@@ -21,62 +21,61 @@ using BlockID = System.UInt16;
 using System.Text;
 using System;
 
-namespace FPS.Configuration
+namespace FPS.Configuration;
+
+internal class GameProperties
 {
-    internal class GameProperties
+    internal bool AutoStart { get; set; } = true;
+    internal uint CountdownDurationSeconds { get; set; } = 10u;
+    internal uint DefaultRoundDurationSeconds { get; set; } = 60u;
+    internal uint VoteDurationSeconds { get; set; } = 10u;
+    internal uint AFKNoticeSeconds { get; set; } = 110u;
+    internal uint AFKModeSeconds { get; set; } = 120u;
+    internal uint MapHistory { get; set; } = 1u;
+    internal bool TeamVersusTeamMode { get; set; } = false;
+
+    public override string ToString()
     {
-        internal bool AutoStart { get; set; } = true;
-        internal uint CountdownDurationSeconds { get; set; } = 10u;
-        internal uint DefaultRoundDurationSeconds { get; set; } = 60u;
-        internal uint VoteDurationSeconds { get; set; } = 10u;
-        internal uint AFKNoticeSeconds { get; set; } = 110u;
-        internal uint AFKModeSeconds { get; set; } = 120u;
-        internal uint MapHistory { get; set; } = 1u;
-        internal bool TeamVersusTeamMode { get; set; } = false;
+        StringBuilder stringBuilder = new StringBuilder();
 
-        public override string ToString()
+        stringBuilder.AppendLine($"autostart = {AutoStart}");
+        stringBuilder.AppendLine($"countdown_duration_seconds = {CountdownDurationSeconds}");
+        stringBuilder.AppendLine($"vote_duration_seconds = {VoteDurationSeconds}");
+        stringBuilder.AppendLine($"default_round_duration = {DefaultRoundDurationSeconds}");
+        stringBuilder.AppendLine($"afk_notice_seconds = {AFKNoticeSeconds}");
+        stringBuilder.AppendLine($"afk_mode_seconds = {AFKModeSeconds}");
+        stringBuilder.AppendLine($"map_history = {MapHistory}");
+        stringBuilder.AppendLine($"team_vs_team_mode = {TeamVersusTeamMode}");
+
+        return stringBuilder.ToString();
+    }
+
+    internal static GameProperties Default()
+    {
+        return new GameProperties();
+    }
+
+    internal static GameProperties Load(string path)
+    {
+        if (!File.Exists(path))
         {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            stringBuilder.AppendLine($"autostart = {AutoStart}");
-            stringBuilder.AppendLine($"countdown_duration_seconds = {CountdownDurationSeconds}");
-            stringBuilder.AppendLine($"vote_duration_seconds = {VoteDurationSeconds}");
-            stringBuilder.AppendLine($"default_round_duration = {DefaultRoundDurationSeconds}");
-            stringBuilder.AppendLine($"afk_notice_seconds = {AFKNoticeSeconds}");
-            stringBuilder.AppendLine($"afk_mode_seconds = {AFKModeSeconds}");
-            stringBuilder.AppendLine($"map_history = {MapHistory}");
-            stringBuilder.AppendLine($"team_vs_team_mode = {TeamVersusTeamMode}");
-
-            return stringBuilder.ToString();
+            throw new FileNotFoundException();
         }
 
-        internal static GameProperties Default()
+        string[] lines = System.IO.File.ReadAllLines(path);
+        GamePropertiesParser parser = new GamePropertiesParser();
+        return parser.Parse(lines);
+    }
+
+    internal static void Save(GameProperties properties,
+                              string directory, string fileName = "game.properties")
+    {
+        if (!Directory.Exists(directory))
         {
-            return new GameProperties();
+            throw new DirectoryNotFoundException();
         }
 
-        internal static GameProperties Load(string path)
-        {
-            if (!File.Exists(path))
-            {
-                throw new FileNotFoundException();
-            }
-
-            string[] lines = System.IO.File.ReadAllLines(path);
-            GamePropertiesParser parser = new GamePropertiesParser();
-            return parser.Parse(lines);
-        }
-
-        internal static void Save(GameProperties properties,
-                                  string directory, string fileName = "game.properties")
-        {
-            if (!Directory.Exists(directory))
-            {
-                throw new DirectoryNotFoundException();
-            }
-
-            string path = Path.Combine(directory, fileName);
-            System.IO.File.WriteAllText(path, properties.ToString());
-        }
+        string path = Path.Combine(directory, fileName);
+        System.IO.File.WriteAllText(path, properties.ToString());
     }
 }

@@ -19,56 +19,55 @@ using MCGalaxy;
 using System;
 using System.IO;
 
-namespace FPS.Commands
+namespace FPS.Commands;
+
+internal class CmdVoteQueue : Command2
 {
-    internal class CmdVoteQueue : Command2
+    public override string name { get { return "VoteQueue"; } }
+    public override string type { get { return CommandTypes.Games; } }
+    public override bool SuperUseable { get { return false; } }
+
+    private DatabaseManager _databaseManager;
+    private LevelPicker _levelPicker;
+
+    internal CmdVoteQueue(DatabaseManager databaseManager, LevelPicker levelPicker)
     {
-        public override string name { get { return "VoteQueue"; } }
-        public override string type { get { return CommandTypes.Games; } }
-        public override bool SuperUseable { get { return false; } }
+        _databaseManager = databaseManager;
+        _levelPicker = levelPicker;
+    }
 
-        private DatabaseManager _databaseManager;
-        private LevelPicker _levelPicker;
-
-        internal CmdVoteQueue(DatabaseManager databaseManager, LevelPicker levelPicker)
+    public override void Use(Player p, string message)
+    {
+        if (message is null || message == "")
         {
-            _databaseManager = databaseManager;
-            _levelPicker = levelPicker;
+            p.Message("&HUsage: &T/votequeue <map>&H.");
+            return;
         }
 
-        public override void Use(Player p, string message)
+        if (!_databaseManager.IsInMapsPool(message))
         {
-            if (message is null || message == "")
-            {
-                p.Message("&HUsage: &T/votequeue <map>&H.");
-                return;
-            }
-
-            if (!_databaseManager.IsInMapsPool(message))
-            {
-                p.Message($"&SThere is no map &T\"{message}\" in the maps pool.");
-                return;
-            }
-
-            if (_levelPicker.HasMapQueued)
-            {
-                p.Message($"&WCould not vote-queue &T{message}&W: there is already a map queued.");
-                return;
-            }
-            else if (_levelPicker.HasMapVoteQueued)
-            {
-                p.Message($"&WCould not vote-queue &T{message}&W: there is already a map vote-queued.");
-                return;
-            }
-
-            _levelPicker.VoteQueue(message);
-            Chat.MessageAll($"&T{message} &Swill be included in next vote.");
+            p.Message($"&SThere is no map &T\"{message}\" in the maps pool.");
+            return;
         }
 
-        public override void Help(Player p)
+        if (_levelPicker.HasMapQueued)
         {
-            p.Message("&T/votequeue <map>");
-            p.Message("&H<map> will be included to the votes at the end of this round.");
+            p.Message($"&WCould not vote-queue &T{message}&W: there is already a map queued.");
+            return;
         }
+        else if (_levelPicker.HasMapVoteQueued)
+        {
+            p.Message($"&WCould not vote-queue &T{message}&W: there is already a map vote-queued.");
+            return;
+        }
+
+        _levelPicker.VoteQueue(message);
+        Chat.MessageAll($"&T{message} &Swill be included in next vote.");
+    }
+
+    public override void Help(Player p)
+    {
+        p.Message("&T/votequeue <map>");
+        p.Message("&H<map> will be included to the votes at the end of this round.");
     }
 }

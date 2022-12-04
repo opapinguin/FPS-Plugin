@@ -20,60 +20,59 @@ using MCGalaxy;
 using System;
 using System.IO;
 
-namespace FPS.Commands
+namespace FPS.Commands;
+
+internal class CmdSwapTeam : Command2
 {
-    internal class CmdSwapTeam : Command2
+    public override string name { get { return "FPSMOSwapTeam"; } }
+    public override string shortcut { get { return "SwapTeam"; } }
+    public override string type { get { return CommandTypes.Games; } }
+    public override bool SuperUseable { get { return false; } }
+
+    public override void Use(Player p, string message, CommandData data)
     {
-        public override string name { get { return "FPSMOSwapTeam"; } }
-        public override string shortcut { get { return "SwapTeam"; } }
-        public override string type { get { return CommandTypes.Games; } }
-        public override bool SuperUseable { get { return false; } }
+        // Check if player is registered in the game to start with
+        if (FPSMOGame.Instance.players.ContainsKey(p.truename)) return;
 
-        public override void Use(Player p, string message, CommandData data)
+        // Check if round or countdown is actually in progress
+        if (FPSMOGame.Instance.stage == FPSMOGame.Stage.Voting) return;
+
+        // Check if round time close to end
+        int secondsToRoundsEnd = (int)(FPSMOGame.Instance.RoundEnd - DateTime.Now).TotalSeconds;
+        if (secondsToRoundsEnd < 30)
         {
-            // Check if player is registered in the game to start with
-            if (FPSMOGame.Instance.players.ContainsKey(p.truename)) return;
-
-            // Check if round or countdown is actually in progress
-            if (FPSMOGame.Instance.stage == FPSMOGame.Stage.Voting) return;
-
-            // Check if round time close to end
-            int secondsToRoundsEnd = (int)(FPSMOGame.Instance.RoundEnd - DateTime.Now).TotalSeconds;
-            if (secondsToRoundsEnd < 30)
-            {
-                p.Message("Cannot swap team in the last 30 seconds of the round");
-            }
-
-            // Check if not swapped too recently
-            int secondsSinceLastSwap = (int)(DateTime.Now - PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap).TotalSeconds;
-            if (secondsSinceLastSwap < 10)
-            {
-                p.Message(String.Format("Need to wait another {0} seconds before swapping again", 10 - secondsSinceLastSwap)); return;
-            }
-            
-            // Check if team is not going empty after swap
-            if (TeamHandler.GetTeam(p).Count <= 1)
-            {
-                p.Message(String.Format("Cannot swap as your team only has one player in it")); return;
-            }
-
-            // Swap teams
-            if (TeamHandler.blue.Contains(p))
-            {
-                TeamHandler.blue.Remove(p);
-                TeamHandler.red.Add(p);
-            } else if (TeamHandler.red.Contains(p))
-            {
-                TeamHandler.red.Remove(p);
-                TeamHandler.blue.Add(p);
-            }
-            PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap = DateTime.Now;
+            p.Message("Cannot swap team in the last 30 seconds of the round");
         }
 
-        public override void Help(Player p)
+        // Check if not swapped too recently
+        int secondsSinceLastSwap = (int)(DateTime.Now - PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap).TotalSeconds;
+        if (secondsSinceLastSwap < 10)
         {
-            p.Message("&T/SwapTeam");
-            p.Message("&HSwaps team");
+            p.Message(String.Format("Need to wait another {0} seconds before swapping again", 10 - secondsSinceLastSwap)); return;
         }
+        
+        // Check if team is not going empty after swap
+        if (TeamHandler.GetTeam(p).Count <= 1)
+        {
+            p.Message(String.Format("Cannot swap as your team only has one player in it")); return;
+        }
+
+        // Swap teams
+        if (TeamHandler.blue.Contains(p))
+        {
+            TeamHandler.blue.Remove(p);
+            TeamHandler.red.Add(p);
+        } else if (TeamHandler.red.Contains(p))
+        {
+            TeamHandler.red.Remove(p);
+            TeamHandler.blue.Add(p);
+        }
+        PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap = DateTime.Now;
+    }
+
+    public override void Help(Player p)
+    {
+        p.Message("&T/SwapTeam");
+        p.Message("&HSwaps team");
     }
 }

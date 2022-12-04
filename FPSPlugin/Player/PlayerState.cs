@@ -19,84 +19,83 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace FPS.Entities
+namespace FPS.Entities;
+
+/// <summary>
+/// The state interface. When you invoke a transition the default is not to transition at all, unless overriden
+/// </summary>
+internal abstract class PlayerState
 {
-    /// <summary>
-    /// The state interface. When you invoke a transition the default is not to transition at all, unless overriden
-    /// </summary>
-    internal abstract class PlayerState
+    protected PlayerData context;    // Would have preferred the context to be the Player class but we can't access that.
+
+    internal void SetContext(PlayerData pd)
     {
-        protected PlayerData context;    // Would have preferred the context to be the Player class but we can't access that.
-
-        internal void SetContext(PlayerData pd)
-        {
-            this.context = pd;
-        }
-
-        internal virtual void HandleLandEvent() { }
-        internal virtual void HandleJumpEvent() { }
-        internal virtual void HandleNormalEvent() { }
-        internal virtual void HandleRunEvent() { }
-        internal virtual void HandleCrawlEvent() { }
-        internal virtual void HandleLedgeGrabEvent() { }
+        this.context = pd;
     }
 
-    internal class NormalState : PlayerState
-    {
-        internal override void HandleJumpEvent()
-        {
-            this.context.TransitionTo(new JumpingState());
-        }
-
-        internal override void HandleRunEvent()
-        {
-            // TODO: Check stamina here
-            this.context.TransitionTo(new RunningState());
-        }
-
-        internal override void HandleCrawlEvent()
-        {
-            this.context.TransitionTo(new CrawlingState());
-        }
-    }
-
-    internal class JumpingState : PlayerState
-    {
-        internal override void HandleLandEvent()
-        {
-            this.context.TransitionTo(new NormalState());
-        }
-
-        internal override void HandleLedgeGrabEvent()
-        {
-            // TODO: Check stamina here
-            this.context.TransitionTo(new LedgeGrabState());
-        }
-    }
-
-    internal class LedgeGrabState : PlayerState
-    {
-        internal override void HandleLedgeGrabEvent()
-        {
-            this.context.TransitionTo(new NormalState());
-        }
-    }
-
-    internal class RunningState : PlayerState
-    {
-        internal override void HandleRunEvent()
-        {
-            this.context.TransitionTo(new NormalState());
-        }
-
-        internal override void HandleJumpEvent()
-        {
-            this.context.TransitionTo(new JumpingState());
-        }
-    }
-
-    internal class CrawlingState : PlayerState
-    {
-    }
-
+    internal virtual void HandleLandEvent() { }
+    internal virtual void HandleJumpEvent() { }
+    internal virtual void HandleNormalEvent() { }
+    internal virtual void HandleRunEvent() { }
+    internal virtual void HandleCrawlEvent() { }
+    internal virtual void HandleLedgeGrabEvent() { }
 }
+
+internal class NormalState : PlayerState
+{
+    internal override void HandleJumpEvent()
+    {
+        this.context.TransitionTo(new JumpingState());
+    }
+
+    internal override void HandleRunEvent()
+    {
+        // TODO: Check stamina here
+        this.context.TransitionTo(new RunningState());
+    }
+
+    internal override void HandleCrawlEvent()
+    {
+        this.context.TransitionTo(new CrawlingState());
+    }
+}
+
+internal class JumpingState : PlayerState
+{
+    internal override void HandleLandEvent()
+    {
+        this.context.TransitionTo(new NormalState());
+    }
+
+    internal override void HandleLedgeGrabEvent()
+    {
+        // TODO: Check stamina here
+        this.context.TransitionTo(new LedgeGrabState());
+    }
+}
+
+internal class LedgeGrabState : PlayerState
+{
+    internal override void HandleLedgeGrabEvent()
+    {
+        this.context.TransitionTo(new NormalState());
+    }
+}
+
+internal class RunningState : PlayerState
+{
+    internal override void HandleRunEvent()
+    {
+        this.context.TransitionTo(new NormalState());
+    }
+
+    internal override void HandleJumpEvent()
+    {
+        this.context.TransitionTo(new JumpingState());
+    }
+}
+
+internal class CrawlingState : PlayerState
+{
+}
+

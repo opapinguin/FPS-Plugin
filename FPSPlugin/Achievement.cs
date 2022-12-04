@@ -1,11 +1,10 @@
 ﻿using System;
 
-namespace FPS
+namespace FPS;
+
+internal class Achievement
 {
-	internal class Achievement
-	{
-		internal int Reward { get; set; }
-		internal string Name { get; set; }
-		internal string Description { get; set; }
-	}
+	internal int Reward { get; set; }
+	internal string Name { get; set; }
+	internal string Description { get; set; }
 }

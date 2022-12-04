@@ -16,63 +16,62 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 using System;
 using System.Collections.Generic;
 
-namespace FPS.PingCompensation
+namespace FPS.PingCompensation;
+
+/// <summary>
+/// Template for lists with timestamps e.g., location, rotation etc
+/// Can linearly interpolate to get the value at a specific time
+/// </summary>
+internal class PingList<T>
 {
-    /// <summary>
-    /// Template for lists with timestamps e.g., location, rotation etc
-    /// Can linearly interpolate to get the value at a specific time
-    /// </summary>
-    internal class PingList<T>
+    struct TimeStamp
     {
-        struct TimeStamp
+        internal TimeStamp(DateTime dt, T val)
         {
-            internal TimeStamp(DateTime dt, T val)
+            time = dt;
+            value = val;
+        }
+        internal TimeStamp(T val)
+        {
+            time = DateTime.Now;
+            value = val;
+        }
+        internal DateTime time { get; }
+        internal T value { get; }
+    }
+
+    List<TimeStamp> timeStamps;
+    TimeSpan delay;
+
+    internal PingList(int capacity, int delay)
+    {
+        this.delay = TimeSpan.FromMilliseconds(delay);
+
+        timeStamps = new List<TimeStamp>(capacity);
+    }
+
+    internal void Add(DateTime t, T val)
+    {
+        timeStamps.Insert(0, new TimeStamp(t, val));
+        timeStamps.RemoveAt(timeStamps.Count - 1);
+    }
+
+    internal T GetAt(DateTime t)
+    {
+        for (int i = 0; i < timeStamps.Count - 2; i++)
+        {
+            // If inbetween time stamps
+            if ((timeStamps[i].time <= t) && (timeStamps[i].time + delay > t))
             {
-                time = dt;
-                value = val;
+                // Parametrize the "line" connecting the two times
+                double x = ((timeStamps[i].time + delay - t).TotalMilliseconds
+                    / delay.TotalMilliseconds);
+
+                dynamic val1 = timeStamps[i].value; // C# doesn't have generic operators so can't just add
+                dynamic val2 = timeStamps[i].value;
+                //return (x * val1 + (1 - x) * val2);
             }
-            internal TimeStamp(T val)
-            {
-                time = DateTime.Now;
-                value = val;
-            }
-            internal DateTime time { get; }
-            internal T value { get; }
         }
-
-        List<TimeStamp> timeStamps;
-        TimeSpan delay;
-
-        internal PingList(int capacity, int delay)
-        {
-            this.delay = TimeSpan.FromMilliseconds(delay);
-
-            timeStamps = new List<TimeStamp>(capacity);
-        }
-
-        internal void Add(DateTime t, T val)
-        {
-            timeStamps.Insert(0, new TimeStamp(t, val));
-            timeStamps.RemoveAt(timeStamps.Count - 1);
-        }
-
-        internal T GetAt(DateTime t)
-        {
-            for (int i = 0; i < timeStamps.Count - 2; i++)
-            {
-                // If inbetween time stamps
-                if ((timeStamps[i].time <= t) && (timeStamps[i].time + delay > t))
-                {
-                    // Parametrize the "line" connecting the two times
-                    double x = ((timeStamps[i].time + delay - t).TotalMilliseconds
-                        / delay.TotalMilliseconds);
-
-                    dynamic val1 = timeStamps[i].value; // C# doesn't have generic operators so can't just add
-                    dynamic val2 = timeStamps[i].value;
-                    //return (x * val1 + (1 - x) * val2);
-                }
-            }
-            return default;
-        }
+        return default;
     }
 }

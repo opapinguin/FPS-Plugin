@@ -17,19 +17,18 @@ using System;
 using System.Collections.Generic;
 using MCGalaxy.Maths;
 
-namespace FPS.Configuration
-{
-    internal class MapData
-    {
-        internal string Name { get; set; }
-        internal uint? RoundDurationSeconds { get; set; }
-        internal uint? CountdownTimeSeconds { get; set; }
+namespace FPS.Configuration;
 
-        internal static MapData Default(string mapName)
-        {
-            MapData mapData = new MapData();
-            mapData.Name = mapName;
-            return mapData;
-        }
+internal class MapData
+{
+    internal string Name { get; set; }
+    internal uint? RoundDurationSeconds { get; set; }
+    internal uint? CountdownTimeSeconds { get; set; }
+
+    internal static MapData Default(string mapName)
+    {
+        MapData mapData = new MapData();
+        mapData.Name = mapName;
+        return mapData;
     }
 }

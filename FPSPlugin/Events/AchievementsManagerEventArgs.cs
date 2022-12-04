@@ -2,11 +2,10 @@
 using FPS.Weapons;
 using MCGalaxy;
 
-namespace FPS
+namespace FPS;
+
+internal class AchievementUnlockedEventArgs : EventArgs
 {
-	internal class AchievementUnlockedEventArgs : EventArgs
-	{
-		internal Player Player { get; set; }
-		internal Achievement Achievement { get; set; }
-	}
+    internal Player Player { get; set; }
+    internal Achievement Achievement { get; set; }
 }

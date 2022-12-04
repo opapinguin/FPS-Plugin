@@ -22,70 +22,69 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace FPS
+namespace FPS;
+
+/// <summary>
+/// Countdown-specific functions. The countdown is the first stage of the game, before the round
+/// </summary>
+internal sealed partial class FPSMOGame
 {
-    /// <summary>
-    /// Countdown-specific functions. The countdown is the first stage of the game, before the round
-    /// </summary>
-    internal sealed partial class FPSMOGame
+    /*************
+     * BEGINNING *
+     *************/
+    #region begin
+    private void BeginCountdown(uint delay)
     {
-        /*************
-         * BEGINNING *
-         *************/
-        #region begin
-        private void BeginCountdown(uint delay)
+        roundStart = DateTime.Now.AddSeconds(delay);
+
+        // Move on to the next sub-stage
+        subStage = SubStage.Middle;
+
+        OnCountdownStarted();
+    }
+
+    #endregion
+    /**********
+     * MIDDLE *
+     **********/
+    #region middle
+
+    private void MiddleCountdown(uint delay)
+    {
+        // TODO: change this back to 2
+        int minimumPlayersCount = 1;
+
+        for (int i = (int)(roundStart - DateTime.Now).TotalSeconds; i > 0; i--)
+        {
+            if (!bRunning) return;
+            OnCountdownTicked((int) i, players.Count >= minimumPlayersCount);
+            Thread.Sleep(1000);
+        }
+
+        if (players.Count >= minimumPlayersCount)
+        {
+            subStage = SubStage.End;
+        }
+        else
         {
             roundStart = DateTime.Now.AddSeconds(delay);
-
-            // Move on to the next sub-stage
-            subStage = SubStage.Middle;
-
-            OnCountdownStarted();
         }
-
-        #endregion
-        /**********
-         * MIDDLE *
-         **********/
-        #region middle
-
-        private void MiddleCountdown(uint delay)
-        {
-            // TODO: change this back to 2
-            int minimumPlayersCount = 1;
-
-            for (int i = (int)(roundStart - DateTime.Now).TotalSeconds; i > 0; i--)
-            {
-                if (!bRunning) return;
-                OnCountdownTicked((int) i, players.Count >= minimumPlayersCount);
-                Thread.Sleep(1000);
-            }
-
-            if (players.Count >= minimumPlayersCount)
-            {
-                subStage = SubStage.End;
-            }
-            else
-            {
-                roundStart = DateTime.Now.AddSeconds(delay);
-            }
-        }
-
-        #endregion
-        /*******
-         * END *
-         ******/
-        #region end
-
-        private void EndCountdown()
-        {
-            // Move on to the next sub-stage and stage
-            stage = Stage.Round;
-            subStage = SubStage.Begin;
-
-            OnCountdownEnded();
-        }
-
-        #endregion
     }
+
+    #endregion
+    /*******
+     * END *
+     ******/
+    #region end
+
+    private void EndCountdown()
+    {
+        // Move on to the next sub-stage and stage
+        stage = Stage.Round;
+        subStage = SubStage.Begin;
+
+        OnCountdownEnded();
+    }
+
+    #endregion
 }

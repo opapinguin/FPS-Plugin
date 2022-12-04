@@ -1,30 +1,28 @@
 ﻿using System;
 using MCGalaxy;
 
-namespace FPS.Commands
+namespace FPS.Commands;
+
+internal class CmdAchievementTest : Command2
 {
-	internal class CmdAchievementTest : Command2
-	{
-        public override string name { get { return "achievementtest"; } }
-        public override string type { get { return CommandTypes.Games; } }
-        public override LevelPermission defaultRank { get { return LevelPermission.AdvBuilder; } }
+    public override string name { get { return "achievementtest"; } }
+    public override string type { get { return CommandTypes.Games; } }
+    public override LevelPermission defaultRank { get { return LevelPermission.AdvBuilder; } }
 
-        private readonly AchievementsManager _achievementsManager;
+    private readonly AchievementsManager _achievementsManager;
 
-        internal CmdAchievementTest(AchievementsManager manager)
-        {
-            _achievementsManager = manager;
-        }
+    internal CmdAchievementTest(AchievementsManager manager)
+    {
+        _achievementsManager = manager;
+    }
 
-        public override void Use(Player player, string message)
-        {
-            _achievementsManager.TriggerTestAchievement(player);
-        }
+    public override void Use(Player player, string message)
+    {
+        _achievementsManager.TriggerTestAchievement(player);
+    }
 
-        public override void Help(Player player)
-        {
-            player.Message("&T/AchievementTest &H- Command used for testing achievements.");
-        }
+    public override void Help(Player player)
+    {
+        player.Message("&T/AchievementTest &H- Command used for testing achievements.");
     }
 }
-

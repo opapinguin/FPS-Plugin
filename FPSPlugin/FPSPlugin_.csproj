@@ -8,6 +8,12 @@
     <StartupObject />
     <RootNamespace>FPS</RootNamespace>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <LangVersion>latestmajor</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <LangVersion>latestmajor</LangVersion>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\MCGalaxy\MCGalaxy\MCGalaxy_.csproj" />
   </ItemGroup>

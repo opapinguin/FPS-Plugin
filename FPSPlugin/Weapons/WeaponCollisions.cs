@@ -22,109 +22,108 @@ using System.Linq;
 using System.Text;
 using BlockID = System.UInt16;
 
-namespace FPS.Weapons
+namespace FPS.Weapons;
+
+internal static class WeaponCollisionsHandler
 {
-    internal static class WeaponCollisionsHandler
+    static Level level;
+
+    internal static void Activate()
     {
-        static Level level;
+        level = FPSMOGame.Instance.map;
+    }
 
-        internal static void Activate()
+    internal static void Update(List<WeaponEntity> weaponEntities)
+    {
+        foreach (Player p in FPSMOGame.Instance.players.Values)
         {
-            level = FPSMOGame.Instance.map;
+            Walkthrough(p, p.ModelBB.OffsetPosition(p.Pos), weaponEntities);    // Handle walkthrough
         }
+    }
 
-        internal static void Update(List<WeaponEntity> weaponEntities)
+    internal static bool CheckCollision(List<WeaponBlock> blocks)
+    {
+        foreach (WeaponBlock wb in blocks)
         {
-            foreach (Player p in FPSMOGame.Instance.players.Values)
-            {
-                Walkthrough(p, p.ModelBB.OffsetPosition(p.Pos), weaponEntities);    // Handle walkthrough
+            if (Block.Air != level.GetBlock(wb.x, wb.y, wb.z)) {
+                return true;
             }
         }
+        return false;
+    }
 
-        internal static bool CheckCollision(List<WeaponBlock> blocks)
+    internal static List<WeaponEntity> GetCollisions(List<WeaponEntity> weaponEntities)
+    {
+        List<WeaponEntity> result = new List<WeaponEntity>();
+
+        for (int i = 0; i < weaponEntities.Count; i++)
         {
-            foreach (WeaponBlock wb in blocks)
-            {
-                if (Block.Air != level.GetBlock(wb.x, wb.y, wb.z)) {
-                    return true;
-                }
-            }
-            return false;
+            if (weaponEntities[i].collided) { result.Add(weaponEntities[i]); }
         }
 
-        internal static List<WeaponEntity> GetCollisions(List<WeaponEntity> weaponEntities)
+        return result;
+    }
+
+    /// <summary>
+    /// Handles walkthrough for an individual player against all animated blocks
+    /// </summary>
+    private static void Walkthrough(Player p, AABB bb, List<WeaponEntity> weaponEntities)
+    {
+        Vec3S32 min = bb.BlockMin, max = bb.BlockMax;
+        bool hitWalkthrough = false;
+
+        // Copied from MCGalaxy source... I think there's a better way to do this?
+        //
+        // Looks like a huge loop but the number of animations isn't that large. Not sure why Unk handled it like this though,
+        // Seems like you really only need to check against 8 points max
+
+        // TODO: Make this OBB and optimize the inner 3 loops
+        bool owner;
+        for (int i = 0; i < weaponEntities.Count; i++)  // Small                
         {
-            List<WeaponEntity> result = new List<WeaponEntity>();
-
-            for (int i = 0; i < weaponEntities.Count; i++)
-            {
-                if (weaponEntities[i].collided) { result.Add(weaponEntities[i]); }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Handles walkthrough for an individual player against all animated blocks
-        /// </summary>
-        private static void Walkthrough(Player p, AABB bb, List<WeaponEntity> weaponEntities)
-        {
-            Vec3S32 min = bb.BlockMin, max = bb.BlockMax;
-            bool hitWalkthrough = false;
-
-            // Copied from MCGalaxy source... I think there's a better way to do this?
-            //
-            // Looks like a huge loop but the number of animations isn't that large. Not sure why Unk handled it like this though,
-            // Seems like you really only need to check against 8 points max
-
-            // TODO: Make this OBB and optimize the inner 3 loops
-            bool owner;
-            for (int i = 0; i < weaponEntities.Count; i++)  // Small                
-            {
-                for (int y = min.Y; y <= max.Y; y++)
-                    for (int z = min.Z; z <= max.Z; z++)
-                        for (int x = min.X; x <= max.X; x++)
-                        {
-                            ushort xP = (ushort)x, yP = (ushort)y, zP = (ushort)z;
-
-                            BlockID block = GetCurrentBlock(xP, yP, zP, p, weaponEntities[i]);
-                            if (block == System.UInt16.MaxValue) continue;
-
-                            AABB blockBB = Block.BlockAABB(block, level).Offset(x * 32, y * 32, z * 32);
-                            if (!AABB.Intersects(ref bb, ref blockBB)) continue;
-
-                            // We can activate only one walkthrough block per movement
-                            if (!hitWalkthrough)
-                            {
-                                HandleWalkthrough handler = level.WalkthroughHandlers[block];
-                                if (handler != null && handler(p, block, xP, yP, zP))
-                                {
-                                    hitWalkthrough = true;
-                                }
-                            }
-
-                            if (weaponEntities[i].shooter == p)
-                            {
-                                continue;
-                            }
-
-                            // Some blocks will cause death of players
-                            if (!level.Props[block].KillerBlock) continue;
-                            if (level.Config.KillerBlocks) FPSMOGame.Instance.OnPlayerHitPlayer(weaponEntities[i].shooter, p, weaponEntities[i]);
-                        }
-            }
-        }
-
-        internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p, WeaponEntity we)
-        {
-            foreach (WeaponBlock wb in we.currentBlocks)
-                {
-                    if (wb.x == xP && wb.y == yP && wb.z == zP)
+            for (int y = min.Y; y <= max.Y; y++)
+                for (int z = min.Z; z <= max.Z; z++)
+                    for (int x = min.X; x <= max.X; x++)
                     {
-                        return wb.block;
+                        ushort xP = (ushort)x, yP = (ushort)y, zP = (ushort)z;
+
+                        BlockID block = GetCurrentBlock(xP, yP, zP, p, weaponEntities[i]);
+                        if (block == System.UInt16.MaxValue) continue;
+
+                        AABB blockBB = Block.BlockAABB(block, level).Offset(x * 32, y * 32, z * 32);
+                        if (!AABB.Intersects(ref bb, ref blockBB)) continue;
+
+                        // We can activate only one walkthrough block per movement
+                        if (!hitWalkthrough)
+                        {
+                            HandleWalkthrough handler = level.WalkthroughHandlers[block];
+                            if (handler != null && handler(p, block, xP, yP, zP))
+                            {
+                                hitWalkthrough = true;
+                            }
+                        }
+
+                        if (weaponEntities[i].shooter == p)
+                        {
+                            continue;
+                        }
+
+                        // Some blocks will cause death of players
+                        if (!level.Props[block].KillerBlock) continue;
+                        if (level.Config.KillerBlocks) FPSMOGame.Instance.OnPlayerHitPlayer(weaponEntities[i].shooter, p, weaponEntities[i]);
                     }
-                }
-            return System.UInt16.MaxValue;
         }
+    }
+
+    internal static BlockID GetCurrentBlock(ushort xP, ushort yP, ushort zP, Player p, WeaponEntity we)
+    {
+        foreach (WeaponBlock wb in we.currentBlocks)
+            {
+                if (wb.x == xP && wb.y == yP && wb.z == zP)
+                {
+                    return wb.block;
+                }
+            }
+        return System.UInt16.MaxValue;
     }
 }

@@ -23,135 +23,134 @@ using System.Linq;
 using System.Text;
 using static FPS.FPSMOGame;
 
-namespace FPS.Entities
+namespace FPS.Entities;
+
+/// <summary>
+/// Round-specific data i.e., data that changes regularly throughout the round
+/// </summary>
+internal class PlayerData
 {
-    /// <summary>
-    /// Round-specific data i.e., data that changes regularly throughout the round
-    /// </summary>
-    internal class PlayerData
+    internal PlayerData(Player p)
     {
-        internal PlayerData(Player p)
-        {
-            // Initialize weapons
-            gun = new GunWeapon(p);
-            rocket = new RocketWeapon(p);
-            ResetData();
-            name = p.truename;
-            this.state = new NormalState();
-        }
-
-        /// <summary>
-        ///  Handles state changes
-        /// </summary>
-        internal void TransitionTo(PlayerState state)
-        {
-            this.state = state;
-            this.state.SetContext(this);
-        }
-
-        private PlayerState state;
-
-        internal string name;
-
-        internal ushort hitsGiven;
-        internal ushort hitsReceived;
-        internal ushort kills;
-        internal ushort deaths;
-
-        internal ushort stamina;
-        internal ushort health;
-        internal string team;
-
-        internal bool bVoted;
-        internal ushort vote; // Can be 1 2 or 3
-
-        // Weapons
-        internal Weapon currentWeapon;
-
-        internal GunWeapon gun;
-        internal RocketWeapon rocket;
-
-        internal DateTime lastWeaponSpeedChange;
-        internal DateTime lastTeamSwap;
-        internal DateTime lastHealthChange;
-
-        internal uint lastHealth;
-
-        internal void ResetData()
-        {
-            hitsGiven = kills = deaths = 0;
-            stamina = health = 10;
-            bVoted = false;
-            gun.Reset();
-            rocket.Reset();
-            currentWeapon = gun;
-        }
+        // Initialize weapons
+        gun = new GunWeapon(p);
+        rocket = new RocketWeapon(p);
+        ResetData();
+        name = p.truename;
+        this.state = new NormalState();
     }
 
     /// <summary>
-    /// Handles all player data across the game
+    ///  Handles state changes
     /// </summary>
-    internal class PlayerDataHandler
+    internal void TransitionTo(PlayerState state)
     {
-        /*************************
-        * SINGLETON BOILERPLATE *
-        *************************/
-        #region Singleton Boilerplate
-        private static PlayerDataHandler instance = new PlayerDataHandler();
-        private static readonly object padlock = new object();
+        this.state = state;
+        this.state.SetContext(this);
+    }
 
-        internal static PlayerDataHandler Instance
+    private PlayerState state;
+
+    internal string name;
+
+    internal ushort hitsGiven;
+    internal ushort hitsReceived;
+    internal ushort kills;
+    internal ushort deaths;
+
+    internal ushort stamina;
+    internal ushort health;
+    internal string team;
+
+    internal bool bVoted;
+    internal ushort vote; // Can be 1 2 or 3
+
+    // Weapons
+    internal Weapon currentWeapon;
+
+    internal GunWeapon gun;
+    internal RocketWeapon rocket;
+
+    internal DateTime lastWeaponSpeedChange;
+    internal DateTime lastTeamSwap;
+    internal DateTime lastHealthChange;
+
+    internal uint lastHealth;
+
+    internal void ResetData()
+    {
+        hitsGiven = kills = deaths = 0;
+        stamina = health = 10;
+        bVoted = false;
+        gun.Reset();
+        rocket.Reset();
+        currentWeapon = gun;
+    }
+}
+
+/// <summary>
+/// Handles all player data across the game
+/// </summary>
+internal class PlayerDataHandler
+{
+    /*************************
+    * SINGLETON BOILERPLATE *
+    *************************/
+    #region Singleton Boilerplate
+    private static PlayerDataHandler instance = new PlayerDataHandler();
+    private static readonly object padlock = new object();
+
+    internal static PlayerDataHandler Instance
+    {
+        get
         {
-            get
+            lock (padlock)
             {
-                lock (padlock)
+                if (instance == null)
                 {
-                    if (instance == null)
-                    {
-                        instance = new PlayerDataHandler();
-                    }
-                    return instance;
+                    instance = new PlayerDataHandler();
                 }
+                return instance;
             }
         }
+    }
 
-        #endregion
-        
-        /**********
-         * FIELDS *
-         **********/
-        internal Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
-        internal int numPlayers = 0;
+    #endregion
+    
+    /**********
+     * FIELDS *
+     **********/
+    internal Dictionary<string, PlayerData> dictPlayerData = new Dictionary<string, PlayerData>();
+    internal int numPlayers = 0;
 
-        /******************
-         * HELPER METHODS *
-         ******************/
-        internal PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
+    /******************
+     * HELPER METHODS *
+     ******************/
+    internal PlayerData this[string name] // Shame we can't have a static class implement this, would be nicer than using the singleton pattern
+    {
+        get { PlayerData val; return dictPlayerData.TryGetValue(name, out val) ? val : null; }
+        set {
+            dictPlayerData[name] = value;
+            numPlayers = dictPlayerData.Values.Count();
+        }
+    }
+
+    internal bool PlayerExists(string name)
+    {
+        return dictPlayerData.ContainsKey(name);
+    }
+
+    internal void ResetPlayerData()
+    {            
+        foreach (string key in dictPlayerData.Keys)
         {
-            get { PlayerData val; return dictPlayerData.TryGetValue(name, out val) ? val : null; }
-            set {
-                dictPlayerData[name] = value;
-                numPlayers = dictPlayerData.Values.Count();
-            }
+            dictPlayerData[key].ResetData();
         }
+    }
 
-        internal bool PlayerExists(string name)
-        {
-            return dictPlayerData.ContainsKey(name);
-        }
-
-        internal void ResetPlayerData()
-        {            
-            foreach (string key in dictPlayerData.Keys)
-            {
-                dictPlayerData[key].ResetData();
-            }
-        }
-
-        internal void Deactivate()
-        {
-            dictPlayerData = new Dictionary<string, PlayerData>();
-            numPlayers = 0;
-        }
+    internal void Deactivate()
+    {
+        dictPlayerData = new Dictionary<string, PlayerData>();
+        numPlayers = 0;
     }
 }

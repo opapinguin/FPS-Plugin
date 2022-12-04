@@ -24,88 +24,87 @@ using System.Linq;
 using System.Text;
 using BlockID = System.UInt16;
 
-namespace FPS.Weapons
+namespace FPS.Weapons;
+
+/// <summary>
+/// This class handles all weapon animations in the map
+/// Instead of creating a schedulertask for each time a weapon gets fired (bad idea) we have one running continuously
+/// It can also send block changes for all weapon entities in bulk, which is considerably more efficient
+/// 
+/// TODO: Make it work with ping compensation
+/// </summary>
+internal static class WeaponAnimsHandler
 {
-    /// <summary>
-    /// This class handles all weapon animations in the map
-    /// Instead of creating a schedulertask for each time a weapon gets fired (bad idea) we have one running continuously
-    /// It can also send block changes for all weapon entities in bulk, which is considerably more efficient
-    /// 
-    /// TODO: Make it work with ping compensation
-    /// </summary>
-    internal static class WeaponAnimsHandler
+    static BufferedBlockSender sender;
+    static Level level;
+
+    static Dictionary<int, BlockID> blockSenderCache;   // Using a dictionary cache has a few benefits, including preventing duplicate writes
+
+    internal static void Activate()
     {
-        static BufferedBlockSender sender;
-        static Level level;
+        sender = new BufferedBlockSender(FPSMOGame.Instance.map);
+        level = FPSMOGame.Instance.map;
+        blockSenderCache = new Dictionary<int, BlockID>();
+    }
 
-        static Dictionary<int, BlockID> blockSenderCache;   // Using a dictionary cache has a few benefits, including preventing duplicate writes
+    internal static void Deactivate()
+    {
+        sender = null;
+        level = null;
+        blockSenderCache = null;
+    }
 
-        internal static void Activate()
+    internal static void Draw(List<WeaponEntity> entities, bool currentTick)
+    {
+        foreach (WeaponEntity we in entities)
         {
-            sender = new BufferedBlockSender(FPSMOGame.Instance.map);
-            level = FPSMOGame.Instance.map;
-            blockSenderCache = new Dictionary<int, BlockID>();
-        }
-
-        internal static void Deactivate()
-        {
-            sender = null;
-            level = null;
-            blockSenderCache = null;
-        }
-
-        internal static void Draw(List<WeaponEntity> entities, bool currentTick)
-        {
-            foreach (WeaponEntity we in entities)
+            if (currentTick)
             {
-                if (currentTick)
+                foreach (WeaponBlock wb in we.currentBlocks)
                 {
-                    foreach (WeaponBlock wb in we.currentBlocks)
-                    {
-                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
-                    }
-                } else
+                    blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
+                }
+            } else
+            {
+                foreach (WeaponBlock wb in we.lastBlocks)
                 {
-                    foreach (WeaponBlock wb in we.lastBlocks)
-                    {
-                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
-                    }
+                    blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = wb.block;
                 }
             }
         }
+    }
 
-        internal static void Undraw(List<WeaponEntity> weList,bool currentTick)
+    internal static void Undraw(List<WeaponEntity> weList,bool currentTick)
+    {
+        foreach (WeaponEntity we in weList)
         {
-            foreach (WeaponEntity we in weList)
+            if (currentTick)
             {
-                if (currentTick)
+                foreach (WeaponBlock wb in we.currentBlocks)
                 {
-                    foreach (WeaponBlock wb in we.currentBlocks)
-                    {
-                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
-                    }
-                } else
+                    blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
+                }
+            } else
+            {
+                foreach (WeaponBlock wb in we.lastBlocks)
                 {
-                    foreach (WeaponBlock wb in we.lastBlocks)
-                    {
-                        blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
-                    }
+                    blockSenderCache[level.PosToInt(wb.x, wb.y, wb.z)] = level.GetBlock(wb.x, wb.y, wb.z);
                 }
             }
         }
+    }
 
-        internal static void Flush()
+    internal static void Flush()
+    {
+        foreach (Player p in FPSMOGame.Instance.players.Values)
         {
-            foreach (Player p in FPSMOGame.Instance.players.Values)
+            sender = new BufferedBlockSender(p);
+            foreach (var kvp in blockSenderCache)
             {
-                sender = new BufferedBlockSender(p);
-                foreach (var kvp in blockSenderCache)
-                {
-                    sender.Add(kvp.Key, kvp.Value);
-                }
-                if (sender.count > 0) sender.Flush();
+                sender.Add(kvp.Key, kvp.Value);
             }
-            blockSenderCache = new Dictionary<int, BlockID>();
+            if (sender.count > 0) sender.Flush();
         }
+        blockSenderCache = new Dictionary<int, BlockID>();
     }
 }
