@@ -1,12 +1,11 @@
 ﻿using System;
-using FPS.Configuration;
-using MCGalaxy;
 using System.Collections.Generic;
 using System.Linq;
 using FPS.Entities;
-using static FPS.FPSMOGame;
 using FPS.Weapons;
+using MCGalaxy;
 using MCGalaxy.Events.PlayerEvents;
+using static FPS.FPSMOGame;
 
 namespace FPS;
 
@@ -398,8 +397,8 @@ internal class GUI
         bool plural = (timeRemaining != 1);
         string message;
 
-        if (plural) message = $"&2Starting in &f{timeRemaining} &2seconds";
-        else message = $"&2Starting in &f{timeRemaining} &2second";
+        if (plural) message = $"&4Starting in &f{timeRemaining} &4seconds";
+        else message = $"&4Starting in &f{timeRemaining} &4second";
 
         player.SendCpeMessage(CpeMessageType.Announcement, message);
     }
@@ -417,22 +416,22 @@ internal class GUI
 
     private void ShowVoteOptions(Player player, string map1, string map2, string map3, int count)
     {
-        player.SendCpeMessage(CpeMessageType.BottomRight2, "&ePick a level");
-
         if (count == 2)
         {
-            player.SendCpeMessage(CpeMessageType.BottomRight1, $"&d1: {map1}, &a2: {map2}");
+            player.SendCpeMessage(CpeMessageType.BottomRight3, "&SLevel vote - type &a1 &Sor &b2&S.");
+            player.SendCpeMessage(CpeMessageType.BottomRight2, $"&a{map1}&S, &b{map2}");
         }
         else if (count == 3)
         {
-            player.SendCpeMessage(CpeMessageType.BottomRight1, $"&d1: {map1}, &a2: {map2}, &93: {map3}");
+            player.SendCpeMessage(CpeMessageType.BottomRight3, "&SLevel vote - type &a1&S, &b2&S &Sor &c3&S.");
+            player.SendCpeMessage(CpeMessageType.BottomRight2, $"&a{map1}&S, &b{map2}&S, &c{map3}");
         }
     }
 
     private void ShowVoteTimeRemaining(Player player, int timeRemaining)
     {
-        string message = String.Format($"&eVote time remaining: {timeRemaining}");
-        player.SendCpeMessage(CpeMessageType.BottomRight3, message);
+        string message = String.Format($"&T{timeRemaining}s &Sleft to vote.");
+        player.SendCpeMessage(CpeMessageType.BottomRight1, message);
     }
 
     private void ShowVoteResults(Player player, string map1, string map2, string map3,
@@ -442,7 +441,7 @@ internal class GUI
 
         if (map3 != null)
         {
-            player.SendCpeMessage(CpeMessageType.Normal, $"&d{map1}: {votes1} &a{map2}: {votes2} &9{map3}: {votes3}");
+            player.SendCpeMessage(CpeMessageType.Normal, $"&a{map1}: {votes1}&S, &b{map2}: {votes2}&S, &c{map3}: {votes3}");
         }
         else
         {
@@ -469,16 +468,14 @@ internal class GUI
 
     private void ShowInventory(Player player)
     {
-        ShowHealthAndStamina(player, health: 10, stamina: 10);
+        ShowHealth(player, 20);
+        ShowWeaponSelection(player);
         ShowWeaponReload(player, 10);
-        ShowAmmunitions(player, 5);
     }
 
-    private void ShowAmmunitions(Player player, int amount)
+    private void ShowWeaponSelection(Player player)
     {
-        string message = StatusBar(Symbol.HAND_GUN, Symbol.HANDGUN_OUTLINE,
-                                   amount, size: 10, insertSpaces: true);
-        player.SendCpeMessage(CpeMessageType.BottomRight1, message);
+        player.SendCpeMessage(CpeMessageType.BottomRight2, "<Weapon selection>");
     }
 
     private string ColoredBlocks(int amount, int total = 10)
@@ -545,17 +542,17 @@ internal class GUI
 
     private string HeartBar(int amount)
     {
-        return StatusBar(Symbol.HEART_FULL, Symbol.HEART_HALF, Symbol.HEART_EMPTY, amount, size: 5);
+        return StatusBar(Symbol.HEART_FULL, Symbol.HEART_HALF, Symbol.HEART_EMPTY, amount, size: 10);
     }
 
-    private void ShowHealthAndStamina(Player player, int health, int stamina)
+    private void ShowHealth(Player player, int health)
     {
-        player.SendCpeMessage(CpeMessageType.BottomRight3, $"{HeartBar(health)} &e{Symbol.Bold("Stamina")}&f: {stamina}");
+        player.SendCpeMessage(CpeMessageType.BottomRight3, HeartBar(health));
     }
 
     private void ShowWeaponReload(Player player, int amount)
     {
-        player.SendCpeMessage(CpeMessageType.BottomRight2, ColoredBlocks(amount));
+        player.SendCpeMessage(CpeMessageType.BottomRight1, ColoredBlocks(amount));
     }
 
     private void ShowMap(Player player, string mapName)
