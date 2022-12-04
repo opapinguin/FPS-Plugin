@@ -1,5 +1,5 @@
 .vs
 .git
 .editorconfig
-/Gamemode/bin/
-/GameMode/obj/
+/FPSPlugin/bin/
+/FPSPlugin/obj/
