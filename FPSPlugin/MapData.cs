@@ -22,13 +22,15 @@ namespace FPS.Configuration;
 internal class MapData
 {
     internal string Name { get; set; }
-    internal uint? RoundDurationSeconds { get; set; }
-    internal uint? CountdownTimeSeconds { get; set; }
+    internal int? RoundDurationSeconds { get; set; }
+    internal int? CountdownTimeSeconds { get; set; }
 
-    internal static MapData Default(string mapName)
+    internal static MapData Default(string mapName, GameProperties gameProperties)
     {
         MapData mapData = new MapData();
         mapData.Name = mapName;
+        mapData.RoundDurationSeconds = (int)gameProperties.DefaultRoundDurationSeconds;
+        mapData.CountdownTimeSeconds = (int)gameProperties.CountdownDurationSeconds;
         return mapData;
     }
 }

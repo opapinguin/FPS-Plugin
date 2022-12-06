@@ -5,13 +5,23 @@ using FPS.Entities;
 using FPS.Weapons;
 using MCGalaxy;
 using MCGalaxy.Events.PlayerEvents;
-using static FPS.FPSMOGame;
 
 namespace FPS;
 
 internal class GUI
 {
-    internal void Observe(FPSMOGame game)
+    private FPSGame _game;
+    private List<Player> Players => _game.Players.Values.ToList();
+    private Dictionary<CpeMessageType, string> _persistentMessages;
+    private object _persistentMessagesLock = new();
+
+    internal GUI(FPSGame game)
+    {
+        _game = game;
+        _persistentMessages = new Dictionary<CpeMessageType, string>();
+    }
+
+    internal void Observe(FPSGame game)
     {
         game.CountdownStarted += HandleCountdownStarted;
         game.PlayerShotWeapon += HandlePlayerShotWeapon;
@@ -32,9 +42,10 @@ internal class GUI
         game.PlayerJoinedTeam += HandlePlayerJoinedTeam;
         game.PlayerKilled += HandlePlayerKilled;
         game.PlayerHit += HandlePlayerHit;
+        game.CountdownFailed += HandleCountdownFailed;
     }
 
-    internal void Unobserve(FPSMOGame game)
+    internal void Unobserve(FPSGame game)
     {
         game.CountdownStarted -= HandleCountdownStarted;
         game.PlayerShotWeapon -= HandlePlayerShotWeapon;
@@ -55,6 +66,7 @@ internal class GUI
         game.PlayerJoinedTeam -= HandlePlayerJoinedTeam;
         game.PlayerKilled -= HandlePlayerKilled;
         game.PlayerHit -= HandlePlayerHit;
+        game.CountdownFailed -= HandleCountdownFailed;
     }
 
     internal void Observe(AchievementsManager manager)
@@ -89,33 +101,62 @@ internal class GUI
         OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
     }
 
+    private void MessageAll(string message, CpeMessageType type = CpeMessageType.Normal, bool persist = false)
+    {
+        bool isBottomRight = (11 <= (int)type && (int)type <= 13);
+        bool isStatus = (1 <= (int)type && (int)type <= 3);
+
+        if (persist)
+        {
+            if (!isBottomRight && !isStatus)
+                throw new ArgumentException("Only BottomRight and Status messages can persist.", nameof(persist));
+
+            lock (_persistentMessagesLock)
+            {
+                _persistentMessages[type] = message;
+            }
+        }
+        else if (isBottomRight || isStatus)
+        {
+            lock (_persistentMessagesLock)
+            {
+                _persistentMessages.Remove(type);
+            }
+        }
+
+        foreach (Player player in Players)
+        {
+            player.SendCpeMessage(type, message);
+        }
+    }
+
+    private void SendPersistentMessages(Player player)
+    {
+        foreach (CpeMessageType type in _persistentMessages.Keys)
+        {
+            player.SendCpeMessage(type, _persistentMessages[type]);
+        }
+    }
+
     internal void HandleCountdownStarted(Object sender, CountdownStartedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-        List<Player> players = game.players.Values.ToList();
+        FPSGame game = (FPSGame)sender;
+        MessageAll("&SStarting new round...");
+        ShowMapInfo(game.Map, args.MapAverageRating);
+        ShowTeamStatistics();
 
-        foreach (Player player in players)
+        foreach (Player player in Players)
         {
-            player.Message("&SStarting new round...");
-
-            ShowMapInfo(player, game.map, args.MapAverageRating);
             ShowInventory(player);
-            ShowTeamStatistics(player);
         }
     }
 
     internal void HandlePlayerShotWeapon(Object sender, PlayerShotWeaponEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-        Player p = args.Player;
+        Player player = args.Player;
 
-        if (!(game.stage == Stage.Round && game.subStage == SubStage.Middle))
-        {
-            return;
-        }
-
-        Weapon gun = PlayerDataHandler.Instance[p.truename].gun;
-        PlayerDataHandler.Instance[p.truename].currentWeapon = gun;
+        Weapon gun = PlayerDataHandler.Instance[player.truename].gun;
+        PlayerDataHandler.Instance[player.truename].currentWeapon = gun;
 
         // Can't shoot if the status below 10
         if (gun.GetStatus(WeaponHandler.Tick) < 10)
@@ -123,9 +164,8 @@ internal class GUI
             return;
         }
 
-        ShowWeaponReload(p, 0);
-
-        PlayerDataHandler.Instance[p.truename].gun.Use(p.Rot, p.Pos.ToVec3F32());   // This takes care of the status too
+        ShowWeaponReload(player, 0);
+        PlayerDataHandler.Instance[player.truename].gun.Use(player.Rot, player.Pos.ToVec3F32());   // This takes care of the status too
     }
 
     internal void HandleWeaponChanged(Object sender, WeaponChangedEventArgs args)
@@ -150,172 +190,145 @@ internal class GUI
 
     internal void HandleCountdownTicked(Object sender, CountdownTickedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
         if (args.TimeRemaining <= 10 || args.TimeRemaining % 5 == 0)
         {
-            foreach (Player player in game.players.Values)
-                ShowCountdown(player, args.TimeRemaining);
-        }
-
-        if (!args.HasEnoughPlayers && args.TimeRemaining == 1)
-        {
-            foreach (Player player in game.players.Values)
-                ShowNeedMorePlayers(player);
+            ShowCountdown(args.TimeRemaining);
         }
     }
 
     internal void HandleCountdownEnded(Object sender, EventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-        {
-            player.SendCpeMessage(CpeMessageType.SmallAnnouncement, "");
-            player.SendCpeMessage(CpeMessageType.Announcement, "");
-        }
+        MessageAll("", CpeMessageType.Announcement);
     }
 
     internal void HandleRoundStarted(Object sender, EventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-        {
-            ShowRoundStarted(player);
-        }
+        ShowTeamStatistics();
+        MessageAll("Round has started!");
     }
 
     internal void HandleRoundTicked(Object sender, RoundTickedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-            ShowRoundTimeRemaining(player, args.TimeRemaining);
+        MessageAll($"&STime remaining: &T{args.TimeRemaining}", CpeMessageType.Status3, persist: true);
     }
 
     internal void HandleRoundEnded(Object sender, EventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-        {
-            player.SendCpeMessage(CpeMessageType.Status2, "");
-            player.SendCpeMessage(CpeMessageType.Status3, "");
-            ClearBottomRight(player);
-            player.Message("&SThe &cRED &Steam wins!");
-        }
+        MessageAll("", CpeMessageType.Status2, persist: true);
+        MessageAll("", CpeMessageType.Status3, persist: true);
+        MessageAll("", CpeMessageType.BottomRight1, persist: true);
+        MessageAll("", CpeMessageType.BottomRight2, persist: true);
+        MessageAll("", CpeMessageType.BottomRight3, persist: true);
+        MessageAll("&SThe &T<winning team> &Swins!");
     }
 
     internal void HandleVoteStarted(Object sender, VoteStartedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
+        string map1 = args.Map1;
+        string map2 = args.Map2;
+        string map3 = args.Map3;
 
-        foreach (Player player in game.players.Values)
-            ShowVoteOptions(player, args.Map1, args.Map2, args.Map3, args.Count);
+        int count = (map3 is null) ? 2 : 3;
+
+        if (count == 2)
+        {
+            MessageAll("&SLevel vote - type &a1 &Sor &b2&S.", CpeMessageType.BottomRight3, persist: true);
+            MessageAll($"&a{map1}&S, &b{map2}", CpeMessageType.BottomRight2, persist: true);
+        }
+        else if (count == 3)
+        {
+            MessageAll("&SLevel vote - type &a1&S, &b2&S &Sor &c3&S.", CpeMessageType.BottomRight3, persist: true);
+            MessageAll($"&a{map1}&S, &b{map2}&S, &c{map3}", CpeMessageType.BottomRight2, persist: true);
+        }
     }
 
     internal void HandleVoteTicked(Object sender, VoteTickedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-            ShowVoteTimeRemaining(player, args.TimeRemaining);
+        string message = $"&T{args.TimeRemaining}s &Sleft to vote.";
+        MessageAll(message, CpeMessageType.BottomRight1, persist: true);
     }
 
     internal void HandleVoteEnded(Object sender, VoteEndedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
+        FPSGame game = (FPSGame)sender;
+        List<Player> players = game.Players.Values.ToList();
 
-        foreach (Player player in game.players.Values)
-        {
-            ClearBottomRight(player);
-            ShowVoteResults(player, args.Map1, args.Map2, args.Map3,
-                            args.Votes1, args.Votes2, args.Votes3);
-        }
+        MessageAll("", CpeMessageType.BottomRight1);
+        MessageAll("", CpeMessageType.BottomRight2);
+        MessageAll("", CpeMessageType.BottomRight3);
+        MessageAll("&SVotes are in!");
+
+        string[] maps = args.Maps;
+        int[] votes = args.Votes;
+        string results;
+
+        if (maps.Length == 3)
+            results = $"&a{maps[0]}: {votes[0]}&S, &b{maps[1]}: {votes[1]}&S, &c{maps[2]}: {votes[2]}&S";
+        else
+            results = $"&a{maps[0]}: {votes[0]}&S, &b{maps[1]}: {votes[1]}&S";
+
+        MessageAll(results);
     }
 
     internal void HandlePlayerJoined(Object sender, PlayerJoinedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-        ShowTeamStatistics(args.Player);
-
-        if (game.stage == FPSMOGame.Stage.Voting)
-        {
-            ShowVoteOptions(args.Player, game.map1, game.map2, game.map3);
-        }
-        else
-        {
-            ShowInventory(args.Player);
-        }
-
-        if (game.stage == FPSMOGame.Stage.Round)
-        {
-            // TODO Find a way to access round time remaining from there
-            ShowRoundTimeRemaining(args.Player, -1);
-        }
+        Player player = args.Player;
+        ShowInventory(player);
+        SendPersistentMessages(player);
     }
 
     internal void HandlePlayerLeft(Object sender, PlayerLeftEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-        ClearBottomRight(args.Player);
-        args.Player.SendCpeMessage(CpeMessageType.Status2, "");
-        args.Player.SendCpeMessage(CpeMessageType.Status3, "");
+        Player player = args.Player;
+
+        player.SendCpeMessage(CpeMessageType.BottomRight1, "");
+        player.SendCpeMessage(CpeMessageType.BottomRight2, "");
+        player.SendCpeMessage(CpeMessageType.BottomRight3, "");
+        player.SendCpeMessage(CpeMessageType.Status2, "");
+        player.SendCpeMessage(CpeMessageType.Status3, "");
     }
 
     internal void HandleGameStopped(Object sender, EventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
-
-        foreach (Player player in game.players.Values)
-        {
-            ClearBottomRight(player);
-            player.SendCpeMessage(CpeMessageType.Status2, "");
-            player.SendCpeMessage(CpeMessageType.Status3, "");
-        }
+        MessageAll("", CpeMessageType.Status2);
+        MessageAll("", CpeMessageType.Status3);
+        MessageAll("", CpeMessageType.BottomRight1);
+        MessageAll("", CpeMessageType.BottomRight2);
+        MessageAll("", CpeMessageType.BottomRight3);
+        MessageAll("", CpeMessageType.Announcement);
 
         Chat.MessageAll("&SThe FPS game has been stopped.");
     }
 
     internal void HandleWeaponSpeedChanged(Object sender, WeaponSpeedChangedEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
         Player player = args.Player;
         int amount = args.Amount;
 
         amount = Utils.Clamp(amount, 0, 10);
-
         player.SendCpeMessage(CpeMessageType.SmallAnnouncement, ColoredBlocks(amount));
     }
 
     internal void HandlePlayerJoinedTeam(Object sender, PlayerJoinedTeamEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
         string color = (args.TeamName.ToUpper() == "RED") ? "&c" : "&9";
-
-        foreach (Player player in game.players.Values)
-        {
-            player.SendCpeMessage(CpeMessageType.Normal,
-                $"{args.Player.ColoredName} &Sjoined team {color}{args.TeamName.ToUpper()}&S!");
-        }
+        MessageAll($"{args.Player.name} &Sjoined team {color}{args.TeamName.ToUpper()}&S!");
     }
 
     internal void HandlePlayerHit(Object sender, PlayerHitEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
         Player victim = args.Victim;
         Player shooter = args.Shooter;
 
         victim.Message($"&SYou got hit by {shooter.ColoredName}");
-        shooter.Message("&SYou've hit {shooter.ColoredName}!");
+        shooter.Message($"&SYou've hit {shooter.ColoredName}!");
     }
 
     internal void HandlePlayerKilled(Object sender, PlayerKilledEventArgs args)
     {
-        FPSMOGame game = (FPSMOGame)sender;
+        FPSGame game = (FPSGame)sender;
 
-        foreach (Player player in game.players.Values)
+        foreach (Player player in game.Players.Values)
         {
             player.SendCpeMessage(CpeMessageType.Normal,
                 $"{args.Killer.ColoredName} &Skilled {args.Victim.ColoredName}");
@@ -325,12 +338,7 @@ internal class GUI
     internal void HandleAchievementUnlocked(Object sender, AchievementUnlockedEventArgs args)
     {
         Player who = args.Player;
-
-        foreach (Player player in FPSMOGame.Instance.players.Values)
-        {
-            player.SendCpeMessage(CpeMessageType.Normal,
-                $"{who.ColoredName} &Sunlocked &f{args.Achievement.Name}");
-        }
+        MessageAll($"{who.ColoredName} &Sunlocked &f{args.Achievement.Name}");
     }
 
     internal void HandleJoinedLevel(Player player, Level from, Level to, ref bool announce)
@@ -358,23 +366,28 @@ internal class GUI
         }
     }
 
-    private void ShowMapInfo(Player player, Level level, float? rating)
+    internal void HandleCountdownFailed(Object sender, EventArgs args)
+    {
+		MessageAll("&WNeed 2 or more non-ref players to start a round.");
+    }
+
+    private void ShowMapInfo(Level level, float? rating)
     {
         string authors = string.Join(", ", level.Config.Authors.Split(','));
 
         if (authors.Length != 0)
         {
-            player.Message($"&SThis map was made by &T{authors}&S.");
+            MessageAll($"&SThis map was made by &T{authors}&S.");
         }
 
         if (rating != null)
         {
-            string formattedRating = $"{RatingColor(rating.Value)}{rating.Value.ToString("0.00")}";
-            player.Message($"&SThis map has an average rating of &T{formattedRating}/5&S.");
+            string formattedRating = $"{RatingColor(rating.Value)}{rating.Value:0.00}";
+            MessageAll($"&SThis map has an average rating of &T{formattedRating}/5&S.");
         }
         else
         {
-            player.Message("&SThis map has not yet been rated.");
+            MessageAll("&SThis map has not yet been rated.");
         }
     }
 
@@ -384,15 +397,15 @@ internal class GUI
         if (1f <= rating && rating < 2f) return Colors.maroon;
         if (2f <= rating && rating < 3f) return Colors.gold;
         if (3f <= rating && rating < 4f) return Colors.green;
-        else                             return Colors.lime;
+        else return Colors.lime;
     }
 
-    private void ShowTeamStatistics(Player player)
+    private void ShowTeamStatistics()
     {
-        player.SendCpeMessage(CpeMessageType.Status2, "<Team statistics>");
+        MessageAll("<Team statistics>", CpeMessageType.Status2, persist: true);
     }
 
-    private void ShowCountdown(Player player, int timeRemaining)
+    private void ShowCountdown(int timeRemaining)
     {
         bool plural = (timeRemaining != 1);
         string message;
@@ -400,70 +413,7 @@ internal class GUI
         if (plural) message = $"&4Starting in &f{timeRemaining} &4seconds";
         else message = $"&4Starting in &f{timeRemaining} &4second";
 
-        player.SendCpeMessage(CpeMessageType.Announcement, message);
-    }
-
-    private void ShowNeedMorePlayers(Player player)
-    {
-        player.SendCpeMessage(CpeMessageType.Normal, "&WNeed 2 or more non-ref players to start a round.");
-    }
-
-    private void ShowVoteOptions(Player player, string map1, string map2, string map3)
-    {
-        player.SendCpeMessage(CpeMessageType.BottomRight2, "&ePick a level");
-        player.SendCpeMessage(CpeMessageType.BottomRight1, $"&c{map1}, &a{map2}, &9{map3}");
-    }
-
-    private void ShowVoteOptions(Player player, string map1, string map2, string map3, int count)
-    {
-        if (count == 2)
-        {
-            player.SendCpeMessage(CpeMessageType.BottomRight3, "&SLevel vote - type &a1 &Sor &b2&S.");
-            player.SendCpeMessage(CpeMessageType.BottomRight2, $"&a{map1}&S, &b{map2}");
-        }
-        else if (count == 3)
-        {
-            player.SendCpeMessage(CpeMessageType.BottomRight3, "&SLevel vote - type &a1&S, &b2&S &Sor &c3&S.");
-            player.SendCpeMessage(CpeMessageType.BottomRight2, $"&a{map1}&S, &b{map2}&S, &c{map3}");
-        }
-    }
-
-    private void ShowVoteTimeRemaining(Player player, int timeRemaining)
-    {
-        string message = String.Format($"&T{timeRemaining}s &Sleft to vote.");
-        player.SendCpeMessage(CpeMessageType.BottomRight1, message);
-    }
-
-    private void ShowVoteResults(Player player, string map1, string map2, string map3,
-                                 int votes1, int votes2, int votes3)
-    {
-        player.SendCpeMessage(CpeMessageType.Normal, $"&SVotes are in!");
-
-        if (map3 != null)
-        {
-            player.SendCpeMessage(CpeMessageType.Normal, $"&a{map1}: {votes1}&S, &b{map2}: {votes2}&S, &c{map3}: {votes3}");
-        }
-        else
-        {
-            player.SendCpeMessage(CpeMessageType.Normal, $"&d{map1}: {votes1} &a{map2}: {votes2}");
-        }
-    }
-
-    private void ShowRoundTimeRemaining(Player player, int timeRemaining)
-    {
-        player.SendCpeMessage(CpeMessageType.Status3, $"&STime remaining: &T{timeRemaining}");
-    }
-
-    private void ClearBottomRight(Player player)
-    {
-        player.SendCpeMessage(CpeMessageType.BottomRight1, "");
-        player.SendCpeMessage(CpeMessageType.BottomRight2, "");
-        player.SendCpeMessage(CpeMessageType.BottomRight3, "");
-    }
-
-    private void ShowRoundStarted(Player player)
-    {
-        player.SendCpeMessage(CpeMessageType.Normal, "&SRound has started! You are no longer invincible.");
+        MessageAll(message, CpeMessageType.Announcement);
     }
 
     private void ShowInventory(Player player)

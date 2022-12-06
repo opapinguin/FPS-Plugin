@@ -17,4 +17,10 @@
   <ItemGroup>
     <ProjectReference Include="..\MCGalaxy\MCGalaxy\MCGalaxy_.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Round\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Round\" />
+  </ItemGroup>
 </Project>

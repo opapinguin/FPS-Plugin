@@ -30,12 +30,12 @@ internal static class WeaponCollisionsHandler
 
     internal static void Activate()
     {
-        level = FPSMOGame.Instance.map;
+        level = FPSGame.Instance.Map;
     }
 
     internal static void Update(List<WeaponEntity> weaponEntities)
     {
-        foreach (Player p in FPSMOGame.Instance.players.Values)
+        foreach (Player p in FPSGame.Instance.Players.Values)
         {
             Walkthrough(p, p.ModelBB.OffsetPosition(p.Pos), weaponEntities);    // Handle walkthrough
         }
@@ -110,7 +110,7 @@ internal static class WeaponCollisionsHandler
 
                         // Some blocks will cause death of players
                         if (!level.Props[block].KillerBlock) continue;
-                        if (level.Config.KillerBlocks) FPSMOGame.Instance.OnPlayerHitPlayer(weaponEntities[i].shooter, p, weaponEntities[i]);
+                        if (level.Config.KillerBlocks) FPSGame.Instance.OnPlayerHitPlayer(weaponEntities[i].shooter, p, weaponEntities[i]);
                     }
         }
     }

@@ -27,7 +27,7 @@ namespace FPS.Weapons
 
         public override void Use(Player p, string message, CommandData data)
         {
-            if (!(FPSMOGame.Instance.bRunning)) return;
+            if (!(FPSGame.Instance.IsRunning)) return;
 
             if (PlayerDataHandler.Instance[p.truename] == null) return;
 
@@ -45,7 +45,7 @@ namespace FPS.Weapons
             }
 
             int amount = (int)PlayerDataHandler.Instance[p.truename].currentWeapon.weaponSpeed;
-            FPSMOGame.Instance.OnWeaponSpeedChanged(p, amount);
+            FPSGame.Instance.OnWeaponSpeedChanged(p, amount);
         }
 
         public override void Help(Player p)

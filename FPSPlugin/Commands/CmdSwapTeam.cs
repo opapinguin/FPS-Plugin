@@ -18,6 +18,7 @@ using FPS.Entities;
 using FPS.Teams;
 using MCGalaxy;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace FPS.Commands;
@@ -29,28 +30,31 @@ internal class CmdSwapTeam : Command2
     public override string type { get { return CommandTypes.Games; } }
     public override bool SuperUseable { get { return false; } }
 
-    public override void Use(Player p, string message, CommandData data)
+    private readonly TimeSpan _spanBetweenSwaps = TimeSpan.FromSeconds(10);
+
+    public override void Use(Player p, string message)
     {
-        // Check if player is registered in the game to start with
-        if (FPSMOGame.Instance.players.ContainsKey(p.truename)) return;
+        FPSGame game = FPSGame.Instance;
 
-        // Check if round or countdown is actually in progress
-        if (FPSMOGame.Instance.stage == FPSMOGame.Stage.Voting) return;
-
-        // Check if round time close to end
-        int secondsToRoundsEnd = (int)(FPSMOGame.Instance.RoundEnd - DateTime.Now).TotalSeconds;
-        if (secondsToRoundsEnd < 30)
+        if (!game.IsInGame(p))
         {
-            p.Message("Cannot swap team in the last 30 seconds of the round");
+            p.Message("&WYou can only change team when playing.");
+            return;
         }
 
-        // Check if not swapped too recently
-        int secondsSinceLastSwap = (int)(DateTime.Now - PlayerDataHandler.Instance.dictPlayerData[p.truename].lastTeamSwap).TotalSeconds;
-        if (secondsSinceLastSwap < 10)
+        if (!game.IsTeamSwappingAllowed)
         {
-            p.Message(String.Format("Need to wait another {0} seconds before swapping again", 10 - secondsSinceLastSwap)); return;
+            p.Message("&WCannot swap team while voting.");
+            return;
         }
-        
+
+        int timeRemainingSeconds = 0;
+        if (SwappedTooRecently(p, ref timeRemainingSeconds))
+        {
+            p.Message($"Need to wait another {timeRemainingSeconds} seconds before swapping again");
+            return;
+        }
+
         // Check if team is not going empty after swap
         if (TeamHandler.GetTeam(p).Count <= 1)
         {
@@ -74,5 +78,25 @@ internal class CmdSwapTeam : Command2
     {
         p.Message("&T/SwapTeam");
         p.Message("&HSwaps team");
+    }
+
+    private bool SwappedTooRecently(Player player, ref int timeRemainingSeconds)
+    {
+        Dictionary<string, PlayerData> dictPlayerData = PlayerDataHandler.Instance.dictPlayerData;
+
+        if (!dictPlayerData.ContainsKey(player.truename))
+        {
+            throw new ArgumentException($"There is no player {player.truename} in {nameof(dictPlayerData)}.",
+                nameof(player));
+        }
+
+        PlayerData playerData = dictPlayerData[player.truename];
+
+        DateTime now = DateTime.Now;
+        TimeSpan elapsedSinceLastUse = now - playerData.lastTeamSwap;
+        timeRemainingSeconds = (int)(_spanBetweenSwaps - elapsedSinceLastUse).TotalSeconds;
+
+        return (timeRemainingSeconds >= 0);
+
     }
 }

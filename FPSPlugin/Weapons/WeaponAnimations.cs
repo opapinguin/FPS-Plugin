@@ -42,8 +42,8 @@ internal static class WeaponAnimsHandler
 
     internal static void Activate()
     {
-        sender = new BufferedBlockSender(FPSMOGame.Instance.map);
-        level = FPSMOGame.Instance.map;
+        sender = new BufferedBlockSender(FPSGame.Instance.Map);
+        level = FPSGame.Instance.Map;
         blockSenderCache = new Dictionary<int, BlockID>();
     }
 
@@ -96,7 +96,7 @@ internal static class WeaponAnimsHandler
 
     internal static void Flush()
     {
-        foreach (Player p in FPSMOGame.Instance.players.Values)
+        foreach (Player p in FPSGame.Instance.Players.Values)
         {
             sender = new BufferedBlockSender(p);
             foreach (var kvp in blockSenderCache)

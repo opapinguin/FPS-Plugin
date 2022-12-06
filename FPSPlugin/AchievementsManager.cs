@@ -71,12 +71,12 @@ internal class AchievementsManager
         return false;
     }
 
-    internal void Observe(FPSMOGame game)
+    internal void Observe(FPSGame game)
     {
         // Subscribe to events here
     }
 
-    internal void Unobserve(FPSMOGame game)
+    internal void Unobserve(FPSGame game)
     {
         // Unsubscribe from events here
     }

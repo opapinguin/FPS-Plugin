@@ -21,7 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static FPS.FPSMOGame;
+using static FPS.FPSGame;
 
 namespace FPS.Entities;
 
@@ -62,8 +62,8 @@ internal class PlayerData
     internal ushort health;
     internal string team;
 
-    internal bool bVoted;
-    internal ushort vote; // Can be 1 2 or 3
+    internal bool HasVoted;
+    internal ushort Vote; // Can be 1 2 or 3
 
     // Weapons
     internal Weapon currentWeapon;
@@ -81,7 +81,7 @@ internal class PlayerData
     {
         hitsGiven = kills = deaths = 0;
         stamina = health = 10;
-        bVoted = false;
+        HasVoted = false;
         gun.Reset();
         rocket.Reset();
         currentWeapon = gun;

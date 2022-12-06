@@ -32,10 +32,10 @@ class CmdFPS : Command2
     public override LevelPermission defaultRank { get { return LevelPermission.Operator; } }
     public override string type { get { return CommandTypes.Games; } }
 
-    private FPSMOGame _game;
+    private FPSGame _game;
     private DatabaseManager _databaseManager;
 
-    internal CmdFPS(FPSMOGame game, DatabaseManager databaseManager)
+    internal CmdFPS(FPSGame game, DatabaseManager databaseManager)
     {
         _game = game;
         _databaseManager = databaseManager;
@@ -131,7 +131,7 @@ class CmdFPS : Command2
 
     private void Start(Player player, string[] args)
     {
-        if (_game.bRunning)
+        if (_game.IsRunning)
         {
             player.Message("&WFPS is already running.");
             return;
@@ -177,7 +177,7 @@ class CmdFPS : Command2
 
     private void Stop(Player player, string[] args)
     {
-        if (!_game.bRunning)
+        if (!_game.IsRunning)
         {
             player.Message("&WThere is no FPS game running.");
             return;
@@ -188,24 +188,13 @@ class CmdFPS : Command2
 
     private void End(Player player, string[] args)
     {
-        if (!_game.bRunning)
+        if (!_game.IsRunning)
         {
             player.Message("&WThere is no FPS game running.");
             return;
         }
-        else if (_game.stage == FPSMOGame.Stage.Countdown)
-        {
-            player.Message("&WCannot end game during countdown.");
-            return;
-        }
-        else if (_game.stage == FPSMOGame.Stage.Voting)
-        {
-            player.Message("&WCannot end game during a vote.");
-            return;
-        }
 
-        _game.stage = FPSMOGame.Stage.Round;
-        _game.subStage = FPSMOGame.SubStage.End;
+        _game.EndGame();
         Chat.MessageAll($"&SRound was ended by {player.ColoredName}.");
     }
 
@@ -273,7 +262,7 @@ class CmdFPS : Command2
             return;
         }
 
-        if (_game.bRunning && (_game.map.name == map))
+        if (_game.IsRunning && (_game.Map.name == map))
         {
             player.Message($"&WCannot remove &T{map}&W: it's being played.");
             return;
@@ -285,9 +274,9 @@ class CmdFPS : Command2
 
     private void Status(Player player, string[] args)
     {
-        if (_game.bRunning)
+        if (_game.IsRunning)
         {
-            player.Message($"&SFPS is currently running on &T{_game.map.name}&S.");
+            player.Message($"&SFPS is currently running on &T{_game.Map.name}&S.");
         }
         else
         {

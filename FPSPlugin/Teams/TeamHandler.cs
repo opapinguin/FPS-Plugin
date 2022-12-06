@@ -117,12 +117,12 @@ internal static class TeamHandler
         if (team == "RED")
         {
             red.Add(p);
-            FPSMOGame.Instance.OnPlayerJoinedTeam(p, team);
+            FPSGame.Instance.OnPlayerJoinedTeam(p, team);
         }
         else if (team == "BLUE")
         {
             blue.Add(p);
-            FPSMOGame.Instance.OnPlayerJoinedTeam(p, team);
+            FPSGame.Instance.OnPlayerJoinedTeam(p, team);
         }
     }
 

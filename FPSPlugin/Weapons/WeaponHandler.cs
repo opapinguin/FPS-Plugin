@@ -51,7 +51,7 @@ internal static class WeaponHandler
         currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
         MSTick = Constants.MS_UPDATE_WEAPON_ANIMATIONS;
 
-        level = FPSMOGame.Instance.map;
+        level = FPSGame.Instance.Map;
 
         lock (activateLock)
         {

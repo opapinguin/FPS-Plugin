@@ -28,7 +28,7 @@ namespace MCGalaxy;
 
 internal class FPSMOPlugin : Plugin
 {
-    private FPSMOGame _game;
+    private FPSGame _game;
     private GUI _gui;
     private AchievementsManager _achievementsManager;
     private DatabaseManager _databaseManager;
@@ -53,7 +53,7 @@ internal class FPSMOPlugin : Plugin
 
     public override void Load(bool startup)
     {
-        _game = FPSMOGame.Instance;
+        _game = FPSGame.Instance;
         _achievementsManager = LoadAchievementsManager(_game);
         _databaseManager = LoadDatabaseManager(_achievementsManager);
         _gui = LoadGUI(_game, _achievementsManager);
@@ -85,7 +85,7 @@ internal class FPSMOPlugin : Plugin
         UnloadGUI();
     }
 
-    private AchievementsManager LoadAchievementsManager(FPSMOGame game)
+    private AchievementsManager LoadAchievementsManager(FPSGame game)
     {
         var achievementsManager = new AchievementsManager();
         achievementsManager.Observe(game);
@@ -114,9 +114,9 @@ internal class FPSMOPlugin : Plugin
         _databaseManager.UnobserveMCGalaxy();
     }
 
-    private GUI LoadGUI(FPSMOGame game, AchievementsManager achievementsManager)
+    private GUI LoadGUI(FPSGame game, AchievementsManager achievementsManager)
     {
-        var gui = new GUI();
+        var gui = new GUI(_game);
         gui.Observe(this);
         gui.Observe(_game);
         gui.Observe(_achievementsManager);

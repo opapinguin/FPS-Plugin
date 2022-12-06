@@ -13,27 +13,25 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+using System;
+using System.Collections.Generic;
 using FPS.Entities;
 using FPS.Teams;
 using FPS.Weapons;
 using MCGalaxy;
 using MCGalaxy.Events.PlayerEvents;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace FPS;
 
-internal sealed partial class FPSMOGame
+internal sealed partial class FPSGame
 {
     internal event EventHandler<CountdownStartedEventArgs> CountdownStarted;
-    private void OnCountdownStarted()
+    internal void OnCountdownStarted()
     {
         if (CountdownStarted != null)
         {
             var args = new CountdownStartedEventArgs();
-            args.MapAverageRating = _databaseManager.AverageRating(map.name);
+            args.MapAverageRating = _databaseManager.AverageRating(Map.name);
             CountdownStarted(this, args);
         }
     }
@@ -76,20 +74,19 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler<CountdownTickedEventArgs> CountdownTicked;
-    private void OnCountdownTicked(int timeRemaining, bool hasEnoughPlayers)
+    internal void OnCountdownTicked(int timeRemaining)
     {
         if (CountdownTicked != null)
         {
             CountdownTickedEventArgs args = new CountdownTickedEventArgs();
             args.TimeRemaining = timeRemaining;
-            args.HasEnoughPlayers = hasEnoughPlayers;
 
             CountdownTicked(this, args);
         }
     }
 
     internal event EventHandler CountdownEnded;
-    private void OnCountdownEnded()
+    internal void OnCountdownEnded()
     {
         if (CountdownEnded != null)
         {
@@ -98,7 +95,7 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler RoundStarted;
-    private void OnRoundStarted()
+    internal void OnRoundStarted()
     {
         if (RoundStarted != null)
         {
@@ -107,8 +104,7 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler<RoundTickedEventArgs> RoundTicked;
-
-    private void OnRoundTicked(int timeRemaining)
+    internal void OnRoundTicked(int timeRemaining)
     {
         if (RoundTicked != null)
         {
@@ -118,7 +114,7 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler RoundEnded;
-    private void OnRoundEnded()
+    internal void OnRoundEnded()
     {
         if (RoundEnded != null)
         {
@@ -127,21 +123,23 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler<VoteStartedEventArgs> VoteStarted;
-    private void OnVoteStarted(string map1, string map2, string map3, int count)
+    internal void OnVoteStarted(List<string> maps)
     {
         if (VoteStarted != null)
         {
-            VoteStartedEventArgs args = new VoteStartedEventArgs();
-            args.Map1 = map1;
-            args.Map2 = map2;
-            args.Map3 = map3;
-            args.Count = count;
+            var args = new VoteStartedEventArgs();
+            args.Map1 = maps[0];
+            args.Map2 = maps[1];
+
+            if (maps.Count == 3)
+                args.Map3 = maps[2];
+
             VoteStarted(this, args);
         }
     }
 
     internal event EventHandler<VoteTickedEventArgs> VoteTicked;
-    private void OnVoteTicked(int timeRemaining)
+    internal void OnVoteTicked(int timeRemaining)
     {
         if (VoteTicked != null)
         {
@@ -150,18 +148,14 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler<VoteEndedEventArgs> VoteEnded;
-    private void OnVoteEnded()
+    internal void OnVoteEnded(string[] maps, int[] votes)
     {
         if (VoteEnded != null)
         {
             VoteEndedEventArgs args = new VoteEndedEventArgs()
             {
-                Map1 = map1,
-                Map2 = map2,
-                Map3 = map3,
-                Votes1 = (int)votes1,
-                Votes2 = (int)votes2,
-                Votes3 = (int)votes3
+                Maps = maps,
+                Votes = votes
             };
 
             VoteEnded(this, args);
@@ -169,7 +163,7 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler<PlayerJoinedEventArgs> PlayerJoined;
-    private void OnPlayerJoined(Player player)
+    internal void OnPlayerJoined(Player player)
     {
         if (PlayerJoined != null)
         {
@@ -193,7 +187,7 @@ internal sealed partial class FPSMOGame
     }
 
     internal event EventHandler GameStopped;
-    private void OnGameStopped()
+    internal void OnGameStopped()
     {
         if (GameStopped != null)
         {
@@ -295,22 +289,29 @@ internal sealed partial class FPSMOGame
         PlayerActions.Respawn(victim);
     }
 
+    internal event EventHandler CountdownFailed;
+    internal void OnCountdownFailed()
+    {
+        if (CountdownFailed != null)
+        {
+            CountdownFailed(this, EventArgs.Empty);
+        }
+    }
+
     private void HookEventHandlers()
     {
         OnPlayerMoveEvent.Register(HandlePlayerMove, Priority.High);
         OnJoinedLevelEvent.Register(HandleJoinedLevel, Priority.High);
-        OnPlayerChatEvent.Register(HandePlayerChat, Priority.High);
+        OnPlayerChatEvent.Register(HandlePlayerChat, Priority.High);
         OnPlayerDisconnectEvent.Register(HandlePlayerDisconnect, Priority.High);
-        OnPlayerChatEvent.Register(HandleVoting, Priority.High);
     }
 
     private void UnHookEventHandlers()
     {
         OnPlayerMoveEvent.Unregister(HandlePlayerMove);
         OnJoinedLevelEvent.Unregister(HandleJoinedLevel);
-        OnPlayerChatEvent.Unregister(HandePlayerChat);
+        OnPlayerChatEvent.Unregister(HandlePlayerChat);
         OnPlayerDisconnectEvent.Unregister(HandlePlayerDisconnect);
-        OnPlayerChatEvent.Unregister(HandleVoting);
     }
 
     private void HandlePlayerDisconnect(Player p, string reason)
@@ -318,9 +319,9 @@ internal sealed partial class FPSMOGame
         PlayerLeftGame(p);
     }
 
-    private void HandePlayerChat(Player p, string message)
+    private void HandlePlayerChat(Player p, string message)
     {
-        if (p.level != map || message.Length <= 1) return;
+        if (p.level != Map || message.Length <= 1) return;
 
         if (message[0] == '-')
         {
@@ -338,11 +339,11 @@ internal sealed partial class FPSMOGame
 
     private void HandleJoinedLevel(Player p, Level prevLevel, Level level, ref bool announce)
     {
-        if (prevLevel != null && prevLevel.name == map.name && level.name != map.name && !_movingToNextMap)
+        if (prevLevel != null && prevLevel.name == Map.name && level.name != Map.name)
         {
             PlayerLeftGame(p);
         }
-        else if (level.name == map.name)
+        else if (level.name == Map.name)
         {
             PlayerJoinedGame(p);
         }
@@ -350,7 +351,7 @@ internal sealed partial class FPSMOGame
 
     private void HandlePlayerMove(Player p, Position next, byte yaw, byte pitch, ref bool cancel)
     {
-        if (p.level != map) return;
+        if (p.level != Map) return;
 
         // TODO: Maybe tidy this up?
         if (p.Game.Noclip == null) p.Game.Noclip = new MCGalaxy.Games.NoclipDetector(p);
@@ -360,59 +361,23 @@ internal sealed partial class FPSMOGame
         if (reverted) cancel = true;
     }
 
-    private void HandleVoting(Player player, string message)
-    {
-        if (stage != Stage.Voting || subStage != SubStage.Middle) return;
-
-        int mapNumber = 0;
-
-        if (GetVotingMessage(message, ref mapNumber))
-        {
-            Vote(player, mapNumber);
-            player.cancelchat = true;
-        }
-    }
-
-    private bool GetVotingMessage(string message, ref int mapNumber)
-    {
-        message = message.ToLower().TrimEnd();
-
-        if (message == "1")
-        {
-            mapNumber = 1;
-            return true;
-        }
-        else if (message == "2")
-        {
-            mapNumber = 2;
-            return true;
-        }
-        else if (message == "3" && map3 != null)
-        {
-            mapNumber = 3;
-            return true;
-        }
-
-        return false;
-    }
-
     /******************
      * HELPER METHODS *
      ******************/
     #region Helper Methods
 
-    private void PlayerJoinedGame(Player p)
+    internal void PlayerJoinedGame(Player p)
     {
-        players[p.truename] = p;
+        Players[p.truename] = p;
         PlayerDataHandler.Instance[p.truename] = new PlayerData(p);
         TeamHandler.AddPlayer(p);
         SendBindings(p);
         OnPlayerJoined(p);
     }
 
-    private void PlayerLeftGame(Player p)
+    internal void PlayerLeftGame(Player p)
     {
-        players.Remove(p.truename);
+        Players.Remove(p.truename);
         PlayerDataHandler.Instance.dictPlayerData.Remove(p.truename);
         TeamHandler.RemovePlayer(p);
         RemoveBindings(p);

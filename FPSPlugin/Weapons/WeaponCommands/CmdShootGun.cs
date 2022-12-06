@@ -27,7 +27,7 @@ namespace FPS.Weapons
 
         public override void Use(Player p, string message, CommandData data)
         {
-            FPSMOGame.Instance.OnPlayerShotWeapon(p);
+            FPSGame.Instance.OnPlayerShotWeapon(p);
         }
 
         public override void Help(Player p)

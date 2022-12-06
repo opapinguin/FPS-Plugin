@@ -25,27 +25,23 @@ namespace FPS.Weapons
         public override bool LogUsage { get { return false; } }
         public override string type { get { return CommandTypes.Games; } }
 
-        public override void Use(Player p, string message, CommandData data)
+        public override void Use(Player player, string message, CommandData data)
         {
-            if (!(FPSMOGame.Instance.stage == FPSMOGame.Stage.Round && FPSMOGame.Instance.subStage == FPSMOGame.SubStage.Middle))
-            {
-                return;
-            }
+            FPSGame game = FPSGame.Instance;
 
-            if (PlayerDataHandler.Instance[p.truename] == null)
-            {
+            if (!game.CanShoot(player))
                 return;
-            }
 
-            Weapon rocket = PlayerDataHandler.Instance[p.truename].rocket;
-            PlayerDataHandler.Instance[p.truename].currentWeapon = rocket;
+            PlayerData playerData = PlayerDataHandler.Instance[player.truename];
+            Weapon rocket = playerData.rocket;
+            playerData.currentWeapon = rocket;
 
             if (rocket.GetStatus(WeaponHandler.Tick) < 10)
             {
                 return;
             }
 
-            PlayerDataHandler.Instance[p.truename].rocket.Use(p.Rot, p.Pos.ToVec3F32());
+            rocket.Use(player.Rot, player.Pos.ToVec3F32());
         }
 
         public override void Help(Player p)

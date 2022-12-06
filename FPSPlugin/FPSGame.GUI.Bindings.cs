@@ -22,7 +22,7 @@ using System.Text;
 
 namespace FPS;
 
-internal sealed partial class FPSMOGame
+internal sealed partial class FPSGame
 {
     internal void SendBindings(Player p)
     {

@@ -67,10 +67,10 @@ internal class DatabaseManager
         mapData.Name = entry[0];
 
         if (entry[1] == "") mapData.CountdownTimeSeconds = null;
-        else mapData.CountdownTimeSeconds = uint.Parse(entry[1]);
+        else mapData.CountdownTimeSeconds = int.Parse(entry[1]);
 
         if (entry[2] == "") mapData.RoundDurationSeconds = null;
-        else mapData.RoundDurationSeconds = uint.Parse(entry[2]);
+        else mapData.RoundDurationSeconds = int.Parse(entry[2]);
 
         return mapData;
     }
