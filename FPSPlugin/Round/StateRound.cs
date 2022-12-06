@@ -14,7 +14,7 @@ internal sealed class StateRound : GameState
     private DateTime _lastUpdateWeaponStatus;
 
     private const int RoundTickMilliseconds = 50;
-    private readonly TimeSpan _spanUpdateRoundStatus = TimeSpan.FromSeconds(RoundTickMilliseconds);
+    private readonly TimeSpan _spanUpdateRoundStatus = TimeSpan.FromMilliseconds(RoundTickMilliseconds);
 
     internal StateRound(FPSGame game, int roundDurationSeconds) : base(game)
     {
@@ -46,7 +46,7 @@ internal sealed class StateRound : GameState
             _game.OnRoundTicked(_timeRemainingSeconds);
         }
 
-        if (_lastUpdateWeaponStatus + _spanUpdateRoundStatus > now)
+        if (now - _lastUpdateWeaponStatus > _spanUpdateRoundStatus)
         {
             UpdateWeaponStatus();
         }
@@ -56,7 +56,6 @@ internal sealed class StateRound : GameState
             _game.SetState(new StateVoting(_game, _game.VoteDurationSeconds));
             return;
         }
-
     }
 
     internal override void Exit()
