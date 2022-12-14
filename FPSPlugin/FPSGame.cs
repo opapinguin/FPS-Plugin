@@ -120,9 +120,6 @@ internal sealed partial class FPSGame
         _mainLoopTimer = new Timer(MainLoop,
             state: null, dueTime: GameTickMilliseconds, period: GameTickMilliseconds);
 
-        Thread fpsMainLoopThread = new Thread(MainLoop) { Name = "FPSMO" };
-        fpsMainLoopThread.Start();
-
         Chat.MessageAll($"&SFPS was started on &T{mapName}&S.");
     }
     
@@ -144,6 +141,7 @@ internal sealed partial class FPSGame
         PlayerDataHandler.Instance.Deactivate();
 
         RemoveServerNameSuffix();
+        _mainLoopTimer.Dispose();
         Chat.MessageAll($"&SFPS was stopped.");
     }
 
