@@ -61,6 +61,10 @@ internal sealed partial class FPSGame
     private DatabaseManager _databaseManager;
     private GameState _gameState;
     private string _defaultServerName = Server.Config.Name;
+    private Timer _mainLoopTimer;
+    private object _mainLoopLocker = new();
+
+    private const int GameTickMilliseconds = 50;
 
     internal void SetDatabaseManager(DatabaseManager databaseManager)
     {
@@ -113,6 +117,9 @@ internal sealed partial class FPSGame
         IsRunning = true;
         SetState(new StateLoading(this, mapName));
 
+        _mainLoopTimer = new Timer(MainLoop,
+            state: null, dueTime: GameTickMilliseconds, period: GameTickMilliseconds);
+
         Thread fpsMainLoopThread = new Thread(MainLoop) { Name = "FPSMO" };
         fpsMainLoopThread.Start();
 
@@ -140,11 +147,18 @@ internal sealed partial class FPSGame
         Chat.MessageAll($"&SFPS was stopped.");
     }
 
-    internal void MainLoop()
+    internal void MainLoop(object state)
     {
-        while (IsRunning)
+        if (Monitor.TryEnter(_mainLoopLocker, GameTickMilliseconds))
         {
-            _gameState.Loop();
+            try
+            {
+                _gameState.Loop();
+            }
+            finally
+            {
+                Monitor.Exit(_mainLoopLocker);
+            }
         }
     }
 

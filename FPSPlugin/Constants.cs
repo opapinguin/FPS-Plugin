@@ -22,6 +22,5 @@ internal static class Constants
     internal const uint ROCKET_DAMAGE = 1;
     internal const float ROCKET_FRAME_LENGTH = 4f;
     internal const uint MS_UPDATE_WEAPON_ANIMATIONS = 50;
-    internal const uint MS_UPDATE_ROUND_STATUS = 50;
     internal const float MAX_MOVE_DISTANCE = 1.5625f;
 }
