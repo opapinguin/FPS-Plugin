@@ -60,6 +60,6 @@ internal class GunWeapon : ProjectileWeapon
     {
         lastFireTick = WeaponHandler.Tick;
         // Instantiate the weapon animation
-        WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, weaponSpeed, damage, LocAt);
+        WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, weaponSpeed, damage, LocAt, OnHit);
     }
 }

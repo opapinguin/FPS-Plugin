@@ -14,6 +14,7 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 */
 
 using FPS.Configuration;
+using FPSMO.Weapons;
 using MCGalaxy;
 using MCGalaxy.Maths;
 using System;
@@ -78,10 +79,15 @@ internal class RocketWeapon : ProjectileWeapon
             dir.Z * distance * 32 + helixR * helixDisplacement.Z * 32 + orig.Z);
     }
 
+    internal override void OnHit(Vec3U16 origin)
+    {
+        WeaponEntity explosion = new StaticAnimation(WeaponHandler.Tick, AnimationType.SmallExplosion, origin);
+    }
+
     internal override void Use(Orientation rot, Vec3F32 loc)
     {
         lastFireTick = WeaponHandler.Tick;
         // Instantiate the weapon animation
-        WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, weaponSpeed, damage, LocAt);
+        WeaponEntity fireAnimation = new Projectile(player, lastFireTick, block, player.Pos, player.Rot, frameLength, weaponSpeed, damage, LocAt, OnHit);
     }
 }

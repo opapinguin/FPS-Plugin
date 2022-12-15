@@ -17,11 +17,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using FPSMO.Weapons;
 using MCGalaxy;
 using MCGalaxy.Blocks;
 using MCGalaxy.Maths;
 using MCGalaxy.Network;
 using MCGalaxy.Tasks;
+using static FPS.Weapons.Projectile;
 using BlockID = System.UInt16;
 
 namespace FPS.Weapons;
@@ -29,7 +31,7 @@ namespace FPS.Weapons;
 /// <summary>
 /// An abstract block that only exists to send block changes. Not a part of the map
 /// </summary>
-internal struct WeaponBlock : IEqualityComparer<WeaponBlock> {
+internal class WeaponBlock : IEqualityComparer<WeaponBlock> {
     internal WeaponBlock(Vec3U16 loc, BlockID block)
     {
         x = loc.X;
@@ -62,9 +64,11 @@ internal abstract class WeaponEntity
     protected uint fireTimeTick;
     internal float frameLength;   // Number of frames shown at once
     internal bool collided;
+    internal protected uint deathTick = uint.MaxValue; // Last tick before we remove automatically
+    protected OnHit onHit;
 
-    internal List<WeaponBlock> currentBlocks = new List<WeaponBlock>(); // current tick blocks
-    internal List<WeaponBlock> lastBlocks = new List<WeaponBlock>();    // last tick blocks
+    internal List<WeaponBlock> currentBlocks = new(); // current tick blocks
+    internal List<WeaponBlock> lastBlocks = new();    // last tick blocks
 
     internal uint damage;
 
@@ -79,13 +83,19 @@ internal abstract class WeaponEntity
     /// </summary>
     internal virtual List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, uint depth=0)
     {
-        List<WeaponBlock> result = new List<WeaponBlock>();
+        List<WeaponBlock> result = new();
         List<WeaponBlock> currentBlocks = GetCurrentBlocks(tickStart);
 
         // TODO: could be more efficient if not constantly jumping to find the map
         if (WeaponCollisionsHandler.CheckCollision(currentBlocks))   // If a collision is found return (and don't bother with what's comes after this tick)
         {
+            // Set collision
             collided = true;
+
+            WeaponBlock collidedBlock = WeaponCollisionsHandler.GetCollision(currentBlocks);
+            
+            // Call onhit (e.g., might spawn an explosion)
+            onHit(new Vec3U16(collidedBlock.x, collidedBlock.y, collidedBlock.z));
             return new List<WeaponBlock>();
         }
 
@@ -105,6 +115,7 @@ internal abstract class WeaponEntity
 internal class Projectile : WeaponEntity
 {
     internal delegate Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed);  // Location at delegates the parametric function of our choice. Assumes a 1D path
+    internal delegate void OnHit(Vec3U16 orig);
 
     private readonly LocAt locAt;
     private readonly BlockID block;
@@ -112,12 +123,13 @@ internal class Projectile : WeaponEntity
     private Orientation rotation;
     private readonly uint weaponSpeed;
 
-    internal Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, uint dmg, LocAt ft)
+    internal Projectile(Player p, uint start, BlockID b, Position orig, Orientation rot, float fl, uint ws, uint dmg, LocAt locat, OnHit onhit)
     {
         shooter = p;
         fireTimeTick = start;
         block = b;
-        locAt = ft;
+        locAt = locat;
+        onHit = onhit;
         origin = orig;
         rotation = rot;
         frameLength = fl;
@@ -130,15 +142,41 @@ internal class Projectile : WeaponEntity
     internal override List<WeaponBlock> GetCurrentBlocks(float tick)  // TODO: Probably want to return a list of blocks, like a short line
     {
         Vec3F32 loc = locAt(tick, origin, rotation, fireTimeTick, weaponSpeed);
-        Vec3U16 locU16 = new Vec3U16((ushort)(loc.X / 32), (ushort)(loc.Y / 32), (ushort)(loc.Z / 32));
+        Vec3U16 locU16 = new((ushort)(loc.X / 32), (ushort)(loc.Y / 32), (ushort)(loc.Z / 32));
 
-        WeaponBlock ab = new WeaponBlock(locU16, block);
+        WeaponBlock ab = new(locU16, block);
 
-        List<WeaponBlock> animBlocks = new List<WeaponBlock>
+        List<WeaponBlock> animBlocks = new()
         {
             ab
         };
 
         return animBlocks;
+    }
+}
+
+internal class StaticAnimation : WeaponEntity
+{
+    List<List<WeaponBlock>> animation;
+    uint firetime;
+
+    internal StaticAnimation(float tick, AnimationType type, Vec3U16 origin)
+    {
+        animation = AnimationsLibrary.GetAnimationWithCollisions(type, origin);
+        deathTick = (uint)(tick + animation.Count);
+        firetime = WeaponHandler.Tick;
+
+        WeaponHandler.AddEntity(this);
+    }
+
+    internal override List<WeaponBlock> GetCurrentBlocks(float tick)
+    {
+        return animation[Utils.Clamp((int)(tick - firetime), 0, animation.Count - 1)];
+    }
+
+    // Forbid interpolation in this case (it's a bit silly to interpolate)
+    internal override List<WeaponBlock> GetCurrentBlocksInterpolate(float tickStart, float tickEnd, uint depth = 0)
+    {
+        return GetCurrentBlocks(tickStart);
     }
 }

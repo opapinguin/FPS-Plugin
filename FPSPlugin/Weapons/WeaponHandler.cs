@@ -30,26 +30,27 @@ internal static class WeaponHandler
     /**********
      * FIELDS *
      **********/
-    static readonly object activateLock = new object();
-    static readonly object deactivateLock = new object();
+    static readonly object activateLock = new();
+    static readonly object deactivateLock = new();
 
     static SchedulerTask task;
     static Scheduler instance;
 
-    static uint MSTick;
     static uint currentTick;
 
-    static List<WeaponEntity> weaponEntities = new List<WeaponEntity>();
-    static List<WeaponEntity> collidingEntities = new List<WeaponEntity>();
+    static List<WeaponEntity> weaponEntities = new();
+    static List<WeaponEntity> collidingEntities = new();
 
     static Level level;
 
     internal static uint Tick { get { return currentTick; } }
-
+    
+    /// <summary>
+    /// Prepares the weapon handler. In particular, initializes the current tick and the weapon schedulertask
+    /// </summary>
     internal static void Activate()
     {
         currentTick = 10;   // Why not 0? Fixes issue with all weapon startTicks being 0, giving a long reload time
-        MSTick = Constants.MS_UPDATE_WEAPON_ANIMATIONS;
 
         level = FPSGame.Instance.Map;
 
@@ -57,13 +58,16 @@ internal static class WeaponHandler
         {
             if (instance != null) return;   // Singleton boilerplate
             instance = new Scheduler("WeaponAnimationsScheduler");
-            task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(MSTick));
+            task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(Constants.MS_UPDATE_WEAPON_ANIMATIONS));
         }
 
         WeaponAnimsHandler.Activate();
         WeaponCollisionsHandler.Activate();
     }
 
+    /// <summary>
+    /// Deactivates the weapon handler. Unloads the scheduler task. Releases resources
+    /// </summary>
     internal static void Deactivate()
     {
         lock (deactivateLock)
@@ -82,16 +86,30 @@ internal static class WeaponHandler
         weaponEntities = new List<WeaponEntity>();
     }
 
-    internal static void AddEntity(WeaponEntity anim)
+    /// <summary>
+    /// Adds a weapon entity to the list of entities
+    /// </summary>
+    /// <param name="we">Weapon entity</param>
+    internal static void AddEntity(WeaponEntity we)
     {
-        weaponEntities.Add(anim);
+        weaponEntities.Add(we);
     }
 
-    internal static void RemoveEntity(WeaponEntity anim)
+    /// <summary>
+    /// Removes a weapon entity from the list of entities
+    /// </summary>
+    /// <param name="we">Weapon entity</param>
+    internal static void RemoveEntity(WeaponEntity we)
     {
-        weaponEntities.Remove(anim);
+        weaponEntities.Remove(we);
     }
 
+    /// <summary>
+    /// The main update call in the scheduler task
+    /// Handles animations and collisions in a frame and prepares the next repeatedly
+    /// See function body for the full algorithm
+    /// </summary>
+    /// <param name="task"></param>
     internal static void Update(SchedulerTask task)
     {
         // 1. Find blocks for tick T
@@ -108,6 +126,7 @@ internal static class WeaponHandler
         UpdateEntityBlocks();
         WeaponAnimsHandler.Undraw(weaponEntities, currentTick : false);
         RemoveEntities(collidingEntities);
+        RemoveDiedEntities();
         collidingEntities = WeaponCollisionsHandler.GetCollisions(weaponEntities);  // Time-wise the heaviest line of code here
         WeaponAnimsHandler.Draw(weaponEntities, currentTick : true);
         WeaponCollisionsHandler.Update(weaponEntities);
@@ -115,6 +134,10 @@ internal static class WeaponHandler
         currentTick++;
     }
 
+    /// <summary>
+    /// Updates all entity block information in the given frame.
+    /// In particular, fetches the current blocks available inside that weapon entity
+    /// </summary>
     private static void UpdateEntityBlocks()
     {
         for (int i = 0; i < weaponEntities.Count; i++)
@@ -122,14 +145,33 @@ internal static class WeaponHandler
             WeaponEntity we = weaponEntities[i];
             we.lastBlocks = we.currentBlocks;
             we.currentBlocks = we.GetCurrentBlocksInterpolate(Tick, Tick + we.frameLength);
+            weaponEntities[i] = we;
         }
     }
 
+    /// <summary>
+    /// Removes a list of entities from the weapon entities
+    /// </summary>
+    /// <param name="weList">Weapon entity list</param>
     private static void RemoveEntities(List<WeaponEntity> weList)
     {
         foreach (WeaponEntity entity in weList)
         {
             WeaponHandler.RemoveEntity(entity);
         }
+    }
+
+    /// <summary>
+    /// Removes entities that reached their lifetimes
+    /// </summary>
+    private static void RemoveDiedEntities()
+    {
+        List<WeaponEntity> diedEntities = new();
+        foreach (WeaponEntity we in weaponEntities)
+        {
+            if (we.deathTick - currentTick <= 0) diedEntities.Add(we);
+        }
+
+        RemoveEntities(diedEntities);
     }
 }

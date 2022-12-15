@@ -15,40 +15,20 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
-using FPS.Configuration;
+using System.Text.RegularExpressions;
+using FPS.Weapons;
 using MCGalaxy;
 using MCGalaxy.Maths;
-using MCGalaxy.Network;
-using MCGalaxy.Tasks;
 using BlockID = System.UInt16;
 
-namespace FPS.Weapons;
+namespace FPSMO.Weapons;
 
-internal abstract class Weapon
+internal enum AnimationType
 {
-    internal abstract void Use(Orientation rot, Vec3F32 loc);
-    internal virtual ushort GetStatus(uint tick)       // 10 if fully reloaded, 0 if not, and everything inbetween
-    {
-        ushort status = (ushort)((float)(tick - lastFireTick) / (float)reloadTimeTicks * 10);
-        return (ushort)(status > 10 ? 10 : status);
-    }
-    internal virtual void Reset() { lastFireTick = 0; }
-
-    internal string name;
-    protected uint damage;
-    protected uint lastFireTick;    // Much more efficient than using timespans
-    protected uint reloadTimeTicks; // Ditto
-    protected Player player;
-    internal ushort weaponSpeed;
-}
-
-internal abstract class ProjectileWeapon : Weapon
-{
-    internal abstract Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTimeTick, uint weaponSpeed);
-    internal virtual void OnHit(Vec3U16 orig) { }
-
-    protected BlockID block;
-    protected float frameLength;
+    SmallExplosion,
+    MediumExplosion,
+    LargeExplosion
 }

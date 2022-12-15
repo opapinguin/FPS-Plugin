@@ -30,8 +30,6 @@ namespace FPS.Weapons;
 /// This class handles all weapon animations in the map
 /// Instead of creating a schedulertask for each time a weapon gets fired (bad idea) we have one running continuously
 /// It can also send block changes for all weapon entities in bulk, which is considerably more efficient
-/// 
-/// TODO: Make it work with ping compensation
 /// </summary>
 internal static class WeaponAnimsHandler
 {
@@ -40,13 +38,19 @@ internal static class WeaponAnimsHandler
 
     static Dictionary<int, BlockID> blockSenderCache;   // Using a dictionary cache has a few benefits, including preventing duplicate writes
 
+    /// <summary>
+    /// Prepares the animation handler for sending blocks
+    /// </summary>
     internal static void Activate()
     {
         sender = new BufferedBlockSender(FPSGame.Instance.Map);
-        level = FPSGame.Instance.Map;
+        level = FPSGame.Instance.Map;   // Cached for efficiency
         blockSenderCache = new Dictionary<int, BlockID>();
     }
 
+    /// <summary>
+    /// Deactivate the animation handler
+    /// </summary>
     internal static void Deactivate()
     {
         sender = null;
@@ -54,6 +58,12 @@ internal static class WeaponAnimsHandler
         blockSenderCache = null;
     }
 
+    /// <summary>
+    /// Draws a list of weapon entities at a given tick to the current FPS map
+    /// Does not display them yet. Need to flush the blockSender cache to truly send the changes
+    /// </summary>
+    /// <param name="entities">Weapon entities</param>
+    /// <param name="currentTick">The current animation tick</param>
     internal static void Draw(List<WeaponEntity> entities, bool currentTick)
     {
         foreach (WeaponEntity we in entities)
@@ -74,9 +84,16 @@ internal static class WeaponAnimsHandler
         }
     }
 
-    internal static void Undraw(List<WeaponEntity> weList,bool currentTick)
+    /// <summary>
+    /// Undraws a list of weapon entities at a given tick to the current FPS map
+    /// Does not undraw them in view. Need to flush the blockSender cache to see the fully effect
+    /// Note: undrawing means sending the original block inside that map
+    /// </summary>
+    /// <param name="entities">Weapon entities</param>
+    /// <param name="currentTick">The current animation tick</param>
+    internal static void Undraw(List<WeaponEntity> entities,bool currentTick)
     {
-        foreach (WeaponEntity we in weList)
+        foreach (WeaponEntity we in entities)
         {
             if (currentTick)
             {
@@ -94,6 +111,9 @@ internal static class WeaponAnimsHandler
         }
     }
 
+    /// <summary>
+    /// Sends visual changes to the FPS map
+    /// </summary>
     internal static void Flush()
     {
         foreach (Player p in FPSGame.Instance.Players.Values)
