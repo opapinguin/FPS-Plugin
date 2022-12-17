@@ -15,25 +15,34 @@ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
 
 using FPS.Configuration;
 using MCGalaxy;
+using MCGalaxy.DB;
 using MCGalaxy.Maths;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using BlockID = System.UInt16;
 
 namespace FPS.Weapons;
 
 internal class GunWeapon : ProjectileWeapon
 {
+    internal const BlockID GunBlock = 41;
+    internal const float MinGunVelocity = 50f;
+    internal const float MaxGunVelocity = 300f;
+    internal const uint GunReloadMilliseconds = 200;
+    internal const uint GunDamage = 1;
+    internal const float GunFrameLength = 1;
+
     internal GunWeapon(Player pl)
     {
         name = "gun";
-        damage = Constants.GUN_DAMAGE;
-        reloadTimeTicks = Constants.MS_GUN_RELOAD / Constants.MS_UPDATE_WEAPON_ANIMATIONS;
+        damage = GunDamage;
+        reloadTimeTicks = GunReloadMilliseconds / Constants.UpdateWeaponAnimationsMilliseconds;
         player = pl;
-        block = Constants.GUN_BLOCK;
+        block = GunBlock;
         lastFireTick = WeaponHandler.Tick;
-        frameLength = Constants.GUN_FRAME_LENGTH;
+        frameLength = GunFrameLength;
     }
 
     /// <summary>
@@ -42,9 +51,9 @@ internal class GunWeapon : ProjectileWeapon
     internal override Vec3F32 LocAt(float tick, Position orig, Orientation rot, uint fireTime, uint speed)
     {
         float timeSpanTicks = tick - fireTime;
-        float time = timeSpanTicks * Constants.MS_UPDATE_WEAPON_ANIMATIONS / 1000;
+        float time = timeSpanTicks * Constants.UpdateWeaponAnimationsMilliseconds / 1000;
 
-        float velocity = (float)speed / 10 * (Constants.MAX_GUN_VELOCITY - Constants.MIN_GUN_VELOCITY) + Constants.MIN_GUN_VELOCITY;
+        float velocity = (float)speed / 10 * (MaxGunVelocity - MinGunVelocity) + MinGunVelocity;
 
         float distance = velocity * time;
 
@@ -52,7 +61,7 @@ internal class GunWeapon : ProjectileWeapon
 
         // Note these are precise coordinates, and so are actually small by a factor of 32
         return new Vec3F32(dir.X * distance * 32 + orig.X,
-            dir.Y * distance * 32 - 0.5f * Constants.GRAVITY * time * time * 32 + orig.Y,
+            dir.Y * distance * 32 - 0.5f * Constants.Gravity * time * time * 32 + orig.Y,
             dir.Z * distance * 32 + orig.Z);
     }
 

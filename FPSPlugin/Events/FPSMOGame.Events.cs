@@ -357,7 +357,7 @@ internal sealed partial class FPSGame
         if (p.Game.Noclip == null) p.Game.Noclip = new MCGalaxy.Games.NoclipDetector(p);
         if (p.Game.Speed == null) p.Game.Speed = new MCGalaxy.Games.SpeedhackDetector(p);
 
-        bool reverted = p.Game.Noclip.Detect(next) || p.Game.Speed.Detect(next, Constants.MAX_MOVE_DISTANCE);
+        bool reverted = p.Game.Noclip.Detect(next) || p.Game.Speed.Detect(next, Constants.MaxMoveDistance);
         if (reverted) cancel = true;
     }
 

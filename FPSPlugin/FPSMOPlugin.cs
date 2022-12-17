@@ -35,6 +35,9 @@ internal class FPSMOPlugin : Plugin
     private GameProperties _gameProperties;
     private FPS.LevelPicker _levelPicker;
 
+    internal const string FpsDirectoryPath = "./fps/";
+    internal const string GamePropertiesFilePath = "./fps/game.properties";
+
     public override string creator { get { return "Opapinguin, D_Flat, Razorboot, Panda"; } }
     public override string name { get { return "FPSMO"; } }
     public override string MCGalaxy_Version { get { return "1.9.4.4"; } }
@@ -183,17 +186,17 @@ internal class FPSMOPlugin : Plugin
 
     private void LoadGameProperties()
     {
-        if (!Directory.Exists(Constants.FPS_DIRECTORY_PATH))
+        if (!Directory.Exists(FpsDirectoryPath))
         {
-            Directory.CreateDirectory(Constants.FPS_DIRECTORY_PATH);
+            Directory.CreateDirectory(FpsDirectoryPath);
         }
 
-        if (!File.Exists(Constants.GAME_PROPERTIES_FILE_PATH))
+        if (!File.Exists(GamePropertiesFilePath))
         {
-            GameProperties.Save(GameProperties.Default(), Constants.FPS_DIRECTORY_PATH);
+            GameProperties.Save(GameProperties.Default(), FpsDirectoryPath);
         }
 
-        _gameProperties = GameProperties.Load(Constants.GAME_PROPERTIES_FILE_PATH);
+        _gameProperties = GameProperties.Load(GamePropertiesFilePath);
         _game.SetGameProperties(_gameProperties);
     }
 }

@@ -79,7 +79,7 @@ internal sealed class StateRound : GameState
         {
             playerData = PlayerDataHandler.Instance[keyValuePair.Key];
             weapon = playerData.currentWeapon;
-            uint delta = RoundTickMilliseconds / Constants.MS_UPDATE_WEAPON_ANIMATIONS;
+            uint delta = RoundTickMilliseconds / Constants.UpdateWeaponAnimationsMilliseconds;
 
             if (weapon.GetStatus(WeaponHandler.Tick - delta) < 10)
             {

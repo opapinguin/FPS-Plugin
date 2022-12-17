@@ -58,7 +58,7 @@ internal static class WeaponHandler
         {
             if (instance != null) return;   // Singleton boilerplate
             instance = new Scheduler("WeaponAnimationsScheduler");
-            task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(Constants.MS_UPDATE_WEAPON_ANIMATIONS));
+            task = instance.QueueRepeat(Update, null, TimeSpan.FromMilliseconds(Constants.UpdateWeaponAnimationsMilliseconds));
         }
 
         WeaponAnimsHandler.Activate();
