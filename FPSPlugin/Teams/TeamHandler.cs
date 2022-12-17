@@ -1,9 +1,8 @@
-﻿using FPS.Entities;
-using MCGalaxy;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using FPS.Entities;
+using MCGalaxy;
 
 namespace FPS.Teams;
 

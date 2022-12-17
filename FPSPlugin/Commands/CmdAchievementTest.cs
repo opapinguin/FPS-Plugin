@@ -1,5 +1,4 @@
-﻿using System;
-using MCGalaxy;
+﻿using MCGalaxy;
 
 namespace FPS.Commands;
 

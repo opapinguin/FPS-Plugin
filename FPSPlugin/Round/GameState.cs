@@ -1,5 +1,4 @@
-﻿using System;
-namespace FPS;
+﻿namespace FPS;
 
 internal abstract class GameState
 {

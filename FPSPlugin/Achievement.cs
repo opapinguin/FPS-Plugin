@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FPS;
+﻿namespace FPS;
 
 internal class Achievement
 {

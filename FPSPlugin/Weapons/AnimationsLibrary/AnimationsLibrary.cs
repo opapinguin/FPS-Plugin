@@ -13,19 +13,14 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTH
 WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-using MCGalaxy.Maths;
-using MCGalaxy;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using BlockID = System.UInt16;
-using System.CodeDom.Compiler;
-using MCGalaxy.Blocks;
 using FPSMO.Weapons;
+using MCGalaxy;
+using MCGalaxy.Maths;
+using BlockID = System.UInt16;
 
 namespace FPS.Weapons;
 

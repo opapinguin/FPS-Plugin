@@ -1,6 +1,6 @@
 ﻿using System;
-using FPS.Entities;
 using System.Collections.Generic;
+using FPS.Entities;
 using FPS.Weapons;
 using MCGalaxy;
 

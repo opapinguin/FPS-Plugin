@@ -1,7 +1,4 @@
-﻿using System;
-using BlockID = System.UInt16;
-
-namespace FPS;
+﻿namespace FPS;
 
 internal static class Constants
 {

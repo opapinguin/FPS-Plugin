@@ -1,5 +1,4 @@
 ﻿using System;
-using FPS.Weapons;
 using MCGalaxy;
 
 namespace FPS;

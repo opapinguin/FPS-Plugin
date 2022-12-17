@@ -20,9 +20,6 @@ using FPS.Commands;
 using FPS.Configuration;
 using FPS.DB;
 using FPS.Weapons;
-using MCGalaxy;
-using MCGalaxy.Events.PlayerEvents;
-using MCGalaxy.Games;
 
 namespace MCGalaxy;
 
